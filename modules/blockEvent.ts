@@ -217,6 +217,12 @@ export async function handleBlockEvent(blockNumber: number) {
   await queryRunner.startTransaction();
 
   try {
+    const existingBlock = await queryRunner.manager.findOne(BlockNumber, {
+      blockNumber,
+    });
+
+    if (existingBlock) return;
+
     const blockNumberData = await queryRunner.manager.save(BlockNumber, {
       blockNumber,
     });
