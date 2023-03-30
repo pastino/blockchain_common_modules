@@ -12,6 +12,7 @@ const config = {
   network: Network.ETH_MAINNET,
 };
 const alchemy = new Alchemy(config);
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 export const hexToDecimal = (hexValue: string) => {
   return parseInt(hexValue, 16);
@@ -183,7 +184,9 @@ export async function handleBlockEvent(blockNumber: number) {
       }
     }
 
-    await queryRunner.commitTransaction();
+    if (IS_PRODUCTION) {
+      await queryRunner.commitTransaction();
+    }
     console.log("블록 데이터 생성", blockNumber);
   } catch (e) {
     await queryRunner.rollbackTransaction();
