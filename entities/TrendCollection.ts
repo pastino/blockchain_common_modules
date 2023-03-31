@@ -6,40 +6,39 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
 } from "typeorm";
 import { Contract } from "./Contract";
-import { Transfer } from "./Transfer";
 
-@Entity()
-export class NFT {
+export enum TimeRange {
+  ONE_HOUR = "1H",
+  SIX_HOURS = "6H",
+  TWELVE_HOURS = "12H",
+  TWENTY_FOUR_HOURS = "24H",
+}
+
+@Entity({ name: "trendCollection" })
+export class TrendCollection {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Contract, (contract) => contract.nfts)
+  @ManyToOne(() => Contract, (contract) => contract.trendCollections)
   @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
 
   @Column({ nullable: true })
-  tokenId: string;
+  floorPrice: string;
 
   @Column({ nullable: true })
-  tokenType: string;
+  volume: string;
+
+  @Column({ type: "enum", enum: TimeRange })
+  timeRange: TimeRange;
 
   @Column({ nullable: true })
-  title: string;
+  sales: number;
 
-  @Column({ nullable: true, length: 4000 })
-  description: string;
-
-  @Column({ nullable: true })
-  mediaThumbnail: string;
-
-  @Column({ nullable: true })
-  rawMetadataImage: string;
-
-  @OneToMany(() => Transfer, (transfer) => transfer.nft)
-  transfers: Transfer[];
+  @Column({ type: Date, default: () => "CURRENT_TIMESTAMP" })
+  staticCreateAt: Date;
 
   @CreateDateColumn()
   createAt: Date;

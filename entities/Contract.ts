@@ -8,6 +8,7 @@ import {
 } from "typeorm";
 import { NFT } from "./NFT";
 import { Transfer } from "./Transfer";
+import { TrendCollection } from "./TrendCollection";
 
 @Entity({ name: "contract" })
 export class Contract {
@@ -67,8 +68,19 @@ export class Contract {
   })
   nfts: NFT[];
 
-  @OneToMany(() => Transfer, (transfer) => transfer.contract)
+  @OneToMany(() => Transfer, (transfer) => transfer.contract, {
+    onDelete: "CASCADE",
+  })
   transfers: Transfer[];
+
+  @OneToMany(
+    () => TrendCollection,
+    (trendCollection) => trendCollection.contract,
+    {
+      onDelete: "CASCADE",
+    }
+  )
+  trendCollections: TrendCollection[];
 
   @CreateDateColumn()
   createAt: Date;
