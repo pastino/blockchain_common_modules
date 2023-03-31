@@ -5,12 +5,39 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-} from "typeorm";
-import { NFT } from "./NFT";
-import { Transfer } from "./Transfer";
-import { TrendCollection } from "./TrendCollection";
+} from 'typeorm';
+import { NFT } from './NFT';
+import { Transfer } from './Transfer';
+import { TrendCollection } from './TrendCollection';
 
-@Entity({ name: "contract" })
+const example = {
+  id: 1,
+  address: '0xd774557b647330c91bf44cfeab205095f7e6c367',
+  tokenId: '',
+  name: 'Nakamigos',
+  totalSupply: '20000',
+  isSpam: '',
+  imageUrl:
+    'https://i.seadn.io/gcs/files/beabfabb47c6baeb6008f21bc0681986.jpg?w=500&auto=format',
+  description: '',
+  externalUrl: 'https://www.0xhoneyjar.xyz/',
+  twitterUsername: '',
+  discordUrl: '',
+  symbol: 'HONEYCOMB',
+  tokenType: 'ERC721',
+  contractDeployer: '0xf951ba8107d7bf63733188e64d7e07bd27b46af7',
+  deployedBlockNumber: '16751283',
+  isCompletedInitialUpdate: true,
+  isCompletedUpdate: true,
+  createAt: new Date(),
+  updateAt: new Date(),
+};
+
+// nfts
+// transfers
+// trendCollections
+
+@Entity({ name: 'contract' })
 export class Contract {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,7 +60,7 @@ export class Contract {
   @Column({ nullable: true })
   imageUrl: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: 'longtext', nullable: true })
   description: string;
 
   @Column({ nullable: true })
@@ -64,12 +91,12 @@ export class Contract {
   isCompletedUpdate: boolean;
 
   @OneToMany(() => NFT, (nft) => nft.contract, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   nfts: NFT[];
 
   @OneToMany(() => Transfer, (transfer) => transfer.contract, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   transfers: Transfer[];
 
@@ -77,8 +104,8 @@ export class Contract {
     () => TrendCollection,
     (trendCollection) => trendCollection.contract,
     {
-      onDelete: "CASCADE",
-    }
+      onDelete: 'CASCADE',
+    },
   )
   trendCollections: TrendCollection[];
 
@@ -86,4 +113,14 @@ export class Contract {
   createAt: Date;
   @UpdateDateColumn()
   updateAt: Date;
+
+  static example(): Contract {
+    const instance = new Contract();
+
+    for (let key in example) {
+      instance[key] = example[key];
+    }
+
+    return instance;
+  }
 }
