@@ -10,10 +10,16 @@ import {
 import { NFT } from "./NFT";
 import { Transfer } from "./Transfer";
 import { TrendCollection } from "./TrendCollection";
+import * as dotenv from "dotenv";
 
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
 
-const example: any = {
+const ApiProperty = isNestJs
+  ? require("@nestjs/swagger").ApiProperty
+  : () => {};
+
+export const contractExample: any = {
   id: 1,
   address: "0xd774557b647330c91bf44cfeab205095f7e6c367",
   tokenId: "",
@@ -36,8 +42,30 @@ const example: any = {
   updateAt: new Date(),
 };
 
+const {
+  id,
+  address,
+  tokenId,
+  name,
+  totalSupply,
+  isSpam,
+  imageUrl,
+  description,
+  externalUrl,
+  twitterUsername,
+  discordUrl,
+  symbol,
+  tokenType,
+  contractDeployer,
+  deployedBlockNumber,
+  isCompletedInitialUpdate,
+  isCompletedUpdate,
+  createAt,
+  updateAt,
+} = contractExample;
+
 @Entity({ name: "contract" })
-// @Unique(["address"])
+@Unique(["address"])
 export class Contract {
   @PrimaryGeneratedColumn()
   id: number;
@@ -117,10 +145,133 @@ export class Contract {
   static example(): Contract {
     const instance: any = new Contract();
 
-    for (let key in example) {
-      instance[key] = example[key];
+    for (let key in contractExample) {
+      instance[key] = contractExample[key];
     }
 
     return instance;
   }
+}
+
+if (isNestJs) {
+  const propertyDecorators = [
+    ApiProperty({
+      name: "id",
+      type: Number,
+      example: id,
+      description: "Uniqe ID",
+    }),
+    ApiProperty({
+      name: "address",
+      type: String,
+      example: address,
+      description: "Contract Address",
+    }),
+    ApiProperty({
+      name: "tokenId",
+      type: String,
+      example: tokenId,
+      description: "Token ID",
+    }),
+    ApiProperty({
+      name: "name",
+      type: String,
+      example: name,
+      description: "Contract Name",
+    }),
+    ApiProperty({
+      name: "totalSupply",
+      type: Number,
+      example: totalSupply,
+      description: "초기 발행량",
+    }),
+    ApiProperty({
+      name: "isSpam",
+      type: Boolean,
+      example: isSpam,
+      description: "스팸인지",
+    }),
+    ApiProperty({
+      name: "imageUrl",
+      type: String,
+      example: imageUrl,
+      description: "이미지 URL",
+    }),
+    ApiProperty({
+      name: "description",
+      type: String,
+      example: description,
+      description: "설명",
+    }),
+    ApiProperty({
+      name: "externalUrl",
+      type: String,
+      example: externalUrl,
+      description: "외부 URL(홈페이지)",
+    }),
+    ApiProperty({
+      name: "twitterUsername",
+      type: String,
+      example: twitterUsername,
+      description: "트위터 유저네임",
+    }),
+    ApiProperty({
+      name: "discordUrl",
+      type: String,
+      example: discordUrl,
+      description: "디스코드 URL",
+    }),
+    ApiProperty({
+      name: "symbol",
+      type: String,
+      example: symbol,
+      description: "컨트랙트 심볼",
+    }),
+    ApiProperty({
+      name: "tokenType",
+      type: String,
+      example: tokenType,
+      description: "토큰 타입",
+    }),
+    ApiProperty({
+      name: "contractDeployer",
+      type: String,
+      example: contractDeployer,
+      description: "컨트랙트 배포자",
+    }),
+    ApiProperty({
+      name: "deployedBlockNumber",
+      type: Number,
+      example: deployedBlockNumber,
+      description: "배포된 블록 넘버",
+    }),
+    ApiProperty({
+      name: "isCompletedInitialUpdate",
+      type: Boolean,
+      example: isCompletedInitialUpdate,
+      description: "초기 업데이트 완료 여부",
+    }),
+    ApiProperty({
+      name: "isCompletedUpdate",
+      type: Boolean,
+      example: isCompletedUpdate,
+      description: "업데이트 완료 여부",
+    }),
+    ApiProperty({
+      name: "createAt",
+      type: Date,
+      example: createAt,
+      description: "생성된 시간",
+    }),
+    ApiProperty({
+      name: "updateAt",
+      type: Date,
+      example: updateAt,
+      description: "업데이트된 시간",
+    }),
+  ];
+
+  propertyDecorators.forEach((decorator, index) => {
+    decorator(Contract.prototype, index.toString());
+  });
 }
