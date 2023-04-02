@@ -26,10 +26,10 @@ export class NFT {
   @Column({ nullable: true })
   tokenType: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 1000 })
   title: string;
 
-  @Column({ nullable: true, length: 4000 })
+  @Column({ type: "longtext", nullable: true })
   description: string;
 
   @Column({ nullable: true })

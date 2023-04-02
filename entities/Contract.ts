@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Unique,
 } from "typeorm";
 import { NFT } from "./NFT";
 import { Transfer } from "./Transfer";
@@ -35,11 +36,8 @@ const example: any = {
   updateAt: new Date(),
 };
 
-// nfts
-// transfers
-// trendCollections
-
 @Entity({ name: "contract" })
+@Unique(["address"])
 export class Contract {
   @PrimaryGeneratedColumn()
   id: number;

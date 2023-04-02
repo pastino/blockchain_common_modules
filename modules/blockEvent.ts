@@ -1,20 +1,20 @@
-import { Alchemy, Network, Log } from 'alchemy-sdk';
-import { getConnection, QueryRunner } from 'typeorm';
-import { BlockNumber } from '../entities/BlockNumber';
-import Web3 from 'web3';
-import { Contract } from '../entities/Contract';
-import { NFT } from '../entities/NFT';
-import { Transfer } from '../entities/Transfer';
-import { Transaction } from '../entities/Transaction';
-import { Message } from './kakao';
-import moment from 'moment';
+import { Alchemy, Network, Log } from "alchemy-sdk";
+import { getConnection, QueryRunner } from "typeorm";
+import { BlockNumber } from "../entities/BlockNumber";
+import Web3 from "web3";
+import { Contract } from "../entities/Contract";
+import { NFT } from "../entities/NFT";
+import { Transfer } from "../entities/Transfer";
+import { Transaction } from "../entities/Transaction";
+import { Message } from "./kakao";
+import moment from "moment";
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
   network: Network.ETH_MAINNET,
 };
 const alchemy = new Alchemy(config);
-const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const kakaoMessage = new Message();
 
 export const hexToDecimal = (hexValue: string) => {
@@ -42,16 +42,31 @@ async function saveContract(log: Log, queryRunner: QueryRunner) {
       isCompletedUpdate: false,
     };
     delete contractMetaData.openSea;
-    contract = await queryRunner.manager.save(Contract, newContract);
-  }
 
+    try {
+      contract = await queryRunner.manager.save(Contract, newContract);
+    } catch (e: any) {
+      if (e.code === "23505") {
+        contract = await queryRunner.manager.findOne(Contract, {
+          where: {
+            address: log.address,
+          },
+        });
+      }
+    }
+  }
+  if (!contract) {
+    throw new Error(
+      `Failed to find or save contract with address: ${log.address}`
+    );
+  }
   return contract;
 }
 
 async function saveNFT(
   contract: Contract,
   decodedLog: any,
-  queryRunner: QueryRunner,
+  queryRunner: QueryRunner
 ) {
   let nft = await queryRunner.manager.findOne(NFT, {
     where: {
@@ -63,7 +78,7 @@ async function saveNFT(
   if (!nft) {
     const nftData = await alchemy.nft.getNftMetadata(
       contract.address,
-      decodedLog?.tokenId,
+      decodedLog?.tokenId
     );
 
     nft = await queryRunner.manager.save(NFT, {
@@ -129,9 +144,9 @@ async function saveTransaction({
     ...transactionData,
     blockNumber: blockNumberData,
     transfer: transferData,
-    gasPrice: String(hexToDecimal(transactionData?.gasPrice?._hex || '0')),
-    gasLimit: String(hexToDecimal(transactionData?.gasLimit?._hex || '0')),
-    value: String(hexToDecimal(transactionData?.value?._hex || '0')),
+    gasPrice: String(hexToDecimal(transactionData?.gasPrice?._hex || "0")),
+    gasLimit: String(hexToDecimal(transactionData?.gasLimit?._hex || "0")),
+    value: String(hexToDecimal(transactionData?.value?._hex || "0")),
     ...timeOption,
   });
 }
@@ -158,25 +173,25 @@ async function processLog({
     inputs: [
       {
         indexed: true,
-        internalType: 'address',
-        name: 'from',
-        type: 'address',
+        internalType: "address",
+        name: "from",
+        type: "address",
       },
       {
         indexed: true,
-        internalType: 'address',
-        name: 'to',
-        type: 'address',
+        internalType: "address",
+        name: "to",
+        type: "address",
       },
       {
         indexed: true,
-        internalType: 'uint256',
-        name: 'tokenId',
-        type: 'uint256',
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
       },
     ],
-    name: 'Transfer',
-    type: 'event',
+    name: "Transfer",
+    type: "event",
   };
 
   const nftTransferEventSignature =
@@ -190,7 +205,7 @@ async function processLog({
         decodedLog = web3.eth.abi.decodeLog(
           nftTransferEventAbi.inputs,
           log.data,
-          log.topics.slice(1),
+          log.topics.slice(1)
         );
       } catch (decodeError) {
         // log.topics.slice(1) 이부분에서 에러가 발생하는 경우는 NFT Transfer가 아닌경우로 무시한다.
@@ -209,7 +224,7 @@ async function processLog({
       });
 
       const transactionData = await alchemy.transact.getTransaction(
-        transactionHash,
+        transactionHash
       );
 
       const transaction = await saveTransaction({
@@ -227,10 +242,10 @@ async function processLog({
         },
         {
           transaction,
-        },
+        }
       );
     } catch (e) {
-      console.error('Error processing log:', e);
+      console.error("Error processing log:", e);
     }
   }
 }
@@ -282,12 +297,12 @@ export async function handleBlockEvent(blockNumber: number) {
     if (IS_PRODUCTION) {
       await queryRunner.commitTransaction();
     }
-    console.log('블록 데이터 생성', blockNumber);
+    console.log("블록 데이터 생성", blockNumber);
   } catch (e: any) {
     await kakaoMessage.sendMessage(
       `${moment(new Date()).format(
-        'MM/DD HH:mm',
-      )}\n\n블록 데이터 생성 실패 ${blockNumber}\n\n${e.message}`,
+        "MM/DD HH:mm"
+      )}\n\n블록 데이터 생성 실패 ${blockNumber}\n\n${e.message}`
     );
     await queryRunner.rollbackTransaction();
     console.log(e);
