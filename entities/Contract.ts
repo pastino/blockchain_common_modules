@@ -37,7 +37,7 @@ const example: any = {
 };
 
 @Entity({ name: "contract" })
-@Unique(["address"])
+// @Unique(["address"])
 export class Contract {
   @PrimaryGeneratedColumn()
   id: number;
