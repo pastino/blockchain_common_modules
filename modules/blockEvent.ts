@@ -74,20 +74,17 @@ async function saveNFT(
       tokenId: decodedLog?.tokenId,
     },
   });
-
   if (!nft) {
     const nftData = await alchemy.nft.getNftMetadata(
       contract.address,
       decodedLog?.tokenId
     );
-
     nft = await queryRunner.manager.save(NFT, {
       ...nftData,
       mediaThumbnail: nftData?.media?.[0]?.thumbnail,
       contract,
     });
   }
-
   return nft;
 }
 
@@ -211,7 +208,7 @@ async function processLog({
         // log.topics.slice(1) 이부분에서 에러가 발생하는 경우는 NFT Transfer가 아닌경우로 무시한다.
         null;
       }
-
+      if (decodedLog?.tokenId === undefined) return;
       const contract = await saveContract(log, queryRunner);
       const nft = await saveNFT(contract, decodedLog, queryRunner);
       const transferData = await saveTransfer({
@@ -222,11 +219,9 @@ async function processLog({
         transactionHash,
         queryRunner,
       });
-
       const transactionData = await alchemy.transact.getTransaction(
         transactionHash
       );
-
       const transaction = await saveTransaction({
         transactionData,
         blockData,
@@ -234,7 +229,6 @@ async function processLog({
         transferData,
         queryRunner,
       });
-
       await queryRunner.manager.update(
         Transfer,
         {
