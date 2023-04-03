@@ -38,6 +38,7 @@ async function saveContract(log: Log, queryRunner: QueryRunner) {
     const newContract = {
       ...contractMetaData,
       ...contractMetaData.openSea,
+      name: contractMetaData.name || contractMetaData.openSea?.collectionName,
       isCompletedInitialUpdate: false,
       isCompletedUpdate: false,
     };
@@ -52,6 +53,8 @@ async function saveContract(log: Log, queryRunner: QueryRunner) {
             address: log.address,
           },
         });
+      } else {
+        console.error("Unexpected error:", e);
       }
     }
   }
@@ -244,61 +247,87 @@ async function processLog({
   }
 }
 
+async function performTransactionWithRetry(
+  callback: Function,
+  queryRunner: QueryRunner,
+  retryCount = 3,
+  delay = 500
+) {
+  let lastError;
+
+  for (let i = 0; i < retryCount; i++) {
+    try {
+      return await callback(queryRunner);
+    } catch (error: any) {
+      if (error.code === "ER_LOCK_WAIT_TIMEOUT") {
+        lastError = error;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 export async function handleBlockEvent(blockNumber: number) {
   const connection = getConnection();
   const queryRunner = connection.createQueryRunner();
   await queryRunner.connect();
-  await queryRunner.startTransaction();
 
   try {
-    const existingBlock = await queryRunner.manager.findOne(BlockNumber, {
-      where: {
+    await performTransactionWithRetry(async (queryRunner: QueryRunner) => {
+      await queryRunner.startTransaction();
+
+      const existingBlock = await queryRunner.manager.findOne(BlockNumber, {
+        where: {
+          blockNumber,
+        },
+      });
+
+      if (existingBlock) return;
+
+      const blockNumberData = await queryRunner.manager.save(BlockNumber, {
         blockNumber,
-      },
-    });
+      });
 
-    if (existingBlock) return;
+      const blockData = await alchemy.core.getBlock(blockNumber);
 
-    const blockNumberData = await queryRunner.manager.save(BlockNumber, {
-      blockNumber,
-    });
+      const transactions = blockData?.transactions;
 
-    const blockData = await alchemy.core.getBlock(blockNumber);
+      for (let i = 0; i < transactions.length; i++) {
+        const transactionHash = transactions[i];
 
-    const transactions = blockData?.transactions;
+        const transactionReceipt = await getTransactionReceipt(transactionHash);
 
-    for (let i = 0; i < transactions.length; i++) {
-      const transactionHash = transactions[i];
+        if (transactionReceipt?.logs) {
+          for (let i = 0; i < transactionReceipt?.logs?.length; i++) {
+            const log = transactionReceipt?.logs[i];
 
-      const transactionReceipt = await getTransactionReceipt(transactionHash);
-
-      if (transactionReceipt?.logs) {
-        for (let i = 0; i < transactionReceipt?.logs?.length; i++) {
-          const log = transactionReceipt?.logs[i];
-
-          await processLog({
-            log,
-            blockNumber,
-            blockNumberData,
-            transactionHash,
-            blockData,
-            queryRunner,
-          });
+            await processLog({
+              log,
+              blockNumber,
+              blockNumberData,
+              transactionHash,
+              blockData,
+              queryRunner,
+            });
+          }
         }
       }
-    }
 
-    if (IS_PRODUCTION) {
-      await queryRunner.commitTransaction();
-    }
-    console.log("블록 데이터 생성", blockNumber);
+      if (IS_PRODUCTION) {
+        await queryRunner.commitTransaction();
+      }
+      console.log("블록 데이터 생성", blockNumber);
+    }, queryRunner);
   } catch (e: any) {
     await kakaoMessage.sendMessage(
       `${moment(new Date()).format(
         "MM/DD HH:mm"
       )}\n\n블록 데이터 생성 실패 ${blockNumber}\n\n${e.message}`
     );
-    await queryRunner.rollbackTransaction();
     console.log(e);
   } finally {
     await queryRunner.release();
