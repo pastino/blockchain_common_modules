@@ -241,6 +241,8 @@ async function saveTransaction({
     eventTime,
   };
 
+  console.log("transactionData", transactionData);
+
   return await queryRunner.manager.save(Transaction, {
     ...transactionData,
     blockNumber: blockNumberData,
@@ -280,7 +282,24 @@ async function processLogTest(log: any) {
   return null;
 }
 
-async function processLog({ log }: { log: Log }) {
+async function processLog({
+  log,
+  blockNumber,
+  blockNumberData,
+  transactionHash,
+  blockData,
+}: {
+  log: Log;
+  blockNumber: number;
+  blockNumberData: BlockNumber;
+  transactionHash: string;
+  blockData: any;
+}) {
+  const connection = getConnection();
+  const queryRunner = connection.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+
   try {
     const nftTransferEventAbi: any = {
       anonymous: false,
@@ -324,12 +343,62 @@ async function processLog({ log }: { log: Log }) {
         // log.topics.slice(1) 이부분에서 에러가 발생하는 경우는 NFT Transfer가 아닌경우로 무시한다.
         return;
       }
+
       if (decodedLog?.tokenId === undefined) return;
 
-      return decodedLog;
+      const contract = await saveContract(log, queryRunner);
+      const nft = await saveNFT(contract, decodedLog, queryRunner);
+
+      const transferData = await saveTransfer({
+        log,
+        contract,
+        nft,
+        decodedLog,
+        blockNumber,
+        transactionHash,
+        queryRunner,
+      });
+
+      const transactionData = await alchemy.transact.getTransaction(
+        transactionHash
+      );
+
+      const transaction = await saveTransaction({
+        log,
+        transactionData,
+        blockData,
+        blockNumberData,
+        transferData,
+        queryRunner,
+      });
+      await queryRunner.manager.update(
+        Transfer,
+        {
+          id: transferData.id,
+        },
+        {
+          transaction,
+        }
+      );
     }
+
+    await queryRunner.commitTransaction();
   } catch (e: any) {
-    throw new Error(e);
+    await getRepository(LogError).save({
+      blockNumber,
+      logId: `${log.transactionHash}-${log.logIndex}`,
+      transactionHash,
+    });
+
+    await kakaoMessage.sendMessage(
+      `${moment(new Date()).format(
+        "MM/DD HH:mm"
+      )}\n\n블록 데이터 생성 실패 ${blockNumber}\n\n${e.message}`
+    );
+    await queryRunner.rollbackTransaction();
+    console.log(e);
+  } finally {
+    await queryRunner.release();
   }
 }
 
@@ -352,80 +421,22 @@ export async function handleBlockEvent(blockNumber: number) {
     const transactions = blockData?.transactions;
 
     for (let i = 0; i < transactions.length; i++) {
-      const connection = getConnection();
-      const queryRunner = connection.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-      let log: any = null;
       const transactionHash = transactions[i];
-      try {
-        const transactionReceipt = await getTransactionReceipt(transactionHash);
 
-        let decodedLog = null;
+      const transactionReceipt = await getTransactionReceipt(transactionHash);
 
-        if (transactionReceipt?.logs) {
-          for (let i = 0; i < transactionReceipt?.logs?.length; i++) {
-            log = transactionReceipt?.logs[i];
-            decodedLog = await processLog({
-              log,
-            });
-          }
+      if (transactionReceipt?.logs) {
+        for (let i = 0; i < transactionReceipt?.logs?.length; i++) {
+          const log = transactionReceipt?.logs[i];
+
+          await processLog({
+            log,
+            blockNumber,
+            blockNumberData,
+            transactionHash,
+            blockData,
+          });
         }
-
-        if (!decodedLog || !log) continue;
-
-        const contract = await saveContract(log, queryRunner);
-        const nft = await saveNFT(contract, decodedLog, queryRunner);
-
-        const transferData = await saveTransfer({
-          log,
-          contract,
-          nft,
-          decodedLog,
-          blockNumber,
-          transactionHash,
-          queryRunner,
-        });
-
-        const transactionData = await alchemy.transact.getTransaction(
-          transactionHash
-        );
-
-        const transaction = await saveTransaction({
-          log,
-          transactionData,
-          blockData,
-          blockNumberData,
-          transferData,
-          queryRunner,
-        });
-        await queryRunner.manager.update(
-          Transfer,
-          {
-            id: transferData.id,
-          },
-          {
-            transaction,
-          }
-        );
-
-        await queryRunner.commitTransaction();
-      } catch (e: any) {
-        await getRepository(LogError).save({
-          blockNumber,
-          logId: `${log.transactionHash}-${log.logIndex}`,
-          transactionHash,
-        });
-
-        await kakaoMessage.sendMessage(
-          `${moment(new Date()).format(
-            "MM/DD HH:mm"
-          )}\n\n블록 데이터 생성 실패 ${blockNumber}\n\n${e.message}`
-        );
-        await queryRunner.rollbackTransaction();
-        console.log(e);
-      } finally {
-        await queryRunner.release();
       }
     }
     console.log("블록 데이터 생성 완료", blockNumber);
