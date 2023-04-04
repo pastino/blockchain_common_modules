@@ -241,8 +241,6 @@ async function saveTransaction({
     eventTime,
   };
 
-  console.log("transactionData", transactionData);
-
   return await queryRunner.manager.save(Transaction, {
     ...transactionData,
     blockNumber: blockNumberData,
