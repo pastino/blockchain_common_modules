@@ -280,20 +280,7 @@ async function processLogTest(log: any) {
   return null;
 }
 
-async function processLog({
-  log,
-  blockNumber,
-  transactionHash,
-}: {
-  log: Log;
-  blockNumber: number;
-  transactionHash: string;
-}) {
-  const connection = getConnection();
-  const queryRunner = connection.createQueryRunner();
-  await queryRunner.connect();
-  await queryRunner.startTransaction();
-
+async function processLog({ log }: { log: Log }) {
   try {
     const nftTransferEventAbi: any = {
       anonymous: false,
@@ -337,8 +324,8 @@ async function processLog({
         // log.topics.slice(1) 이부분에서 에러가 발생하는 경우는 NFT Transfer가 아닌경우로 무시한다.
         return;
       }
-
       if (decodedLog?.tokenId === undefined) return;
+
       return decodedLog;
     }
   } catch (e: any) {
@@ -381,12 +368,10 @@ export async function handleBlockEvent(blockNumber: number) {
             log = transactionReceipt?.logs[i];
             decodedLog = await processLog({
               log,
-              blockNumber,
-              transactionHash,
             });
-            if (decodedLog) break;
           }
         }
+
         if (!decodedLog || !log) continue;
 
         const contract = await saveContract(log, queryRunner);
