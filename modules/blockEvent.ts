@@ -11,7 +11,6 @@ import moment from "moment";
 import axios, { AxiosResponse } from "axios";
 import { ABI } from "../ABI";
 import { LogError } from "../entities/LogError";
-import { sleep } from "../../utils";
 import { OpenseaCollection } from "../entities/OpenseaCollection";
 import { CreateEntityData } from "./manufactureData";
 
@@ -26,6 +25,10 @@ const web3 = new Web3();
 const eventSignatures = ABI.filter((item: any) => item.type === "event").map(
   (event: any) => web3.eth.abi.encodeEventSignature(event)
 );
+
+export const sleep = (sec: number) => {
+  return new Promise((resolve) => setTimeout(resolve, sec * 1000));
+};
 
 export const hexToDecimal = (hexValue: string) => {
   return parseInt(hexValue, 16);
