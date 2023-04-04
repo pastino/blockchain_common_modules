@@ -6,11 +6,14 @@ import {
   UpdateDateColumn,
   OneToMany,
   Unique,
+  OneToOne,
+  JoinColumn,
 } from "typeorm";
 import { NFT } from "./NFT";
 import { Transfer } from "./Transfer";
 import { TrendCollection } from "./TrendCollection";
 import * as dotenv from "dotenv";
+import { OpenseaCollection } from "./OpenseaCollection";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -36,8 +39,6 @@ export const contractExample: any = {
   tokenType: "ERC721",
   contractDeployer: "0xf951ba8107d7bf63733188e64d7e07bd27b46af7",
   deployedBlockNumber: "16751283",
-  isCompletedInitialUpdate: true,
-  isCompletedUpdate: true,
   createAt: new Date(),
   updateAt: new Date(),
 };
@@ -58,8 +59,6 @@ const {
   tokenType,
   contractDeployer,
   deployedBlockNumber,
-  isCompletedInitialUpdate,
-  isCompletedUpdate,
   createAt,
   updateAt,
 } = contractExample;
@@ -112,11 +111,15 @@ export class Contract {
   @Column({ nullable: true })
   deployedBlockNumber: number;
 
-  @Column({ default: false })
-  isCompletedInitialUpdate: boolean;
-
-  @Column({ default: true })
-  isCompletedUpdate: boolean;
+  @OneToOne(
+    () => OpenseaCollection,
+    (openseaCollectio) => openseaCollectio.contract,
+    {
+      onDelete: "CASCADE",
+    }
+  )
+  @JoinColumn({ name: "transferId", referencedColumnName: "id" })
+  openseaCollection: OpenseaCollection;
 
   @OneToMany(() => NFT, (nft) => nft.contract, {
     onDelete: "CASCADE",
@@ -244,18 +247,6 @@ if (isNestJs) {
       type: Number,
       example: deployedBlockNumber,
       description: "배포된 블록 넘버",
-    }),
-    ApiProperty({
-      name: "isCompletedInitialUpdate",
-      type: Boolean,
-      example: isCompletedInitialUpdate,
-      description: "초기 업데이트 완료 여부",
-    }),
-    ApiProperty({
-      name: "isCompletedUpdate",
-      type: Boolean,
-      example: isCompletedUpdate,
-      description: "업데이트 완료 여부",
     }),
     ApiProperty({
       name: "createAt",

@@ -8,9 +8,12 @@ import { Transfer } from "../entities/Transfer";
 import { Transaction } from "../entities/Transaction";
 import { Message } from "./kakao";
 import moment from "moment";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { ABI } from "../ABI";
 import { LogError } from "../entities/LogError";
+import { sleep } from "../../utils";
+import { OpenseaCollection } from "../entities/OpenseaCollection";
+import { CreateEntityData } from "./manufactureData";
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
@@ -32,6 +35,42 @@ async function getTransactionReceipt(transactionHash: string) {
   return await alchemy.core.getTransactionReceipt(transactionHash);
 }
 
+export const openSeaConfig: any = {
+  headers: {
+    "X-API-KEY": process.env.OPENSEA_API_KEY,
+  },
+};
+
+const handleOpenseaContract = async (
+  contractAddress: string,
+  retryCount: number = 10
+): Promise<AxiosResponse | undefined> => {
+  try {
+    const response = await axios.get(
+      `https://api.opensea.io/api/v1/asset_contract/${contractAddress}`,
+      openSeaConfig
+    );
+    return response;
+  } catch (e: any) {
+    if (e.response && e.response.status !== 404) {
+      if (retryCount > 0) {
+        await sleep(3);
+        return handleOpenseaContract(contractAddress, retryCount - 1);
+      } else {
+        await kakaoMessage.sendMessage(
+          `${moment(new Date()).format(
+            "MM/DD HH:mm"
+          )}\n\nopensea error - handleOpenseaContract`
+        );
+        console.error(
+          `Failed to fetch asset_contract after ${10} retries. Error: `,
+          e
+        );
+      }
+    }
+  }
+};
+
 async function saveContract(log: Log, queryRunner: QueryRunner) {
   let contract = await queryRunner.manager.findOne(Contract, {
     where: {
@@ -46,13 +85,33 @@ async function saveContract(log: Log, queryRunner: QueryRunner) {
       ...contractMetaData,
       ...contractMetaData.openSea,
       name: contractMetaData.name || contractMetaData.openSea?.collectionName,
-      isCompletedInitialUpdate: false,
-      isCompletedUpdate: false,
     };
     delete contractMetaData.openSea;
 
     try {
       contract = await queryRunner.manager.save(Contract, newContract);
+      const openseaData = await handleOpenseaContract(contract.address);
+      const createEntityData = new CreateEntityData({
+        snakeObject: openseaData?.data?.collection,
+        entity: OpenseaCollection,
+        filterList: ["id"],
+      });
+      const openseaCollection = await queryRunner.manager.save(
+        OpenseaCollection,
+        {
+          ...createEntityData.createTableRowData(),
+          contract,
+        }
+      );
+      await queryRunner.manager.update(
+        Contract,
+        {
+          id: contract.id,
+        },
+        {
+          openseaCollection,
+        }
+      );
     } catch (e: any) {
       if (e.code === "23505") {
         contract = await queryRunner.manager.findOne(Contract, {
