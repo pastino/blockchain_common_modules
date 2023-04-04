@@ -13,13 +13,14 @@ import { ABI } from "../ABI";
 import { LogError } from "../entities/LogError";
 import { OpenseaCollection } from "../entities/OpenseaCollection";
 import { CreateEntityData } from "./manufactureData";
+import { BigNumber } from "ethers";
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
   network: Network.ETH_MAINNET,
 };
 const alchemy = new Alchemy(config);
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 const kakaoMessage = new Message();
 const web3 = new Web3();
 const eventSignatures = ABI.filter((item: any) => item.type === "event").map(
@@ -30,8 +31,12 @@ export const sleep = (sec: number) => {
   return new Promise((resolve) => setTimeout(resolve, sec * 1000));
 };
 
-export const hexToDecimal = (hexValue: string) => {
-  return parseInt(hexValue, 16);
+export const hexToStringValue = (hexValue: string) => {
+  // BigNumber 객체를 생성
+  const bigNumberValue = BigNumber.from(hexValue);
+
+  // BigNumber 객체를 문자열 값으로 변환
+  return bigNumberValue.toString();
 };
 
 async function getTransactionReceipt(transactionHash: string) {
@@ -99,6 +104,7 @@ async function saveContract(log: Log, queryRunner: QueryRunner) {
         entity: OpenseaCollection,
         filterList: ["id"],
       });
+      // console.log("createEntityData", createEntityData);
       const openseaCollection = await queryRunner.manager.save(
         OpenseaCollection,
         {
@@ -239,9 +245,9 @@ async function saveTransaction({
     ...transactionData,
     blockNumber: blockNumberData,
     transfer: transferData,
-    gasPrice: String(hexToDecimal(transactionData?.gasPrice?._hex || "0")),
-    gasLimit: String(hexToDecimal(transactionData?.gasLimit?._hex || "0")),
-    value: String(hexToDecimal(transactionData?.value?._hex || "0")),
+    gasPrice: hexToStringValue(transactionData?.gasPrice?._hex),
+    gasLimit: hexToStringValue(transactionData?.gasLimit?._hex),
+    value: hexToStringValue(transactionData?.value?._hex),
     logId: `${log.transactionHash}-${log.logIndex}`,
     ...timeOption,
   });
@@ -277,15 +283,11 @@ async function processLogTest(log: any) {
 async function processLog({
   log,
   blockNumber,
-  blockNumberData,
   transactionHash,
-  blockData,
 }: {
   log: Log;
   blockNumber: number;
-  blockNumberData: BlockNumber;
   transactionHash: string;
-  blockData: any;
 }) {
   const connection = getConnection();
   const queryRunner = connection.createQueryRunner();
@@ -337,61 +339,10 @@ async function processLog({
       }
 
       if (decodedLog?.tokenId === undefined) return;
-
-      const contract = await saveContract(log, queryRunner);
-      const nft = await saveNFT(contract, decodedLog, queryRunner);
-
-      const transferData = await saveTransfer({
-        log,
-        contract,
-        nft,
-        decodedLog,
-        blockNumber,
-        transactionHash,
-        queryRunner,
-      });
-
-      const transactionData = await alchemy.transact.getTransaction(
-        transactionHash
-      );
-
-      const transaction = await saveTransaction({
-        log,
-        transactionData,
-        blockData,
-        blockNumberData,
-        transferData,
-        queryRunner,
-      });
-      await queryRunner.manager.update(
-        Transfer,
-        {
-          id: transferData.id,
-        },
-        {
-          transaction,
-        }
-      );
-    }
-    if (IS_PRODUCTION) {
-      await queryRunner.commitTransaction();
+      return decodedLog;
     }
   } catch (e: any) {
-    await getRepository(LogError).save({
-      blockNumber,
-      logId: `${log.transactionHash}-${log.logIndex}`,
-      transactionHash,
-    });
-
-    await kakaoMessage.sendMessage(
-      `${moment(new Date()).format(
-        "MM/DD HH:mm"
-      )}\n\n블록 데이터 생성 실패 ${blockNumber}\n\n${e.message}`
-    );
-    await queryRunner.rollbackTransaction();
-    console.log(e);
-  } finally {
-    await queryRunner.release();
+    throw new Error(e);
   }
 }
 
@@ -414,21 +365,82 @@ export async function handleBlockEvent(blockNumber: number) {
     const transactions = blockData?.transactions;
 
     for (let i = 0; i < transactions.length; i++) {
+      const connection = getConnection();
+      const queryRunner = connection.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      let log: any = null;
       const transactionHash = transactions[i];
+      try {
+        const transactionReceipt = await getTransactionReceipt(transactionHash);
 
-      const transactionReceipt = await getTransactionReceipt(transactionHash);
+        let decodedLog = null;
 
-      if (transactionReceipt?.logs) {
-        for (let i = 0; i < transactionReceipt?.logs?.length; i++) {
-          const log = transactionReceipt?.logs[i];
-          await processLog({
-            log,
-            blockNumber,
-            blockNumberData,
-            transactionHash,
-            blockData,
-          });
+        if (transactionReceipt?.logs) {
+          for (let i = 0; i < transactionReceipt?.logs?.length; i++) {
+            log = transactionReceipt?.logs[i];
+            decodedLog = await processLog({
+              log,
+              blockNumber,
+              transactionHash,
+            });
+            if (decodedLog) break;
+          }
         }
+        if (!decodedLog || !log) continue;
+
+        const contract = await saveContract(log, queryRunner);
+        const nft = await saveNFT(contract, decodedLog, queryRunner);
+
+        const transferData = await saveTransfer({
+          log,
+          contract,
+          nft,
+          decodedLog,
+          blockNumber,
+          transactionHash,
+          queryRunner,
+        });
+
+        const transactionData = await alchemy.transact.getTransaction(
+          transactionHash
+        );
+
+        const transaction = await saveTransaction({
+          log,
+          transactionData,
+          blockData,
+          blockNumberData,
+          transferData,
+          queryRunner,
+        });
+        await queryRunner.manager.update(
+          Transfer,
+          {
+            id: transferData.id,
+          },
+          {
+            transaction,
+          }
+        );
+
+        await queryRunner.commitTransaction();
+      } catch (e: any) {
+        await getRepository(LogError).save({
+          blockNumber,
+          logId: `${log.transactionHash}-${log.logIndex}`,
+          transactionHash,
+        });
+
+        await kakaoMessage.sendMessage(
+          `${moment(new Date()).format(
+            "MM/DD HH:mm"
+          )}\n\n블록 데이터 생성 실패 ${blockNumber}\n\n${e.message}`
+        );
+        await queryRunner.rollbackTransaction();
+        console.log(e);
+      } finally {
+        await queryRunner.release();
       }
     }
     console.log("블록 데이터 생성 완료", blockNumber);
