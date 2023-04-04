@@ -7,11 +7,13 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Unique,
 } from "typeorm";
 import { Contract } from "./Contract";
 import { Transfer } from "./Transfer";
 
-@Entity()
+@Entity({ name: "nft" })
+@Unique("uniqueIndex", ["contract", "tokenId"])
 export class NFT {
   @PrimaryGeneratedColumn()
   id: number;

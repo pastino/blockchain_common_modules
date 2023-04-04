@@ -7,11 +7,11 @@ import {
   JoinColumn,
   OneToOne,
   ManyToOne,
-} from 'typeorm';
-import { BlockNumber } from './BlockNumber';
-import { Transfer } from './Transfer';
+} from "typeorm";
+import { BlockNumber } from "./BlockNumber";
+import { Transfer } from "./Transfer";
 
-@Entity({ name: 'transaction' })
+@Entity({ name: "transaction" })
 export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
@@ -20,9 +20,9 @@ export class Transaction {
   hash: string;
 
   @OneToOne(() => Transfer, (transfer) => transfer.transaction, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
-  @JoinColumn({ name: 'transferId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "transferId", referencedColumnName: "id" })
   transfer: Transfer;
 
   @Column({ nullable: true })
@@ -35,8 +35,8 @@ export class Transaction {
   blockHash: string;
 
   @ManyToOne(() => BlockNumber, (blockNumber) => blockNumber.transactions)
-  @JoinColumn({ name: 'blockNumber', referencedColumnName: 'id' })
-  blockNumber: BlockNumber;
+  @JoinColumn({ name: "blockNumber", referencedColumnName: "id" })
+  blockNumber: number;
 
   @Column({ nullable: true })
   transactionIndex: number;
@@ -62,11 +62,14 @@ export class Transaction {
   @Column({ nullable: true })
   nonce: number;
 
-  @Column({ type: 'longtext', nullable: true })
+  @Column({ type: "longtext", nullable: true })
   data: string;
 
   @Column({ nullable: true })
   chainId: number;
+
+  @Column({ nullable: true, unique: true })
+  logId: string;
 
   @CreateDateColumn()
   createAt: Date;

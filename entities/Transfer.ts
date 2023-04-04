@@ -52,6 +52,9 @@ export class Transfer {
   @Column({ nullable: true })
   blockNumber: number;
 
+  @Column({ nullable: true, unique: true })
+  logId: string;
+
   @CreateDateColumn()
   createAt: Date;
   @UpdateDateColumn()

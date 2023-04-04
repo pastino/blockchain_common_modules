@@ -4,22 +4,21 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
 } from "typeorm";
-import { Transaction } from "./Transaction";
 
-@Entity({ name: "blockNumber" })
-export class BlockNumber {
+@Entity({ name: "logError" })
+export class LogError {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ nullable: false, unique: true })
   blockNumber: number;
 
-  @OneToMany(() => Transaction, (transaction) => transaction.blockNumber, {
-    onDelete: "CASCADE",
-  })
-  transactions: Transaction[];
+  @Column({ nullable: false })
+  transactionHash: string;
+
+  @Column({ nullable: false })
+  logId: string;
 
   @CreateDateColumn()
   createAt: Date;
