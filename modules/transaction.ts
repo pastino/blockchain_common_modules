@@ -230,7 +230,6 @@ export class Transaction {
   public async progressTransaction(): Promise<any> {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
-    console.log("??");
     try {
       const transactionData = await this.getTransaction(this.transactionHash);
       if (!transactionData)
