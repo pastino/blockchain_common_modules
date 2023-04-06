@@ -187,9 +187,7 @@ export class Transaction {
       address: log.address,
       queryRunner: this.queryRunner,
     });
-
     const contractData = await contract.saveContract();
-
     const nft = new NFT({
       contract: contractData,
       queryRunner: this.queryRunner,
@@ -232,7 +230,7 @@ export class Transaction {
   public async progressTransaction(): Promise<any> {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
-
+    console.log("??");
     try {
       const transactionData = await this.getTransaction(this.transactionHash);
       if (!transactionData)
@@ -262,28 +260,33 @@ export class Transaction {
           ...transactionData,
           blockNumber: this.blockNumber,
           gasPrice: this.hexToStringValue(
-            transactionData?.gasPrice?._hex || "0"
+            transactionData?.gasPrice?._hex || "0x0"
           ),
           gasLimit: this.hexToStringValue(
-            transactionData?.gasLimit?._hex || "0"
+            transactionData?.gasLimit?._hex || "0x0"
           ),
-          value: this.hexToStringValue(transactionData?.value?._hex || "0"),
+          value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
           ...timeOption,
         }
       );
 
-      // 트랜잭션 로그 데이터들 저장.
+      // 트랜잭션 로그 데이터들 저장
       for (let i = 0; i < logs.length; i++) {
         const log = logs[i];
 
         const decodedLog = await this.anylyzeLog(log);
         // LOG가 ERC721이면 Contract와 NFT 저장
-        if (decodedLog?.data?.type === "ERC721") {
+
+        if (
+          decodedLog?.data?.type === "ERC721" &&
+          decodedLog?.data?.indexLength === 3
+        ) {
           await this.createContractAndNFT({
             log,
             tokenId: decodedLog?.data?.tokenId,
           });
         }
+
         await this.createLog({ log, transaction });
       }
 
