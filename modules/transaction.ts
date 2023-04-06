@@ -12,7 +12,6 @@ import { getConnection, getRepository, QueryRunner } from "typeorm";
 import { Contract } from "./contract";
 import { NFT } from "./nft";
 import { Transaction as TransactionEntity } from "../entities/Transaction";
-import { BigNumber } from "ethers";
 import { Log as LogEntity } from "../entities/Log";
 import { Topic as TopicEntity } from "../entities/Topic";
 import { sleep } from "../utils";
@@ -173,16 +172,8 @@ export class Transaction {
     return false;
   }
 
-  private hexToStringValue = (hexValue: string | undefined): string => {
-    if (hexValue === undefined) {
-      return "0";
-    }
-    try {
-      const bigNumberValue = BigNumber.from(hexValue);
-      return bigNumberValue.toString();
-    } catch (e) {
-      return "0";
-    }
+  private hexToStringValue = (hexValue: string): string => {
+    return parseInt(hexValue, 16).toString();
   };
 
   private async createContractAndNFT({
@@ -270,7 +261,9 @@ export class Transaction {
         {
           ...transactionData,
           blockNumber: this.blockNumber,
-          gasPrice: this.hexToStringValue(transactionData?.gasPrice?._hex),
+          gasPrice: this.hexToStringValue(
+            transactionData?.gasPrice?._hex || "0"
+          ),
           gasLimit: this.hexToStringValue(transactionData?.gasLimit?._hex),
           value: this.hexToStringValue(transactionData?.value?._hex),
           ...timeOption,
