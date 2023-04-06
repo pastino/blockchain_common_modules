@@ -245,8 +245,8 @@ export class Transaction {
       if (!logs || logs.length === 0)
         return { isSuccess: false, message: "logs is empty" };
 
-      const isERC721Transaction = this.getDecodedLogs(logs);
-      if (!isERC721Transaction)
+      const { isERC721 } = await this.getDecodedLogs(logs);
+      if (!isERC721)
         return { isSuccess: false, message: "is not ERC721 transaction" };
       const timestamp = this.blockData.timestamp;
       const eventTime = new Date(timestamp * 1000);
@@ -264,8 +264,10 @@ export class Transaction {
           gasPrice: this.hexToStringValue(
             transactionData?.gasPrice?._hex || "0"
           ),
-          gasLimit: this.hexToStringValue(transactionData?.gasLimit?._hex),
-          value: this.hexToStringValue(transactionData?.value?._hex),
+          gasLimit: this.hexToStringValue(
+            transactionData?.gasLimit?._hex || "0"
+          ),
+          value: this.hexToStringValue(transactionData?.value?._hex || "0"),
           ...timeOption,
         }
       );
