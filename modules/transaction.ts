@@ -112,9 +112,23 @@ export class Transaction {
     const topics = log.topics;
     const haxSignature = topics[0];
 
-    const signatureData = SIGNATURE_LIST.find((signature) => {
-      signature.hexSignature === haxSignature;
-    });
+    const signatureDataLength = SIGNATURE_LIST.filter(
+      (signature) => signature.hexSignature === haxSignature
+    ).length;
+
+    let signatureData;
+
+    if (signatureDataLength > 1) {
+      signatureData = SIGNATURE_LIST.find(
+        (signature) =>
+          signature.hexSignature === haxSignature &&
+          topics.length === signature.indexLength + 1
+      );
+    } else if (signatureDataLength === 1) {
+      signatureData = SIGNATURE_LIST.find(
+        (signature) => signature.hexSignature === haxSignature
+      );
+    }
 
     if (!signatureData)
       return { isSuccess: false, message: "signatureData is empty" };
@@ -182,6 +196,7 @@ export class Transaction {
     await nft.saveNFT();
     return { isSuccess: true };
   }
+
   private async createLog({
     log,
     transaction,
@@ -224,7 +239,6 @@ export class Transaction {
       const transactionReceipt = await this.getTransactionReceipt(
         this.transactionHash
       );
-
       const logs = transactionReceipt?.logs;
       if (!logs || logs.length === 0)
         return { isSuccess: false, message: "logs is empty" };
@@ -232,7 +246,6 @@ export class Transaction {
       const isERC721Transaction = this.getDecodedLogs(logs);
       if (!isERC721Transaction)
         return { isSuccess: false, message: "is not ERC721 transaction" };
-
       const timestamp = this.blockData.timestamp;
       const eventTime = new Date(timestamp * 1000);
 
@@ -240,7 +253,6 @@ export class Transaction {
         timestamp,
         eventTime,
       };
-
       // 트랜잭션 저장
       const transaction = await this.queryRunner.manager.save(
         TransactionEntity,
@@ -261,6 +273,7 @@ export class Transaction {
         const decodedLog = await this.anylyzeLog(log);
         // LOG가 ERC721이면 Contract와 NFT 저장
         if (decodedLog?.data?.type === "ERC721") {
+          console.log("createContractAndNFT");
           await this.createContractAndNFT({
             log,
             tokenId: decodedLog?.data?.tokenId,
