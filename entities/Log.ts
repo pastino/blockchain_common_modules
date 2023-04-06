@@ -16,7 +16,9 @@ export class Log {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Transaction, (transaction) => transaction.logs)
+  @ManyToOne(() => Transaction, (transaction) => transaction.logs, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "transactionId", referencedColumnName: "id" })
   transaction: Transaction;
 

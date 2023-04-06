@@ -137,7 +137,7 @@ export class Transaction {
       const decodedSignatureData = signatureData.function(topics, log.data);
       return { isSuccess: true, data: decodedSignatureData };
     } catch (e) {
-      console.log(topics, signatureData);
+      console.log(log.transactionHash, topics, signatureData);
       return { isSuccess: false };
     }
   }
@@ -174,8 +174,15 @@ export class Transaction {
   }
 
   private hexToStringValue = (hexValue: string | undefined): string => {
-    const bigNumberValue = BigNumber.from(hexValue);
-    return bigNumberValue.toString();
+    if (hexValue === undefined) {
+      return "0";
+    }
+    try {
+      const bigNumberValue = BigNumber.from(hexValue);
+      return bigNumberValue.toString();
+    } catch (e) {
+      return "0";
+    }
   };
 
   private async createContractAndNFT({
@@ -257,7 +264,7 @@ export class Transaction {
         timestamp,
         eventTime,
       };
-      // 트랜잭션 저장
+
       const transaction = await this.queryRunner.manager.save(
         TransactionEntity,
         {
@@ -288,19 +295,8 @@ export class Transaction {
       await this.queryRunner.commitTransaction();
       return { isSuccess: true };
     } catch (e: any) {
-      // 트랜잭션 실패 시 로그 데이터 없음
-      await getRepository(LogError).save({
-        blockNumber: this.blockNumber.blockNumber,
-        transactionHash: this.transactionHash,
-      });
-
-      await kakaoMessage.sendMessage(
-        `${moment(new Date()).format("MM/DD HH:mm")}\n\n트랜잭션 생성 실패 ${
-          this.blockNumber.blockNumber
-        }\n\n${e.message}`
-      );
       await this.queryRunner.rollbackTransaction();
-      console.log(e);
+      throw new Error(e);
     } finally {
       await this.queryRunner.release();
     }

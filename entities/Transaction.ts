@@ -28,7 +28,9 @@ export class Transaction {
   @Column({ nullable: true })
   blockHash: string;
 
-  @ManyToOne(() => BlockNumber, (blockNumber) => blockNumber.transactions)
+  @ManyToOne(() => BlockNumber, (blockNumber) => blockNumber.transactions, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "blockNumberId", referencedColumnName: "id" })
   blockNumber: BlockNumber;
 
