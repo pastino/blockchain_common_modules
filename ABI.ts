@@ -1,732 +1,368 @@
-export type AbiType =
-  | "function"
-  | "constructor"
-  | "event"
-  | "fallback"
-  | "receive";
-export type StateMutabilityType = "pure" | "view" | "nonpayable" | "payable";
+import Web3 from "web3";
 
-export interface AbiItem {
-  anonymous?: boolean;
-  constant?: boolean;
-  inputs?: AbiInput[];
-  name?: string;
-  outputs?: AbiOutput[];
-  payable?: boolean;
-  stateMutability?: StateMutabilityType;
-  type: AbiType;
-  gas?: number;
-}
+const web3 = new Web3();
+export const SIGNATURE_LIST = [
+  {
+    hexSignature:
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+    textSignature:
+      "Transfer (index_topic_1 address from, index_topic_2 address to, uint256 value)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Transfer",
+        type: "ERC20",
+        from: web3.eth.abi.decodeParameter("address", topics[1]),
+        to: web3.eth.abi.decodeParameter("address", topics[2]),
+        value: web3.eth.abi.decodeParameter("uint256", data),
+      };
+    },
+  },
+  {
+    hexSignature:
+      "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+    textSignature:
+      "Approval (index_topic_1 address owner, index_topic_2 address spender, uint256 value)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Approval",
+        type: "ERC20",
+        owner: web3.eth.abi.decodeParameter("address", topics[1]),
+        spender: web3.eth.abi.decodeParameter("address", topics[2]),
+        value: web3.eth.abi.decodeParameter("uint256", data),
+      };
+    },
+  },
 
-export interface AbiInput {
-  name: string;
-  type: string;
-  indexed?: boolean;
-  components?: AbiInput[];
-  internalType?: string;
-}
-
-export interface AbiOutput {
-  name: string;
-  type: string;
-  components?: AbiOutput[];
-  internalType?: string;
-}
-
-export const ABI: AbiItem[] = [
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "approved",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "Approval",
-    type: "event",
+    hexSignature:
+      "0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1",
+    textSignature: "Sync (uint112 reserve0, uint112 reserve1)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Sync",
+        type: "ERC20",
+        reserve0: web3.eth.abi.decodeParameters(
+          ["uint112", "uint112"],
+          data
+        )[0],
+        reserve1: web3.eth.abi.decodeParameters(
+          ["uint112", "uint112"],
+          data
+        )[1],
+      };
+    },
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "operator",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "approved",
-        type: "bool",
-      },
-    ],
-    name: "ApprovalForAll",
-    type: "event",
+    hexSignature:
+      "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822",
+    textSignature:
+      "Swap (index_topic_1 address sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, index_topic_2 address to)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Swap",
+        type: "ERC20",
+        sender: web3.eth.abi.decodeParameter("address", topics[1]),
+        to: web3.eth.abi.decodeParameter("address", topics[2]),
+        amount0In: web3.eth.abi.decodeParameters(
+          ["uint256", "uint256", "uint256", "uint256"],
+          data
+        )[0],
+        amount1In: web3.eth.abi.decodeParameters(
+          ["uint256", "uint256", "uint256", "uint256"],
+          data
+        )[1],
+        amount0Out: web3.eth.abi.decodeParameters(
+          ["uint256", "uint256", "uint256", "uint256"],
+          data
+        )[2],
+        amount1Out: web3.eth.abi.decodeParameters(
+          ["uint256", "uint256", "uint256", "uint256"],
+          data
+        )[3],
+      };
+    },
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "Paused",
-    type: "event",
+    hexSignature:
+      "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65",
+    textSignature: "Withdrawal (index_topic_1 address src, uint256 wad)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Withdrawal",
+        type: "ERC20",
+        src: web3.eth.abi.decodeParameter("address", topics[1]),
+        wad: web3.eth.abi.decodeParameter("uint256", data),
+      };
+    },
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "key",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "SolutionAdded",
-    type: "event",
+    hexSignature:
+      "0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c",
+    textSignature: "Deposit (index_topic_1 address dst, uint256 wad)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Deposit",
+        type: "ERC20",
+        dst: web3.eth.abi.decodeParameter("address", topics[1]),
+        wad: web3.eth.abi.decodeParameter("uint256", data),
+      };
+    },
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "Transfer",
-    type: "event",
+    hexSignature:
+      "0xb9ed0243fdf00f0545c63a0af8850c090d86bb46682baec4bf3c496814fe4f02",
+    textSignature:
+      "OrderFilled (index_topic_1 address maker, bytes32 orderHash, uint256 remaining)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "OrderFilled",
+        type: "ERC20",
+        maker: web3.eth.abi.decodeParameter("address", topics[1]),
+        orderHash: web3.eth.abi.decodeParameters(
+          ["bytes32", "uint256"],
+          data
+        )[0],
+        remaining: web3.eth.abi.decodeParameters(
+          ["bytes32", "uint256"],
+          data
+        )[1],
+      };
+    },
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "previousOwner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "TransferredOwnership",
-    type: "event",
+    hexSignature:
+      "0xdec2bacdd2f05b59de34da9b523dff8be42e5e38e818c82fdb0bae774387a724",
+    textSignature:
+      "DelegateVotesChanged (index_topic_1 address delegate, uint256 previousBalance, uint256 newBalance)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "DelegateVotesChanged",
+        type: "ERC20",
+        delegate: web3.eth.abi.decodeParameter("address", topics[1]),
+        previousBalance: web3.eth.abi.decodeParameters(
+          ["uint256", "uint256"],
+          data
+        )[0],
+        newBalance: web3.eth.abi.decodeParameters(
+          ["uint256", "uint256"],
+          data
+        )[1],
+      };
+    },
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "UnPaused",
-    type: "event",
+    hexSignature:
+      "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67",
+    textSignature:
+      "Swap (index_topic_1 address sender, index_topic_2 address recipient, int256 amount0, int256 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Swap",
+        type: "ERC20",
+        sender: web3.eth.abi.decodeParameter("address", topics[1]),
+        recipient: web3.eth.abi.decodeParameter("address", topics[2]),
+        amount0: web3.eth.abi.decodeParameters(
+          ["int256", "int256", "uint160", "uint128", "int24"],
+          data
+        )[0],
+        amount1: web3.eth.abi.decodeParameters(
+          ["int256", "int256", "uint160", "uint128", "int24"],
+          data
+        )[1],
+        sqrtPriceX96: web3.eth.abi.decodeParameters(
+          ["int256", "int256", "uint160", "uint128", "int24"],
+          data
+        )[2],
+        liquidity: web3.eth.abi.decodeParameters(
+          ["int256", "int256", "uint160", "uint128", "int24"],
+          data
+        )[3],
+        tick: web3.eth.abi.decodeParameters(
+          ["int256", "int256", "uint160", "uint128", "int24"],
+          data
+        )[4],
+      };
+    },
   },
   {
-    constant: false,
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "_myid",
-        type: "bytes32",
-      },
-      {
-        internalType: "string",
-        name: "_result",
-        type: "string",
-      },
-    ],
-    name: "__callback",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
+    hexSignature:
+      "0x834a47bfbb51ad808d8649527d9bf540f58cc71dc1093ae2249c8b230575ce98",
+    textSignature:
+      "RoyaltyReceiverUpdated (index_topic_1 uint256 niftyType, address previousReceiver, address newReceiver)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Swap",
+        type: "ERC20",
+        niftyType: web3.eth.abi.decodeParameter("uint256", topics[1]),
+        previousReceiver: web3.eth.abi.decodeParameters(
+          ["address", "address"],
+          data
+        )[0],
+        newReceiver: web3.eth.abi.decodeParameters(
+          ["address", "address"],
+          data
+        )[1],
+      };
+    },
   },
   {
-    constant: false,
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "_myid",
-        type: "bytes32",
-      },
-      {
-        internalType: "string",
-        name: "_result",
-        type: "string",
-      },
-      {
-        internalType: "bytes",
-        name: "_proof",
-        type: "bytes",
-      },
-    ],
-    name: "__callback",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
+    hexSignature:
+      "0x0f6672f78a59ba8e5e5b5d38df3ebc67f3c792e2c9259b8d97d7f00dd78ba1b3",
+    textSignature:
+      "TransformedERC20 (index_topic_1 address taker, address inputToken, address outputToken, uint256 inputTokenAmount, uint256 outputTokenAmount)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "TransformedERC20",
+        type: "ERC20",
+        taker: web3.eth.abi.decodeParameter("uint256", topics[1]),
+        inputToken: web3.eth.abi.decodeParameters(
+          ["address", "address", "uint256", "uint256"],
+          data
+        )[0],
+        outputToken: web3.eth.abi.decodeParameters(
+          ["address", "address", "uint256", "uint256"],
+          data
+        )[1],
+        inputTokenAmount: web3.eth.abi.decodeParameters(
+          ["address", "address", "uint256", "uint256"],
+          data
+        )[2],
+        outputTokenAmount: web3.eth.abi.decodeParameters(
+          ["address", "address", "uint256", "uint256"],
+          data
+        )[3],
+      };
+    },
   },
   {
-    constant: false,
-    inputs: [
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "approve",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
+    hexSignature:
+      "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+    textSignature:
+      "Approval (index_topic_1 address owner, index_topic_2 address approved, index_topic_3 uint256 tokenId)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Approval",
+        type: "ERC721",
+        owner: web3.eth.abi.decodeParameter("address", topics[1]),
+        approved: web3.eth.abi.decodeParameter("address", topics[2]),
+        tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]),
+      };
+    },
   },
   {
-    constant: true,
-    inputs: [
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-    ],
-    name: "balanceOf",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
+    hexSignature:
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+    textSignature:
+      "Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 tokenId)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Transfer",
+        type: "ERC721",
+        from: web3.eth.abi.decodeParameter("address", topics[1]),
+        to: web3.eth.abi.decodeParameter("address", topics[2]),
+        tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]),
+      };
+    },
   },
   {
-    constant: true,
-    inputs: [],
-    name: "baseTokenURI",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
+    hexSignature:
+      "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
+    textSignature:
+      "Mint (index_topic_1 address sender, uint256 amount0, uint256 amount1)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "Mint",
+        type: "ERC721",
+        sender: web3.eth.abi.decodeParameter("address", topics[1]),
+        amount0: web3.eth.abi.decodeParameters(["uint256", "uint256"], data)[0],
+        amount1: web3.eth.abi.decodeParameters(["uint256", "uint256"], data)[1],
+      };
+    },
   },
   {
-    constant: true,
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "getApproved",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "operator",
-        type: "address",
-      },
-    ],
-    name: "isApprovedForAll",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: "name",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: "owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "ownerOf",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: false,
-    inputs: [
-      {
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "safeTransferFrom",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    constant: false,
-    inputs: [
-      {
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "_data",
-        type: "bytes",
-      },
-    ],
-    name: "safeTransferFrom",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    constant: false,
-    inputs: [
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "bool",
-        name: "approved",
-        type: "bool",
-      },
-    ],
-    name: "setApprovalForAll",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    constant: false,
-    inputs: [
-      {
-        internalType: "bool",
-        name: "state",
-        type: "bool",
-      },
-    ],
-    name: "setPaused",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [
-      {
-        internalType: "bytes4",
-        name: "interfaceId",
-        type: "bytes4",
-      },
-    ],
-    name: "supportsInterface",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: "symbol",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-    ],
-    name: "tokenByIndex",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-    ],
-    name: "tokenOfOwnerByIndex",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "tokenURI",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: "totalSupply",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: false,
-    inputs: [
-      {
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "transferFrom",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    constant: false,
-    inputs: [
-      {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "transferOwnership",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    constant: true,
-    inputs: [
-      {
-        internalType: "uint256[2]",
-        name: "a",
-        type: "uint256[2]",
-      },
-      {
-        internalType: "uint256[2][2]",
-        name: "b",
-        type: "uint256[2][2]",
-      },
-      {
-        internalType: "uint256[2]",
-        name: "c",
-        type: "uint256[2]",
-      },
-      {
-        internalType: "uint256[2]",
-        name: "input",
-        type: "uint256[2]",
-      },
-    ],
-    name: "verifyTx",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "r",
-        type: "bool",
-      },
-    ],
-    payable: false,
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    constant: false,
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256[2]",
-        name: "a",
-        type: "uint256[2]",
-      },
-      {
-        internalType: "uint256[2][2]",
-        name: "b",
-        type: "uint256[2][2]",
-      },
-      {
-        internalType: "uint256[2]",
-        name: "c",
-        type: "uint256[2]",
-      },
-      {
-        internalType: "uint256[2]",
-        name: "input",
-        type: "uint256[2]",
-      },
-    ],
-    name: "addSolution",
-    outputs: [],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    constant: false,
-    inputs: [
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "mint",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    payable: false,
-    stateMutability: "nonpayable",
-    type: "function",
+    hexSignature:
+      "0x17bbfb9a6069321b6ded73bd96327c9e6b7212a5cd51ff219cd61370acafb561",
+    textSignature:
+      "SwapAndLiquify (uint256 tokensSwapped, uint256 ethReceived, uint256 tokensIntoLiquidity)",
+    function: (topics: string[], data: string) => {
+      return {
+        name: "SwapAndLiquify",
+        type: "",
+        tokensSwapped: web3.eth.abi.decodeParameters(
+          ["uint256", "uint256", "uint256"],
+          data
+        )[0],
+        ethReceived: web3.eth.abi.decodeParameters(
+          ["uint256", "uint256"],
+          data
+        )[1],
+        tokensIntoLiquidity: web3.eth.abi.decodeParameters(
+          ["uint256", "uint256"],
+          data
+        )[2],
+      };
+    },
   },
 ];
+
+// {
+//   hexSignature:
+//     "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+//   textSignature:
+//     "Approval (index_topic_1 address src, index_topic_2 address guy, uint256 wad)",
+//   function: (topics: string[], data: string) => {
+//     return {
+//       name: "Approval",
+//       type: "ERC20",
+//       owner: web3.eth.abi.decodeParameter("address", topics[1]),
+//       spender: web3.eth.abi.decodeParameter("address", topics[2]),
+//       value: web3.eth.abi.decodeParameter("uint256", data),
+//     };
+//   },
+// },
+// {
+//   hexSignature:
+//     "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+//   textSignature:
+//     "Transfer (index_topic_1 address from, index_topic_2 address to, uint256 amount)",
+//   function: (topics: string[], data: string) => {
+//     return {
+//       name: "Transfer",
+//       type: "ERC20",
+//       from: web3.eth.abi.decodeParameter("address", topics[0]),
+//       to: web3.eth.abi.decodeParameter("address", topics[1]),
+//       value: web3.eth.abi.decodeParameter("uint256", data),
+//     };
+//   },
+// },
+// {
+//   hexSignature:
+//     "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+//   textSignature:
+//     "Transfer (index_topic_1 address src, index_topic_2 address dst, uint256 wad)",
+//   function: (topics: string[], data: string) => {
+//     return {
+//       name: "Transfer",
+//       type: "ERC20",
+//       from: web3.eth.abi.decodeParameter("address", topics[1]),
+//       to: web3.eth.abi.decodeParameter("address", topics[2]),
+//       value: web3.eth.abi.decodeParameter("uint256", data),
+//     };
+//   },
+// },
+
+// {
+//   hexSignature:
+//     "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+//   textSignature:
+//     "Transfer (index_topic_1 address src, index_topic_2 address dst, uint256 wad)",
+//   function: (topics: string[], data: string) => {
+//     return {
+//       name: "Transfer",
+//       type: "ERC20",
+//       from: web3.eth.abi.decodeParameter("address", topics[1]),
+//       to: web3.eth.abi.decodeParameter("address", topics[2]),
+//       value: web3.eth.abi.decodeParameter("uint256", data),
+//     };
+//   },
+// },

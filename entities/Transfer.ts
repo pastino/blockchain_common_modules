@@ -25,12 +25,6 @@ export class Transfer {
   @JoinColumn({ name: "nftId", referencedColumnName: "id" })
   nft: NFT;
 
-  @OneToOne(() => Transaction, (transaction) => transaction.transfer, {
-    onDelete: "CASCADE",
-  })
-  @JoinColumn({ name: "transactionId", referencedColumnName: "id" })
-  transaction: Transaction;
-
   @Column({ nullable: true })
   tokenId: string;
 

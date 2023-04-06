@@ -19,7 +19,7 @@ export class LogError {
   transactionHash: string;
 
   @Column({ nullable: true })
-  logId: string;
+  logId: number;
 
   @CreateDateColumn()
   createAt: Date;

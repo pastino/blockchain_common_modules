@@ -5,11 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
-  OneToOne,
   ManyToOne,
+  OneToMany,
 } from "typeorm";
 import { BlockNumber } from "./BlockNumber";
-import { Transfer } from "./Transfer";
+import { Log } from "./Log";
 
 @Entity({ name: "transaction" })
 export class Transaction {
@@ -18,12 +18,6 @@ export class Transaction {
 
   @Column({ nullable: true })
   hash: string;
-
-  @OneToOne(() => Transfer, (transfer) => transfer.transaction, {
-    onDelete: "CASCADE",
-  })
-  @JoinColumn({ name: "transferId", referencedColumnName: "id" })
-  transfer: Transfer;
 
   @Column({ nullable: true })
   timestamp: number;
@@ -35,8 +29,8 @@ export class Transaction {
   blockHash: string;
 
   @ManyToOne(() => BlockNumber, (blockNumber) => blockNumber.transactions)
-  @JoinColumn({ name: "blockNumber", referencedColumnName: "id" })
-  blockNumber: number;
+  @JoinColumn({ name: "blockNumberId", referencedColumnName: "id" })
+  blockNumber: BlockNumber;
 
   @Column({ nullable: true })
   transactionIndex: number;
@@ -68,8 +62,10 @@ export class Transaction {
   @Column({ nullable: true })
   chainId: number;
 
-  @Column({ nullable: true, unique: true })
-  logId: string;
+  @OneToMany(() => Log, (log) => log.transaction, {
+    onDelete: "CASCADE",
+  })
+  logs: Log[];
 
   @CreateDateColumn()
   createAt: Date;

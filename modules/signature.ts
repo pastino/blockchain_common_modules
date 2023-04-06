@@ -1,24 +1,20 @@
 import { Log } from "alchemy-sdk";
 import * as _ from "lodash";
-import { getConnection } from "typeorm";
+import { getRepository } from "typeorm";
 import Web3 from "web3";
+import { Signature as SignatureEntity } from "../entities/Signature";
 
 const web3 = new Web3();
 
 export class Signature {
-  private snakeObject = {};
-  private entity = {};
+  constructor() {}
 
-  constructor({ snakeObject }: { snakeObject: {} }) {
-    this.snakeObject = snakeObject;
-  }
-
-  generateABI(signature: string) {
-    const inputTypes = signature
-      .slice(signature.indexOf("(") + 1, signature.indexOf(")"))
+  generateABI(textSignature: string) {
+    const inputTypes = textSignature
+      .slice(textSignature.indexOf("(") + 1, textSignature.indexOf(")"))
       .split(",");
 
-    const name = signature.slice(0, signature.indexOf("("));
+    const name = textSignature.slice(0, textSignature.indexOf("("));
 
     const abi = {
       name: name,
@@ -32,65 +28,34 @@ export class Signature {
     return abi;
   }
 
-  checksignatue() {}
+  async getABI(hexSignature: string) {
+    // console.log("hexSignature", hexSignature);
+    const signatureData: SignatureEntity | undefined = await getRepository(
+      SignatureEntity
+    ).findOne({
+      where: {
+        hexSignature,
+      },
+    });
 
-  logAnalyzer(log: Log) {
-    //   log.topics?.[0]
+    if (!signatureData) {
+      //   console.log("Signature not found");
+      return;
+    }
 
-    const nftTransferEventAbi: any = {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "address",
-          name: "from",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "to",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "uint256",
-          name: "tokenId",
-          type: "uint256",
-        },
-      ],
-      name: "Transfer",
-      type: "event",
-    };
+    return this.generateABI(signatureData.textSignature);
+  }
 
-    const nftTransferEventSignature =
-      web3.eth.abi.encodeEventSignature(nftTransferEventAbi);
+  async logAnalyzer(log: Log, block?: any) {
+    const abi = await this.getABI(log.topics?.[0]);
 
-    //   let decodedLog;
-    //   if (log.topics[0] === nftTransferEventSignature) {
-    //     try {
-    //       decodedLog = web3.eth.abi.decodeLog(
-    //         nftTransferEventAbi.inputs,
-    //         log.data,
-    //         log.topics.slice(1)
-    //       );
-    //     } catch (e) {
-    //       null;
-    //     }
-    //   } else if (log.topics[0] === nftTransferEventSignature1) {
-    //     console.log("erc20");
-    //     try {
-    //       decodedLog = web3.eth.abi.decodeLog(
-    //         nftTransferEventAbi1.inputs,
-    //         log.data,
-    //         log.topics.slice(1)
-    //       );
-    //     } catch (e) {
-    //       null;
-    //     }
-    //   } else {
-    //     return;
-    //   }
-    //   if (decodedLog?.tokenId === undefined) return;
+    if (!abi) return;
+    const decodedLog = web3.eth.abi.decodeLog(
+      abi.inputs,
+      log.data,
+      log.topics.slice(1)
+    );
+
+    console.log("decodedLog", decodedLog);
   }
 }
