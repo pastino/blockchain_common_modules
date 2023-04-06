@@ -39,6 +39,12 @@ export async function handleBlockEvent(blockNum: number) {
       });
       await transaction.progressTransaction();
     }
+
+    await getRepository(BlockNumber).update(
+      { id: blockNumber.id },
+      { isCompletedUpdate: true }
+    );
+
     console.log("블록 데이터 생성 완료", blockNum);
   } catch (e: any) {
     await kakaoMessage.sendMessage(

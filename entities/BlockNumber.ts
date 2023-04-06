@@ -21,6 +21,9 @@ export class BlockNumber {
   })
   transactions: Transaction[];
 
+  @Column({ nullable: false, default: false })
+  isCompletedUpdate: boolean;
+
   @CreateDateColumn()
   createAt: Date;
   @UpdateDateColumn()
