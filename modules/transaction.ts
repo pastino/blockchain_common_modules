@@ -133,9 +133,13 @@ export class Transaction {
     if (!signatureData)
       return { isSuccess: false, message: "signatureData is empty" };
 
-    const decodedSignatureData = signatureData.function(topics, log.data);
-
-    return { isSuccess: true, data: decodedSignatureData };
+    try {
+      const decodedSignatureData = signatureData.function(topics, log.data);
+      return { isSuccess: true, data: decodedSignatureData };
+    } catch (e) {
+      console.log(topics, signatureData);
+      return { isSuccess: false };
+    }
   }
 
   private async getDecodedLogs(
@@ -273,7 +277,6 @@ export class Transaction {
         const decodedLog = await this.anylyzeLog(log);
         // LOG가 ERC721이면 Contract와 NFT 저장
         if (decodedLog?.data?.type === "ERC721") {
-          console.log("createContractAndNFT");
           await this.createContractAndNFT({
             log,
             tokenId: decodedLog?.data?.tokenId,
