@@ -8,6 +8,8 @@ import {
   Column,
   OneToMany,
 } from "typeorm";
+import { Contract } from "./Contract";
+import { NFT } from "./NFT";
 import { Topic } from "./Topic";
 import { Transaction } from "./Transaction";
 
@@ -21,6 +23,18 @@ export class Log {
   })
   @JoinColumn({ name: "transactionId", referencedColumnName: "id" })
   transaction: Transaction;
+
+  @ManyToOne(() => Contract, (contract) => contract.nfts, {
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
+  contract: Contract;
+
+  @ManyToOne(() => NFT, (nft) => nft.logs, {
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "nftId", referencedColumnName: "id" })
+  nft: NFT;
 
   @Column({ nullable: true })
   transactionIndex: number;

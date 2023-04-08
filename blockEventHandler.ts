@@ -2,7 +2,6 @@ import { Alchemy, Network } from "alchemy-sdk";
 import { getRepository } from "typeorm";
 import { BlockNumber } from "./entities/BlockNumber";
 import { Message } from "./modules/kakao";
-import { LogError } from "./entities/LogError";
 import { Transaction } from "./modules/transaction";
 import moment from "moment";
 
