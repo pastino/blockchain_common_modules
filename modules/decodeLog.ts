@@ -1,6 +1,6 @@
 import { SALE_HEX_SIGNATURE_LIST } from "../ABI";
 
-type Action = "Sale" | "Transfer";
+export type Action = "Sale" | "Transfer";
 
 export class DecodeLog {
   private topics: string[];
@@ -30,15 +30,28 @@ export class DecodeLog {
     return signatureData.decode(this.topics, this.data);
   }
 
-  public convert() {
+  private convertTransfer(signature: string) {
+    const signatureData = SALE_HEX_SIGNATURE_LIST.find(
+      (signatuerData) => signatuerData.hexSignature === signature
+    );
+    if (!signatureData) return;
+
+    return signatureData.decode(this.topics, this.data);
+  }
+
+  async convert() {
     const signature = this.topics[0];
 
     switch (this.action) {
       case "Sale":
         return this.convertSale(signature);
-      // case "Transfer":
-      //   return this.convertTransfer(signature);
+      case "Transfer":
+        return this.convertTransfer(signature);
       default:
+        const sale = await this.convertSale(signature);
+        if (sale) return sale;
+        const transfer = await this.convertTransfer(signature);
+        if (transfer) return transfer;
         return null;
     }
   }

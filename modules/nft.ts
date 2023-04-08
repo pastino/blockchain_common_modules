@@ -6,7 +6,7 @@ import { alchemy } from "../blockEventHandler";
 export class NFT {
   private contract: ContractEntity;
   private queryRunner: QueryRunner;
-  private tokenId: number;
+  private tokenId: number | string;
 
   constructor({
     contract,
@@ -15,7 +15,7 @@ export class NFT {
   }: {
     contract: ContractEntity;
     queryRunner: QueryRunner;
-    tokenId: number;
+    tokenId: number | string;
   }) {
     this.contract = contract;
     this.queryRunner = queryRunner;

@@ -7,7 +7,7 @@ import {
 import { alchemy } from "../blockEventHandler";
 import { Message } from "./kakao";
 import moment from "moment";
-import { SIGNATURE_LIST } from "../ABI";
+import { SALE_HEX_SIGNATURE_LIST, SIGNATURE_LIST } from "../ABI";
 import { getConnection, getRepository, QueryRunner } from "typeorm";
 import { Contract } from "./contract";
 import { NFT } from "./nft";
@@ -17,6 +17,8 @@ import { Topic as TopicEntity } from "../entities/Topic";
 import { sleep } from "../utils";
 import { BlockNumber as BlockNumberEntity } from "../entities/BlockNumber";
 import { LogError } from "../entities/LogError";
+import { Contract as ContractEntity } from "../entities/Contract";
+import { NFT as NFTEntity } from "../entities/NFT";
 
 const kakaoMessage = new Message();
 
@@ -177,14 +179,18 @@ export class Transaction {
   };
 
   private async createContractAndNFT({
-    log,
     tokenId,
+    contractAddress,
   }: {
-    log: Log;
-    tokenId: number;
-  }): Promise<Success> {
+    tokenId: number | string;
+    contractAddress: string;
+  }): Promise<{
+    isSuccess: boolean;
+    contractData: ContractEntity;
+    nftData: NFTEntity;
+  }> {
     const contract = new Contract({
-      address: log.address,
+      address: contractAddress,
       queryRunner: this.queryRunner,
     });
     const contractData = await contract.saveContract();
@@ -193,23 +199,38 @@ export class Transaction {
       queryRunner: this.queryRunner,
       tokenId,
     });
-    await nft.saveNFT();
-    return { isSuccess: true };
+    const nftData = await nft.saveNFT();
+    return { isSuccess: true, contractData, nftData };
   }
 
   private async createLog({
     log,
     transaction,
+    contractData,
+    nftData,
   }: {
     log: Log;
     transaction: TransactionEntity;
+    contractData: ContractEntity | undefined;
+    nftData: NFTEntity | undefined;
   }) {
     try {
       const { topics, ...logWithoutTopics } = log;
 
+      const logInputData: any = {};
+
+      if (contractData) {
+        logInputData.contract = contractData;
+      }
+
+      if (nftData) {
+        logInputData.nft = nftData;
+      }
+
       const logData = await this.queryRunner.manager.save(LogEntity, {
         transaction,
         ...logWithoutTopics,
+        ...logInputData,
       });
 
       for (let value of topics) {
@@ -275,18 +296,29 @@ export class Transaction {
 
         const decodedLog = await this.anylyzeLog(log);
         // LOG가 ERC721이면 Contract와 NFT 저장
+        const signature = SALE_HEX_SIGNATURE_LIST.find(
+          (item) => item.hexSignature === log.topics[0]
+        );
 
-        if (
-          decodedLog?.data?.type === "ERC721" &&
-          decodedLog?.data?.indexLength === 3
-        ) {
-          await this.createContractAndNFT({
-            log,
-            tokenId: decodedLog?.data?.tokenId,
+        let contractData;
+        let nftData;
+        if (signature) {
+          const decodedData = await signature.decode(log.topics, log.data);
+
+          let contractAddress = log.address;
+          if (decodedData?.action === "Sale") {
+            contractAddress = decodedData?.contract;
+          }
+
+          const data = await this.createContractAndNFT({
+            tokenId: decodedData?.tokenId,
+            contractAddress,
           });
+          contractData = data.contractData;
+          nftData = data.nftData;
         }
 
-        await this.createLog({ log, transaction });
+        await this.createLog({ log, transaction, contractData, nftData });
       }
 
       await this.queryRunner.commitTransaction();

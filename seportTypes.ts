@@ -30,7 +30,7 @@ enum ItemType {
 interface SpentItem {
   itemType: ItemType;
   token: string;
-  identifier: number;
+  identifier: string;
   amount: number;
 }
 

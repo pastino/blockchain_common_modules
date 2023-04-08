@@ -1,4 +1,5 @@
 import Web3 from "web3";
+import { Action } from "./modules/decodeLog";
 import {
   OrderFulfilledEvent,
   ReceivedItem,
@@ -8,11 +9,32 @@ import { checkIsAddress } from "./utils";
 
 const web3 = new Web3();
 
+interface SaleInterface {
+  action: Action;
+  contract: string;
+  tokenId: string;
+  from: string;
+  to: string;
+  ethValue: number;
+  unit: string;
+  value: number;
+  platform: string;
+  quantity: number;
+  data: { [key: string]: any } | null;
+}
+
+interface TransferInterface {
+  action: Action;
+  from: string;
+  to: string;
+  tokenId: string;
+}
+
 export const SALE_HEX_SIGNATURE_LIST = [
   {
     hexSignature:
       "0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31",
-    decode: (topics: string[], data: string) => {
+    decode: (topics: string[], data: string): SaleInterface | null => {
       const decodedData = web3.eth.abi.decodeParameters(
         [
           "bytes32",
@@ -103,6 +125,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
         }
 
         return {
+          action: "Sale",
           contract: offer?.token,
           tokenId: offer?.identifier,
           from: orderFulfilledEvent?.offerer,
@@ -115,12 +138,13 @@ export const SALE_HEX_SIGNATURE_LIST = [
           data: orderFulfilledEvent,
         };
       }
+      return null;
     },
   },
   {
     hexSignature:
       "0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64",
-    decode: (topics: string[], data: string) => {
+    decode: (topics: string[], data: string): SaleInterface => {
       const hexString: any = data.slice(2).match(/.{1,64}/g);
 
       const decodedData = hexString.map((chunk: any, index: number) => {
@@ -136,12 +160,13 @@ export const SALE_HEX_SIGNATURE_LIST = [
       const contract = decodedData?.[7];
       const value = Number(decodedData?.[11]) / 10 ** 18;
       const tokenId = decodedData?.[8];
-      const from = web3.eth.abi.decodeParameter("address", topics[1]);
-      const to = web3.eth.abi.decodeParameter("address", topics[2]);
+      const from: any = web3.eth.abi.decodeParameter("address", topics[1]);
+      const to: any = web3.eth.abi.decodeParameter("address", topics[2]);
 
       const quantity = Number(decodedData?.[9]);
 
       return {
+        action: "Sale",
         contract,
         tokenId,
         from,
@@ -155,7 +180,75 @@ export const SALE_HEX_SIGNATURE_LIST = [
       };
     },
   },
+
+  {
+    hexSignature:
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+    decode: (topics: string[], data: string): any => {
+      return {
+        action: "Transfer",
+        from: web3.eth.abi.decodeParameter("address", topics[1]) as any,
+        to: web3.eth.abi.decodeParameter("address", topics[2]) as any,
+        tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]) as any,
+      };
+    },
+  },
 ];
+
+// {
+//   hexSignature:
+//     "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+//   textSignature:
+//     "Approval (index_topic_1 address owner, index_topic_2 address approved, index_topic_3 uint256 tokenId)",
+//   functionName: "Approval",
+//   type: "ERC721",
+//   indexLength: 3,
+//   function: (topics: string[], data: string) => {
+//     return {
+//       name: "Approval",
+//       type: "ERC721",
+//       owner: web3.eth.abi.decodeParameter("address", topics[1]),
+//       approved: web3.eth.abi.decodeParameter("address", topics[2]),
+//       tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]),
+//     };
+//   },
+// },
+// {
+//   hexSignature:
+//     "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+//   textSignature:
+//     "Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 tokenId)",
+//   functionName: "Transfer",
+//   type: "ERC721",
+//   indexLength: 3,
+//   function: (topics: string[], data: string) => {
+//     return {
+//       name: "Transfer",
+//       type: "ERC721",
+//       from: web3.eth.abi.decodeParameter("address", topics[1]),
+//       to: web3.eth.abi.decodeParameter("address", topics[2]),
+//       tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]),
+//     };
+//   },
+// },
+// {
+//   hexSignature:
+//     "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
+//   textSignature:
+//     "Mint (index_topic_1 address sender, uint256 amount0, uint256 amount1)",
+//   functionName: "Mint",
+//   type: "ERC721",
+//   indexLength: 1,
+//   function: (topics: string[], data: string) => {
+//     return {
+//       name: "Mint",
+//       type: "ERC721",
+//       sender: web3.eth.abi.decodeParameter("address", topics[1]),
+//       amount0: web3.eth.abi.decodeParameters(["uint256", "uint256"], data)[0],
+//       amount1: web3.eth.abi.decodeParameters(["uint256", "uint256"], data)[1],
+//     };
+//   },
+// },
 
 export const SIGNATURE_LIST = [
   {
@@ -504,14 +597,6 @@ export const SIGNATURE_LIST = [
       };
     },
   },
-
-  // {
-  //   hexSignature:
-  //     "0x6ef95f06320e7a25a04a175ca677b7052bdd97131872c2192525a629f51be770",
-  //   textSignature: "PaymentReceived (address from, uint256 amount)",
-  // },
-
-  // 오픈시
   {
     hexSignature:
       "0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31",
