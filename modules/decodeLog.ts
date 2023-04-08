@@ -27,7 +27,8 @@ export class DecodeLog {
     );
     if (!signatureData) return;
 
-    return signatureData.decode(this.topics, this.data);
+    // return signatureData.decode(this.topics, this.data);
+    return "";
   }
 
   private convertTransfer(signature: string) {
@@ -36,7 +37,8 @@ export class DecodeLog {
     );
     if (!signatureData) return;
 
-    return signatureData.decode(this.topics, this.data);
+    // return signatureData.decode(this.topics, this.data);
+    return "";
   }
 
   async convert() {

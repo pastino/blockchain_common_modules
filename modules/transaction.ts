@@ -7,7 +7,11 @@ import {
 import { alchemy } from "../blockEventHandler";
 import { Message } from "./kakao";
 import moment from "moment";
-import { SALE_HEX_SIGNATURE_LIST, SIGNATURE_LIST } from "../ABI";
+import {
+  getIsERC721Event,
+  SALE_HEX_SIGNATURE_LIST,
+  SIGNATURE_LIST,
+} from "../ABI";
 import { getConnection, getRepository, QueryRunner } from "typeorm";
 import { Contract } from "./contract";
 import { NFT } from "./nft";
@@ -135,7 +139,7 @@ export class Transaction {
       return { isSuccess: false, message: "signatureData is empty" };
 
     try {
-      const decodedSignatureData = signatureData.function(topics, log.data);
+      const decodedSignatureData = signatureData.function(log);
       return { isSuccess: true, data: decodedSignatureData };
     } catch (e) {
       console.log(log.transactionHash, topics, signatureData);
@@ -294,28 +298,32 @@ export class Transaction {
       for (let i = 0; i < logs.length; i++) {
         const log = logs[i];
 
-        const decodedLog = await this.anylyzeLog(log);
-        // LOG가 ERC721이면 Contract와 NFT 저장
-        const signature = SALE_HEX_SIGNATURE_LIST.find(
-          (item) => item.hexSignature === log.topics[0]
-        );
+        const signature = SALE_HEX_SIGNATURE_LIST.find((item) => {
+          if (
+            item.hexSignature ===
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" &&
+            log.topics.length === 3
+          ) {
+            return false;
+          }
+
+          return item.hexSignature === log.topics[0];
+        });
+
+        const data = await getIsERC721Event(log);
 
         let contractData;
         let nftData;
-        if (signature) {
-          const decodedData = await signature.decode(log.topics, log.data);
 
-          let contractAddress = log.address;
-          if (decodedData?.action === "Sale") {
-            contractAddress = decodedData?.contract;
-          }
-
-          const data = await this.createContractAndNFT({
+        if (data.isERC721Event) {
+          const decodedData = data.decodedData;
+          const contractAddress = decodedData?.contract;
+          const result = await this.createContractAndNFT({
             tokenId: decodedData?.tokenId,
             contractAddress,
           });
-          contractData = data.contractData;
-          nftData = data.nftData;
+          contractData = result.contractData;
+          nftData = result.nftData;
         }
 
         await this.createLog({ log, transaction, contractData, nftData });

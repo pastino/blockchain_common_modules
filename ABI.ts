@@ -30,11 +30,40 @@ interface TransferInterface {
   tokenId: string;
 }
 
+export function getIsERC721Event({
+  address,
+  topics,
+  data,
+}: {
+  address: string;
+  topics: string[];
+  data: string;
+}) {
+  const hexSignature = topics[0];
+  const signature = SALE_HEX_SIGNATURE_LIST.find(
+    (item) => item.hexSignature === hexSignature
+  );
+  if (signature) {
+    const decodedData = signature.decode({ address, topics, data });
+    if (decodedData) {
+      return { isERC721Event: true, decodedData };
+    }
+  }
+  return { isERC721Event: false };
+}
+
 export const SALE_HEX_SIGNATURE_LIST = [
   {
     hexSignature:
       "0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31",
-    decode: (topics: string[], data: string): SaleInterface | null => {
+    decode: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }): SaleInterface | null => {
       const decodedData = web3.eth.abi.decodeParameters(
         [
           "bytes32",
@@ -144,7 +173,14 @@ export const SALE_HEX_SIGNATURE_LIST = [
   {
     hexSignature:
       "0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64",
-    decode: (topics: string[], data: string): SaleInterface => {
+    decode: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }): SaleInterface => {
       const hexString: any = data.slice(2).match(/.{1,64}/g);
 
       const decodedData = hexString.map((chunk: any, index: number) => {
@@ -184,71 +220,52 @@ export const SALE_HEX_SIGNATURE_LIST = [
   {
     hexSignature:
       "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-    decode: (topics: string[], data: string): any => {
+    decode: ({
+      address,
+      topics,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }): any => {
+      if (topics.length === 3) return;
       return {
         action: "Transfer",
+        contract: address,
+        tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]) as any,
         from: web3.eth.abi.decodeParameter("address", topics[1]) as any,
         to: web3.eth.abi.decodeParameter("address", topics[2]) as any,
-        tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]) as any,
+      };
+    },
+  },
+  {
+    hexSignature:
+      "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
+    decode: ({
+      topics,
+      address,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }): any => {
+      if (topics.length === 2) return;
+
+      const decodedData = web3.eth.abi.decodeParameters(
+        ["address", "uint256", "uint256"],
+        data
+      );
+      return {
+        action: "Mint",
+        contract: address,
+        minterAddress: decodedData[0],
+        stage: decodedData[1],
+        mintCount: decodedData[2],
       };
     },
   },
 ];
-
-// {
-//   hexSignature:
-//     "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
-//   textSignature:
-//     "Approval (index_topic_1 address owner, index_topic_2 address approved, index_topic_3 uint256 tokenId)",
-//   functionName: "Approval",
-//   type: "ERC721",
-//   indexLength: 3,
-//   function: (topics: string[], data: string) => {
-//     return {
-//       name: "Approval",
-//       type: "ERC721",
-//       owner: web3.eth.abi.decodeParameter("address", topics[1]),
-//       approved: web3.eth.abi.decodeParameter("address", topics[2]),
-//       tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]),
-//     };
-//   },
-// },
-// {
-//   hexSignature:
-//     "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-//   textSignature:
-//     "Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 tokenId)",
-//   functionName: "Transfer",
-//   type: "ERC721",
-//   indexLength: 3,
-//   function: (topics: string[], data: string) => {
-//     return {
-//       name: "Transfer",
-//       type: "ERC721",
-//       from: web3.eth.abi.decodeParameter("address", topics[1]),
-//       to: web3.eth.abi.decodeParameter("address", topics[2]),
-//       tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]),
-//     };
-//   },
-// },
-// {
-//   hexSignature:
-//     "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
-//   textSignature:
-//     "Mint (index_topic_1 address sender, uint256 amount0, uint256 amount1)",
-//   functionName: "Mint",
-//   type: "ERC721",
-//   indexLength: 1,
-//   function: (topics: string[], data: string) => {
-//     return {
-//       name: "Mint",
-//       type: "ERC721",
-//       sender: web3.eth.abi.decodeParameter("address", topics[1]),
-//       amount0: web3.eth.abi.decodeParameters(["uint256", "uint256"], data)[0],
-//       amount1: web3.eth.abi.decodeParameters(["uint256", "uint256"], data)[1],
-//     };
-//   },
-// },
 
 export const SIGNATURE_LIST = [
   {
@@ -259,7 +276,14 @@ export const SIGNATURE_LIST = [
     functionName: "Transfer",
     type: "ERC20",
     indexLength: 2,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Transfer",
         type: "ERC20",
@@ -277,7 +301,14 @@ export const SIGNATURE_LIST = [
     functionName: "Approval",
     type: "ERC20",
     indexLength: 2,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Approval",
         type: "ERC20",
@@ -295,7 +326,13 @@ export const SIGNATURE_LIST = [
     functionName: "Sync",
     type: "ERC20",
     indexLength: 0,
-    function: (topics: string[], data: string) => {
+    function: ({
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Sync",
         type: "ERC20",
@@ -318,7 +355,14 @@ export const SIGNATURE_LIST = [
     functionName: "Swap",
     type: "ERC20",
     indexLength: 2,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Swap",
         type: "ERC20",
@@ -350,7 +394,15 @@ export const SIGNATURE_LIST = [
     functionName: "Withdrawal",
     type: "ERC20",
     indexLength: 1,
-    function: (topics: string[], data: string) => {
+    function: ({
+      address,
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Withdrawal",
         type: "ERC20",
@@ -366,7 +418,14 @@ export const SIGNATURE_LIST = [
     functionName: "Deposit",
     type: "ERC20",
     indexLength: 1,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Deposit",
         type: "ERC20",
@@ -383,7 +442,14 @@ export const SIGNATURE_LIST = [
     functionName: "OrderFilled",
     type: "ERC20",
     indexLength: 1,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "OrderFilled",
         type: "ERC20",
@@ -407,7 +473,14 @@ export const SIGNATURE_LIST = [
     functionName: "DelegateVotesChanged",
     type: "ERC20",
     indexLength: 1,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "DelegateVotesChanged",
         type: "ERC20",
@@ -431,7 +504,14 @@ export const SIGNATURE_LIST = [
     functionName: "Swap",
     type: "ERC20",
     indexLength: 2,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Swap",
         type: "ERC20",
@@ -468,7 +548,14 @@ export const SIGNATURE_LIST = [
     functionName: "RoyaltyReceiverUpdated",
     type: "ERC20",
     indexLength: 1,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Swap",
         type: "ERC20",
@@ -492,7 +579,14 @@ export const SIGNATURE_LIST = [
     functionName: "TransformedERC20",
     type: "ERC20",
     indexLength: 1,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "TransformedERC20",
         type: "ERC20",
@@ -524,7 +618,13 @@ export const SIGNATURE_LIST = [
     functionName: "Approval",
     type: "ERC721",
     indexLength: 3,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Approval",
         type: "ERC721",
@@ -542,12 +642,20 @@ export const SIGNATURE_LIST = [
     functionName: "Transfer",
     type: "ERC721",
     indexLength: 3,
-    function: (topics: string[], data: string) => {
+    function: ({
+      address,
+      topics,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Transfer",
         type: "ERC721",
         from: web3.eth.abi.decodeParameter("address", topics[1]),
         to: web3.eth.abi.decodeParameter("address", topics[2]),
+        contractAddress: address,
         tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]),
       };
     },
@@ -558,15 +666,52 @@ export const SIGNATURE_LIST = [
     textSignature:
       "Mint (index_topic_1 address sender, uint256 amount0, uint256 amount1)",
     functionName: "Mint",
-    type: "ERC721",
+    type: "ERC20",
     indexLength: 1,
-    function: (topics: string[], data: string) => {
+    function: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "Mint",
-        type: "ERC721",
+        type: "ERC20",
         sender: web3.eth.abi.decodeParameter("address", topics[1]),
         amount0: web3.eth.abi.decodeParameters(["uint256", "uint256"], data)[0],
         amount1: web3.eth.abi.decodeParameters(["uint256", "uint256"], data)[1],
+      };
+    },
+  },
+  {
+    hexSignature:
+      "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
+    textSignature:
+      "Mint (address minterAddress, uint256 stage, uint256 mintCount)",
+    functionName: "Mint",
+    type: "ERC721",
+    indexLength: 0,
+    function: ({
+      address,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
+      const decodedData = web3.eth.abi.decodeParameters(
+        ["address", "uint256", "uint256"],
+        data
+      );
+      return {
+        name: "Mint",
+        type: "ERC721",
+        contractAddress: address,
+        minterAddress: decodedData[0],
+        stage: decodedData[1],
+        mintCount: decodedData[2],
       };
     },
   },
@@ -578,7 +723,13 @@ export const SIGNATURE_LIST = [
     functionName: "SwapAndLiquify",
     type: "ERC20",
     indexLength: 0,
-    function: (topics: string[], data: string) => {
+    function: ({
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       return {
         name: "SwapAndLiquify",
         type: "",
@@ -605,7 +756,15 @@ export const SIGNATURE_LIST = [
     functionName: "OrderFulfilled",
     type: "ERC721",
     indexLength: 0,
-    function: (topics: string[], data: string) => {
+    function: ({
+      address,
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
       const result = web3.eth.abi.decodeParameters(
         [
           "bytes32",
@@ -658,21 +817,37 @@ export const SIGNATURE_LIST = [
     functionName: "OrdersMatched",
     type: "ERC721",
     indexLength: 0,
-    function: (topics: string[], data: string) => {
-      const chunks: any = data.match(/.{1,64}/g);
+    function: ({
+      address,
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }) => {
+      const hexString: any = data.slice(2).match(/.{1,64}/g);
 
-      const decodedNumbers = chunks.map((chunk: any) =>
-        web3.eth.abi.decodeParameter("uint256", "0x" + chunk)
-      );
+      const decodedData = hexString.map((chunk: any, index: number) => {
+        const isAddress = checkIsAddress(chunk);
+        const data = web3.eth.abi.decodeParameter(
+          isAddress ? "address" : "uint256",
+          chunk
+        );
 
-      console.log(decodedNumbers);
+        return data;
+      });
+
+      const value = Number(decodedData?.[11]) / 10 ** 18;
+      const tokenId = decodedData?.[8];
+
       return {
         name: "OrdersMatched",
         type: "ERC721",
         from: web3.eth.abi.decodeParameter("address", topics[1]),
         to: web3.eth.abi.decodeParameter("address", topics[2]),
-        tokenId: decodedNumbers[9],
-        value: decodedNumbers[12],
+        tokenId,
+        value,
       };
     },
   },

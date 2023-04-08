@@ -55,7 +55,5 @@ export class Signature {
       log.data,
       log.topics.slice(1)
     );
-
-    console.log("decodedLog", decodedLog);
   }
 }
