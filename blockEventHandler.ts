@@ -20,9 +20,10 @@ export async function handleBlockEvent(blockNum: number) {
       },
     });
 
-    if (existingBlock) return;
+    if (existingBlock) return { isSuccess: false, message: "이미 처리된 블록" };
 
     const blockData = await alchemy.core.getBlock(blockNum);
+
     const blockNumber = await getRepository(BlockNumber).save({
       blockNumber: blockNum,
     });
@@ -42,7 +43,9 @@ export async function handleBlockEvent(blockNum: number) {
       { id: blockNumber.id },
       { isCompletedUpdate: true }
     );
+
     console.log("블록 데이터 생성 완료", blockNum);
+    return { isSuccess: true, message: "블록 데이터 생성 완료" };
   } catch (e: any) {
     await kakaoMessage.sendMessage(
       `${moment(new Date()).format(
@@ -51,5 +54,6 @@ export async function handleBlockEvent(blockNum: number) {
     );
     await getRepository(BlockNumber).delete({ blockNumber: blockNum });
     console.log(e);
+    throw new Error(e);
   }
 }
