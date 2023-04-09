@@ -4,6 +4,7 @@ import { BlockNumber } from "./entities/BlockNumber";
 import { Message } from "./modules/kakao";
 import { Transaction } from "./modules/transaction";
 import moment from "moment";
+import { LogError } from "./entities/LogError";
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
@@ -52,6 +53,9 @@ export async function handleBlockEvent(blockNum: number) {
         "MM/DD HH:mm"
       )}\n\n블록 데이터 생성 실패 ${blockNum}\n\n${e.message}`
     );
+    await getRepository(LogError).save({
+      blockNumber: blockNum,
+    });
     await getRepository(BlockNumber).delete({ blockNumber: blockNum });
     console.log(e);
     throw new Error(e);
