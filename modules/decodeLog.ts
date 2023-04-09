@@ -1,60 +1,60 @@
-import { SALE_HEX_SIGNATURE_LIST } from "../ABI";
+import {
+  SaleInterface,
+  SALE_HEX_SIGNATURE_LIST,
+  TransferInterface,
+  MintInterface,
+} from "../ABI";
 
-export type Action = "Sale" | "Transfer";
+export type Action = "Sale" | "Transfer" | "Mint";
 
-export class DecodeLog {
+export class DecodeLog<T extends Action> {
   private topics: string[];
   private data: string;
   private action: Action;
+  private address: string;
 
   constructor({
     topics,
     data,
     action,
+    address,
   }: {
     topics: string[];
     data: string;
     action: Action;
+    address: string;
   }) {
     this.topics = topics;
     this.data = data;
     this.action = action;
+    this.address = address;
   }
 
-  private convertSale(signature: string) {
+  private decode(signature: string) {
     const signatureData = SALE_HEX_SIGNATURE_LIST.find(
-      (signatuerData) => signatuerData.hexSignature === signature
+      (signatureData) => signatureData.hexSignature === signature
     );
     if (!signatureData) return;
 
-    // return signatureData.decode(this.topics, this.data);
-    return "";
-  }
+    const decodedData = signatureData.decode({
+      address: this.address,
+      topics: this.topics,
+      data: this.data,
+    });
 
-  private convertTransfer(signature: string) {
-    const signatureData = SALE_HEX_SIGNATURE_LIST.find(
-      (signatuerData) => signatuerData.hexSignature === signature
-    );
-    if (!signatureData) return;
-
-    // return signatureData.decode(this.topics, this.data);
-    return "";
-  }
-
-  async convert() {
-    const signature = this.topics[0];
-
-    switch (this.action) {
-      case "Sale":
-        return this.convertSale(signature);
-      case "Transfer":
-        return this.convertTransfer(signature);
-      default:
-        const sale = await this.convertSale(signature);
-        if (sale) return sale;
-        const transfer = await this.convertTransfer(signature);
-        if (transfer) return transfer;
-        return null;
+    if (decodedData?.action === this.action) {
+      return decodedData;
     }
+  }
+
+  async convert(): Promise<
+    T extends "Sale"
+      ? SaleInterface
+      : T extends "Transfer"
+      ? TransferInterface
+      : MintInterface
+  > {
+    const signature = this.topics[0];
+    return this.decode(signature);
   }
 }

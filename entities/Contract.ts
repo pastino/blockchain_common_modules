@@ -25,6 +25,7 @@ const ApiProperty = isNestJs
 
 export const contractExample: any = {
   id: 1,
+  openseaCollection: isNestJs ? OpenseaCollection.example() : {},
   address: "0xd774557b647330c91bf44cfeab205095f7e6c367",
   tokenId: "",
   name: "Nakamigos",
@@ -46,6 +47,7 @@ export const contractExample: any = {
 
 const {
   id,
+  openseaCollection,
   address,
   tokenId,
   name,
@@ -169,6 +171,12 @@ if (isNestJs) {
       type: Number,
       example: id,
       description: "Uniqe ID",
+    }),
+    ApiProperty({
+      name: "openseaCollection",
+      type: OpenseaCollection,
+      example: openseaCollection,
+      description: "오픈시 컬랙션 데이터",
     }),
     ApiProperty({
       name: "address",

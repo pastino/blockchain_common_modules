@@ -9,7 +9,7 @@ import { checkIsAddress } from "./utils";
 
 const web3 = new Web3();
 
-interface SaleInterface {
+export interface SaleInterface {
   action: Action;
   contract: string;
   tokenId: string;
@@ -23,11 +23,19 @@ interface SaleInterface {
   data: { [key: string]: any } | null;
 }
 
-interface TransferInterface {
+export interface TransferInterface {
   action: Action;
   from: string;
   to: string;
   tokenId: string;
+}
+
+export interface MintInterface {
+  action: Action;
+  contract: string;
+  minterAddress: string;
+  stage: number;
+  mintCount: number;
 }
 
 export function getIsERC721Event({
