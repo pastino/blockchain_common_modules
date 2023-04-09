@@ -15,6 +15,7 @@ const kakaoMessage = new Message();
 
 export async function handleBlockEvent(blockNum: number) {
   try {
+    console.log("블록 데이터 생성 시작", blockNum);
     const existingBlock = await getRepository(BlockNumber).findOne({
       where: {
         blockNumber: blockNum,
