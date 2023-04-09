@@ -193,18 +193,22 @@ export class Transaction {
     contractData: ContractEntity;
     nftData: NFTEntity;
   }> {
-    const contract = new Contract({
-      address: contractAddress,
-      queryRunner: this.queryRunner,
-    });
-    const contractData = await contract.saveContract();
-    const nft = new NFT({
-      contract: contractData,
-      queryRunner: this.queryRunner,
-      tokenId,
-    });
-    const nftData = await nft.saveNFT();
-    return { isSuccess: true, contractData, nftData };
+    try {
+      const contract = new Contract({
+        address: contractAddress,
+        queryRunner: this.queryRunner,
+      });
+      const contractData = await contract.saveContract();
+      const nft = new NFT({
+        contract: contractData,
+        queryRunner: this.queryRunner,
+        tokenId,
+      });
+      const nftData = await nft.saveNFT();
+      return { isSuccess: true, contractData, nftData };
+    } catch (e: any) {
+      throw new Error(e);
+    }
   }
 
   private async createLog({
