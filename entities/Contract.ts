@@ -14,6 +14,7 @@ import { Transfer } from './Transfer';
 import { TrendCollection } from './TrendCollection';
 import * as dotenv from 'dotenv';
 import { OpenseaCollection } from './OpenseaCollection';
+import { Log } from './Log';
 
 dotenv.config({ path: __dirname + '/../../../.env.dev' });
 const isNestJs = process.env.APP_TYPE === 'nestjs';
@@ -127,6 +128,11 @@ export class Contract {
     onDelete: 'CASCADE',
   })
   nfts: NFT[];
+
+  @OneToMany(() => Log, (log) => log.contract, {
+    onDelete: 'SET NULL',
+  })
+  logs: Log[];
 
   @OneToMany(() => Transfer, (transfer) => transfer.contract, {
     onDelete: 'CASCADE',

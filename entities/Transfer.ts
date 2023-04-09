@@ -6,11 +6,9 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToOne,
 } from "typeorm";
 import { Contract } from "./Contract";
 import { NFT } from "./NFT";
-import { Transaction } from "./Transaction";
 
 @Entity({ name: "transfer" })
 export class Transfer {

@@ -7,17 +7,22 @@ import {
 import { alchemy } from "../blockEventHandler";
 import { Message } from "./kakao";
 import moment from "moment";
-import { SIGNATURE_LIST } from "../ABI";
+import {
+  getIsERC721Event,
+  SALE_HEX_SIGNATURE_LIST,
+  SIGNATURE_LIST,
+} from "../ABI";
 import { getConnection, getRepository, QueryRunner } from "typeorm";
 import { Contract } from "./contract";
 import { NFT } from "./nft";
 import { Transaction as TransactionEntity } from "../entities/Transaction";
-import { BigNumber } from "ethers";
 import { Log as LogEntity } from "../entities/Log";
 import { Topic as TopicEntity } from "../entities/Topic";
 import { sleep } from "../utils";
 import { BlockNumber as BlockNumberEntity } from "../entities/BlockNumber";
 import { LogError } from "../entities/LogError";
+import { Contract as ContractEntity } from "../entities/Contract";
+import { NFT as NFTEntity } from "../entities/NFT";
 
 const kakaoMessage = new Message();
 
@@ -112,16 +117,34 @@ export class Transaction {
     const topics = log.topics;
     const haxSignature = topics[0];
 
-    const signatureData = SIGNATURE_LIST.find((signature) => {
-      signature.hexSignature === haxSignature;
-    });
+    const signatureDataLength = SIGNATURE_LIST.filter(
+      (signature) => signature.hexSignature === haxSignature
+    ).length;
+
+    let signatureData;
+
+    if (signatureDataLength > 1) {
+      signatureData = SIGNATURE_LIST.find(
+        (signature) =>
+          signature.hexSignature === haxSignature &&
+          topics.length === signature.indexLength + 1
+      );
+    } else if (signatureDataLength === 1) {
+      signatureData = SIGNATURE_LIST.find(
+        (signature) => signature.hexSignature === haxSignature
+      );
+    }
 
     if (!signatureData)
       return { isSuccess: false, message: "signatureData is empty" };
 
-    const decodedSignatureData = signatureData.function(topics, log.data);
-
-    return { isSuccess: true, data: decodedSignatureData };
+    try {
+      const decodedSignatureData = signatureData.function(log);
+      return { isSuccess: true, data: decodedSignatureData };
+    } catch (e) {
+      console.log(log.transactionHash, topics, signatureData);
+      return { isSuccess: false };
+    }
   }
 
   private async getDecodedLogs(
@@ -155,46 +178,63 @@ export class Transaction {
     return false;
   }
 
-  private hexToStringValue = (hexValue: string | undefined): string => {
-    const bigNumberValue = BigNumber.from(hexValue);
-    return bigNumberValue.toString();
+  private hexToStringValue = (hexValue: string): string => {
+    return parseInt(hexValue, 16).toString();
   };
 
   private async createContractAndNFT({
-    log,
     tokenId,
+    contractAddress,
   }: {
-    log: Log;
-    tokenId: number;
-  }): Promise<Success> {
+    tokenId: number | string;
+    contractAddress: string;
+  }): Promise<{
+    isSuccess: boolean;
+    contractData: ContractEntity;
+    nftData: NFTEntity;
+  }> {
     const contract = new Contract({
-      address: log.address,
+      address: contractAddress,
       queryRunner: this.queryRunner,
     });
-
     const contractData = await contract.saveContract();
-
     const nft = new NFT({
       contract: contractData,
       queryRunner: this.queryRunner,
       tokenId,
     });
-    await nft.saveNFT();
-    return { isSuccess: true };
+    const nftData = await nft.saveNFT();
+    return { isSuccess: true, contractData, nftData };
   }
+
   private async createLog({
     log,
     transaction,
+    contractData,
+    nftData,
   }: {
     log: Log;
     transaction: TransactionEntity;
+    contractData: ContractEntity | undefined;
+    nftData: NFTEntity | undefined;
   }) {
     try {
       const { topics, ...logWithoutTopics } = log;
 
+      const logInputData: any = {};
+
+      if (contractData) {
+        logInputData.contract = contractData;
+      }
+
+      if (nftData) {
+        logInputData.nft = nftData;
+      }
+
       const logData = await this.queryRunner.manager.save(LogEntity, {
         transaction,
         ...logWithoutTopics,
+        ...logInputData,
       });
 
       for (let value of topics) {
@@ -215,7 +255,6 @@ export class Transaction {
   public async progressTransaction(): Promise<any> {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
-
     try {
       const transactionData = await this.getTransaction(this.transactionHash);
       if (!transactionData)
@@ -224,15 +263,13 @@ export class Transaction {
       const transactionReceipt = await this.getTransactionReceipt(
         this.transactionHash
       );
-
       const logs = transactionReceipt?.logs;
       if (!logs || logs.length === 0)
         return { isSuccess: false, message: "logs is empty" };
 
-      const isERC721Transaction = this.getDecodedLogs(logs);
-      if (!isERC721Transaction)
+      const { isERC721 } = await this.getDecodedLogs(logs);
+      if (!isERC721)
         return { isSuccess: false, message: "is not ERC721 transaction" };
-
       const timestamp = this.blockData.timestamp;
       const eventTime = new Date(timestamp * 1000);
 
@@ -241,15 +278,18 @@ export class Transaction {
         eventTime,
       };
 
-      // 트랜잭션 저장
       const transaction = await this.queryRunner.manager.save(
         TransactionEntity,
         {
           ...transactionData,
           blockNumber: this.blockNumber,
-          gasPrice: this.hexToStringValue(transactionData?.gasPrice?._hex),
-          gasLimit: this.hexToStringValue(transactionData?.gasLimit?._hex),
-          value: this.hexToStringValue(transactionData?.value?._hex),
+          gasPrice: this.hexToStringValue(
+            transactionData?.gasPrice?._hex || "0x0"
+          ),
+          gasLimit: this.hexToStringValue(
+            transactionData?.gasLimit?._hex || "0x0"
+          ),
+          value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
           ...timeOption,
         }
       );
@@ -258,33 +298,42 @@ export class Transaction {
       for (let i = 0; i < logs.length; i++) {
         const log = logs[i];
 
-        const decodedLog = await this.anylyzeLog(log);
-        // LOG가 ERC721이면 Contract와 NFT 저장
-        if (decodedLog?.data?.type === "ERC721") {
-          await this.createContractAndNFT({
-            log,
-            tokenId: decodedLog?.data?.tokenId,
+        const signature = SALE_HEX_SIGNATURE_LIST.find((item) => {
+          if (
+            item.hexSignature ===
+              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" &&
+            log.topics.length === 3
+          ) {
+            return false;
+          }
+
+          return item.hexSignature === log.topics[0];
+        });
+
+        const data = await getIsERC721Event(log);
+
+        let contractData;
+        let nftData;
+
+        if (data.isERC721Event) {
+          const decodedData = data.decodedData;
+          const contractAddress = decodedData?.contract;
+          const result = await this.createContractAndNFT({
+            tokenId: decodedData?.tokenId,
+            contractAddress,
           });
+          contractData = result.contractData;
+          nftData = result.nftData;
         }
-        await this.createLog({ log, transaction });
+
+        await this.createLog({ log, transaction, contractData, nftData });
       }
 
       await this.queryRunner.commitTransaction();
       return { isSuccess: true };
     } catch (e: any) {
-      // 트랜잭션 실패 시 로그 데이터 없음
-      await getRepository(LogError).save({
-        blockNumber: this.blockNumber.blockNumber,
-        transactionHash: this.transactionHash,
-      });
-
-      await kakaoMessage.sendMessage(
-        `${moment(new Date()).format("MM/DD HH:mm")}\n\n트랜잭션 생성 실패 ${
-          this.blockNumber.blockNumber
-        }\n\n${e.message}`
-      );
       await this.queryRunner.rollbackTransaction();
-      console.log(e);
+      throw new Error(e);
     } finally {
       await this.queryRunner.release();
     }

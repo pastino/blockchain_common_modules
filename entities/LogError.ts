@@ -12,7 +12,7 @@ export class LogError {
   id: number;
 
   // blockNumber만 있고, transactionHash와 logId가 없다면 블록넘버 저장 에러로 해당 블록 트랜잭션 다시 저장 필요
-  @Column({ nullable: false, unique: true })
+  @Column({ nullable: false })
   blockNumber: number;
 
   @Column({ nullable: true })
@@ -20,6 +20,9 @@ export class LogError {
 
   @Column({ nullable: true })
   logId: number;
+
+  @Column({ nullable: true, default: false })
+  isCompletedCreate: number;
 
   @CreateDateColumn()
   createAt: Date;

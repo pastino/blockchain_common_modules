@@ -9,6 +9,7 @@ import {
   OneToMany,
 } from "typeorm";
 import { BlockNumber } from "./BlockNumber";
+import { Contract } from "./Contract";
 import { Log } from "./Log";
 
 @Entity({ name: "transaction" })
@@ -22,13 +23,19 @@ export class Transaction {
   @Column({ nullable: true })
   timestamp: number;
 
+  @ManyToOne(() => Contract, (contract) => contract.nfts)
+  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
+  contract: Contract;
+
   @Column({ nullable: true })
   eventTime: Date;
 
   @Column({ nullable: true })
   blockHash: string;
 
-  @ManyToOne(() => BlockNumber, (blockNumber) => blockNumber.transactions)
+  @ManyToOne(() => BlockNumber, (blockNumber) => blockNumber.transactions, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "blockNumberId", referencedColumnName: "id" })
   blockNumber: BlockNumber;
 

@@ -40,6 +40,7 @@ export class Contract {
         `https://api.opensea.io/api/v1/asset_contract/${contractAddress}`,
         openSeaConfig
       );
+
       return response;
     } catch (e: any) {
       if (e.response && e.response.status !== 404) {
@@ -112,8 +113,6 @@ export class Contract {
               address: this.address,
             },
           });
-        } else {
-          console.error("Unexpected error:", e);
         }
       }
     }

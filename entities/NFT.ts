@@ -10,6 +10,7 @@ import {
   Unique,
 } from "typeorm";
 import { Contract } from "./Contract";
+import { Log } from "./Log";
 import { Transfer } from "./Transfer";
 
 @Entity({ name: "nft" })
@@ -42,6 +43,11 @@ export class NFT {
 
   @OneToMany(() => Transfer, (transfer) => transfer.nft)
   transfers: Transfer[];
+
+  @OneToMany(() => Log, (log) => log.nft, {
+    onDelete: "SET NULL",
+  })
+  logs: Log[];
 
   @CreateDateColumn()
   createAt: Date;

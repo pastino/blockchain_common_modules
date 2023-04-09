@@ -2,7 +2,6 @@ import { Alchemy, Network } from "alchemy-sdk";
 import { getRepository } from "typeorm";
 import { BlockNumber } from "./entities/BlockNumber";
 import { Message } from "./modules/kakao";
-import { LogError } from "./entities/LogError";
 import { Transaction } from "./modules/transaction";
 import moment from "moment";
 
@@ -39,12 +38,10 @@ export async function handleBlockEvent(blockNum: number) {
       });
       await transaction.progressTransaction();
     }
-
     await getRepository(BlockNumber).update(
       { id: blockNumber.id },
       { isCompletedUpdate: true }
     );
-
     console.log("블록 데이터 생성 완료", blockNum);
   } catch (e: any) {
     await kakaoMessage.sendMessage(
@@ -53,7 +50,6 @@ export async function handleBlockEvent(blockNum: number) {
       )}\n\n블록 데이터 생성 실패 ${blockNum}\n\n${e.message}`
     );
     await getRepository(BlockNumber).delete({ blockNumber: blockNum });
-    await getRepository(LogError).save({ blockNumber: blockNum });
     console.log(e);
   }
 }
