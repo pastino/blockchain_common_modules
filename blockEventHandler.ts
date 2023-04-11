@@ -23,14 +23,11 @@ export async function handleBlockEvent(blockNum: number) {
     });
 
     if (existingBlock) return { isSuccess: false, message: "이미 처리된 블록" };
-
     const blockData = await alchemy.core.getBlock(blockNum);
-
     const blockNumber = await getRepository(BlockNumber).save({
       blockNumber: blockNum,
     });
     const transactions = blockData?.transactions;
-
     for (let i = 0; i < transactions.length; i++) {
       const transactionHash = transactions[i];
 
@@ -46,6 +43,9 @@ export async function handleBlockEvent(blockNum: number) {
       { isCompletedUpdate: true }
     );
 
+    await getRepository(LogError).delete({
+      blockNumber: blockNum,
+    });
     console.log("블록 데이터 생성 완료", blockNum);
     return { isSuccess: true, message: "블록 데이터 생성 완료" };
   } catch (e: any) {
@@ -54,6 +54,7 @@ export async function handleBlockEvent(blockNum: number) {
         "MM/DD HH:mm"
       )}\n\n블록 데이터 생성 실패 ${blockNum}\n\n${e.message}`
     );
+
     await getRepository(LogError).save({
       blockNumber: blockNum,
     });

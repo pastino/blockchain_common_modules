@@ -191,7 +191,7 @@ export class Transaction {
   }): Promise<{
     isSuccess: boolean;
     contractData: ContractEntity;
-    nftData: NFTEntity;
+    nftData?: NFTEntity;
   }> {
     try {
       const contract = new Contract({
@@ -199,12 +199,16 @@ export class Transaction {
         queryRunner: this.queryRunner,
       });
       const contractData = await contract.saveContract();
-      const nft = new NFT({
-        contract: contractData,
-        queryRunner: this.queryRunner,
-        tokenId,
-      });
-      const nftData = await nft.saveNFT();
+      let nftData;
+      if (tokenId) {
+        const nft = new NFT({
+          contract: contractData,
+          queryRunner: this.queryRunner,
+          tokenId,
+        });
+        nftData = await nft.saveNFT();
+      }
+
       return { isSuccess: true, contractData, nftData };
     } catch (e: any) {
       throw new Error(e);
@@ -219,8 +223,8 @@ export class Transaction {
   }: {
     log: Log;
     transaction: TransactionEntity;
-    contractData: ContractEntity | undefined;
-    nftData: NFTEntity | undefined;
+    contractData?: ContractEntity;
+    nftData?: NFTEntity;
   }) {
     try {
       const { topics, ...logWithoutTopics } = log;
@@ -263,25 +267,21 @@ export class Transaction {
       const transactionData = await this.getTransaction(this.transactionHash);
       if (!transactionData)
         return { isSuccess: false, message: "transactionData is empty" };
-
       const transactionReceipt = await this.getTransactionReceipt(
         this.transactionHash
       );
       const logs = transactionReceipt?.logs;
       if (!logs || logs.length === 0)
         return { isSuccess: false, message: "logs is empty" };
-
       const { isERC721 } = await this.getDecodedLogs(logs);
       if (!isERC721)
         return { isSuccess: false, message: "is not ERC721 transaction" };
       const timestamp = this.blockData.timestamp;
       const eventTime = new Date(timestamp * 1000);
-
       const timeOption = {
         timestamp,
         eventTime,
       };
-
       const transaction = await this.queryRunner.manager.save(
         TransactionEntity,
         {
@@ -297,28 +297,12 @@ export class Transaction {
           ...timeOption,
         }
       );
-
       // 트랜잭션 로그 데이터들 저장
       for (let i = 0; i < logs.length; i++) {
         const log = logs[i];
-
-        const signature = SALE_HEX_SIGNATURE_LIST.find((item) => {
-          if (
-            item.hexSignature ===
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" &&
-            log.topics.length === 3
-          ) {
-            return false;
-          }
-
-          return item.hexSignature === log.topics[0];
-        });
-
         const data = await getIsERC721Event(log);
-
         let contractData;
         let nftData;
-
         if (data.isERC721Event) {
           const decodedData = data.decodedData;
           const contractAddress = decodedData?.contract;
@@ -329,7 +313,6 @@ export class Transaction {
           contractData = result.contractData;
           nftData = result.nftData;
         }
-
         await this.createLog({ log, transaction, contractData, nftData });
       }
 

@@ -5,7 +5,7 @@ import {
   ReceivedItem,
   SEAPORT_ITEM_TYPE,
 } from "./seportTypes";
-import { checkIsAddress } from "./utils";
+import { BLUR_TYPE, checkIsAddress } from "./utils";
 
 const web3 = new Web3();
 
@@ -192,12 +192,15 @@ export const SALE_HEX_SIGNATURE_LIST = [
       const hexString: any = data.slice(2).match(/.{1,64}/g);
 
       const decodedData = hexString.map((chunk: any, index: number) => {
-        const isAddress = checkIsAddress(chunk);
-        const data = web3.eth.abi.decodeParameter(
-          isAddress ? "address" : "uint256",
-          chunk
-        );
+        const type = BLUR_TYPE[index];
+        if (!type) {
+          return chunk;
+        }
+        if (type === "hex") {
+          return chunk;
+        }
 
+        const data = web3.eth.abi.decodeParameter(type, chunk);
         return data;
       });
 
@@ -237,6 +240,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
       data: string;
     }): any => {
       if (topics.length === 3) return;
+
       return {
         action: "Transfer",
         contract: address,
@@ -260,10 +264,21 @@ export const SALE_HEX_SIGNATURE_LIST = [
     }): any => {
       if (topics.length === 2) return;
 
+      if (topics.length === 4) {
+        return {
+          action: "Mint",
+          contract: address,
+          minterAddress: web3.eth.abi.decodeParameter("address", topics[1]),
+          stage: web3.eth.abi.decodeParameter("uint256", topics[2]),
+          mintCount: web3.eth.abi.decodeParameter("uint256", topics[3]),
+        };
+      }
+
       const decodedData = web3.eth.abi.decodeParameters(
         ["address", "uint256", "uint256"],
         data
       );
+
       return {
         action: "Mint",
         contract: address,
