@@ -23,6 +23,9 @@ export class NFT {
   }
 
   async saveNFT() {
+    await this.queryRunner.connect();
+    await this.queryRunner.startTransaction();
+
     try {
       let nft = await this.queryRunner.manager.findOne(NFTEntity, {
         where: {
@@ -76,9 +79,13 @@ export class NFT {
       if (!nft) {
         throw new Error(`Failed to find or save nft`);
       }
+      await this.queryRunner.commitTransaction();
       return nft;
     } catch (e: any) {
+      await this.queryRunner.rollbackTransaction();
       throw new Error(e);
+    } finally {
+      await this.queryRunner.release();
     }
   }
 }

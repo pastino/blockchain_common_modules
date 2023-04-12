@@ -56,97 +56,111 @@ export class Contract {
   }
 
   async saveContract(): Promise<ContractEntity> {
-    let contract = await this.queryRunner.manager.findOne(ContractEntity, {
-      where: {
-        address: this.address,
-      },
-    });
+    await this.queryRunner.connect();
+    await this.queryRunner.startTransaction();
+    try {
+      let contract = await this.queryRunner.manager.findOne(ContractEntity, {
+        where: {
+          address: this.address,
+        },
+      });
 
-    // let contract = await getRepository(ContractEntity).findOne({
-    //   where: {
-    //     address: this.address,
-    //   },
-    // });
+      // let contract = await getRepository(ContractEntity).findOne({
+      //   where: {
+      //     address: this.address,
+      //   },
+      // });
 
-    if (!contract) {
-      const contractMetaData = await alchemy.nft.getContractMetadata(
-        this.address
-      );
-
-      const newContract = {
-        ...contractMetaData,
-        ...contractMetaData.openSea,
-        name: contractMetaData.name || contractMetaData.openSea?.collectionName,
-      };
-      delete contractMetaData.openSea;
-
-      try {
-        contract = await this.queryRunner.manager.save(
-          ContractEntity,
-          newContract
+      if (!contract) {
+        const contractMetaData = await alchemy.nft.getContractMetadata(
+          this.address
         );
 
-        // contract = await getRepository(ContractEntity).save(newContract);
+        const newContract = {
+          ...contractMetaData,
+          ...contractMetaData.openSea,
+          name:
+            contractMetaData.name || contractMetaData.openSea?.collectionName,
+        };
+        delete contractMetaData.openSea;
 
-        const openseaData = await this.handleOpenseaContract(contract.address);
-        const createEntityData = new CreateEntityData({
-          snakeObject: openseaData?.data?.collection,
-          entity: OpenseaCollection,
-          filterList: ["id"],
-        });
+        try {
+          contract = await this.queryRunner.manager.save(
+            ContractEntity,
+            newContract
+          );
 
-        const openseaCollection = await this.queryRunner.manager.save(
-          OpenseaCollection,
-          {
-            ...createEntityData.createTableRowData(),
-            contract,
-          }
-        );
+          // contract = await getRepository(ContractEntity).save(newContract);
 
-        // const openseaCollection = await getRepository(OpenseaCollection).save({
-        //   ...createEntityData.createTableRowData(),
-        //   contract,
-        // });
-
-        await this.queryRunner.manager.update(
-          ContractEntity,
-          {
-            id: contract.id,
-          },
-          {
-            openseaCollection,
-          }
-        );
-
-        // await getRepository(ContractEntity).update(
-        //   {
-        //     id: contract.id,
-        //   },
-        //   {
-        //     openseaCollection,
-        //   }
-        // );
-      } catch (e: any) {
-        if (e.code === "23505") {
-          contract = await this.queryRunner.manager.findOne(ContractEntity, {
-            where: {
-              address: this.address,
-            },
+          const openseaData = await this.handleOpenseaContract(
+            contract.address
+          );
+          const createEntityData = new CreateEntityData({
+            snakeObject: openseaData?.data?.collection,
+            entity: OpenseaCollection,
+            filterList: ["id"],
           });
 
-          // contract = await getRepository(ContractEntity).findOne({
-          //   where: {
-          //     address: this.address,
-          //   },
+          const openseaCollection = await this.queryRunner.manager.save(
+            OpenseaCollection,
+            {
+              ...createEntityData.createTableRowData(),
+              contract,
+            }
+          );
+
+          // const openseaCollection = await getRepository(OpenseaCollection).save({
+          //   ...createEntityData.createTableRowData(),
+          //   contract,
           // });
+
+          await this.queryRunner.manager.update(
+            ContractEntity,
+            {
+              id: contract.id,
+            },
+            {
+              openseaCollection,
+            }
+          );
+
+          // await getRepository(ContractEntity).update(
+          //   {
+          //     id: contract.id,
+          //   },
+          //   {
+          //     openseaCollection,
+          //   }
+          // );
+        } catch (e: any) {
+          if (e.code === "23505") {
+            contract = await this.queryRunner.manager.findOne(ContractEntity, {
+              where: {
+                address: this.address,
+              },
+            });
+
+            // contract = await getRepository(ContractEntity).findOne({
+            //   where: {
+            //     address: this.address,
+            //   },
+            // });
+          }
         }
       }
+      if (!contract) {
+        throw new Error(
+          `Failed to find or save contract with address: ${this.address}`
+        );
+      }
+      await this.queryRunner.commitTransaction();
+
+      return contract;
+    } catch (e: any) {
+      await this.queryRunner.rollbackTransaction();
+      throw new Error(e);
+    } finally {
+      await this.queryRunner.release();
     }
-    if (!contract) {
-      throw new Error(
-        `Failed to find or save contract with address: ${this.address}`
-      );
-    }
-    return contract;
   }
 }
