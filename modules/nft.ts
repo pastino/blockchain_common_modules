@@ -59,7 +59,7 @@ export class NFT {
           // });
         } catch (e: any) {
           if (e.code === "23505") {
-            nft = await this.queryRunner.manager.findOne(NFTEntity, {
+            nft = await getRepository(NFTEntity).findOne({
               where: {
                 contract: this.contract,
                 tokenId: this.tokenId,

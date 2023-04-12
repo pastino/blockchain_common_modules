@@ -134,7 +134,7 @@ export class Contract {
           // );
         } catch (e: any) {
           if (e.code === "23505") {
-            contract = await this.queryRunner.manager.findOne(ContractEntity, {
+            contract = await getRepository(ContractEntity).findOne({
               where: {
                 address: this.address,
               },

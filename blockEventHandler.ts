@@ -70,6 +70,7 @@ export async function handleBlockEvent(blockNum: number) {
       blockNumber: blockNum,
     });
     console.log(e);
+
     throw new Error(e);
   }
 }
