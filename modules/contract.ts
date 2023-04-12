@@ -1,4 +1,4 @@
-import { getRepository, QueryRunner } from "typeorm";
+import { getConnection, getRepository, QueryRunner } from "typeorm";
 import { OpenseaCollection } from "../entities/OpenseaCollection";
 import { Message } from "./kakao";
 import { CreateEntityData } from "./manufactureData";
@@ -20,14 +20,10 @@ export class Contract {
   private address = "";
   private queryRunner: QueryRunner;
 
-  constructor({
-    address,
-    queryRunner,
-  }: {
-    address: string;
-    queryRunner: QueryRunner;
-  }) {
+  constructor({ address }: { address: string }) {
     this.address = address;
+    const connection = getConnection();
+    const queryRunner = connection.createQueryRunner();
     this.queryRunner = queryRunner;
   }
 
@@ -60,17 +56,17 @@ export class Contract {
   }
 
   async saveContract(): Promise<ContractEntity> {
-    // let contract = await this.queryRunner.manager.findOne(ContractEntity, {
-    //   where: {
-    //     address: this.address,
-    //   },
-    // });
-
-    let contract = await getRepository(ContractEntity).findOne({
+    let contract = await this.queryRunner.manager.findOne(ContractEntity, {
       where: {
         address: this.address,
       },
     });
+
+    // let contract = await getRepository(ContractEntity).findOne({
+    //   where: {
+    //     address: this.address,
+    //   },
+    // });
 
     if (!contract) {
       const contractMetaData = await alchemy.nft.getContractMetadata(
@@ -85,12 +81,12 @@ export class Contract {
       delete contractMetaData.openSea;
 
       try {
-        // contract = await this.queryRunner.manager.save(
-        //   ContractEntity,
-        //   newContract
-        // );
+        contract = await this.queryRunner.manager.save(
+          ContractEntity,
+          newContract
+        );
 
-        contract = await getRepository(ContractEntity).save(newContract);
+        // contract = await getRepository(ContractEntity).save(newContract);
 
         const openseaData = await this.handleOpenseaContract(contract.address);
         const createEntityData = new CreateEntityData({
@@ -99,30 +95,21 @@ export class Contract {
           filterList: ["id"],
         });
 
-        // const openseaCollection = await this.queryRunner.manager.save(
-        //   OpenseaCollection,
-        //   {
-        //     ...createEntityData.createTableRowData(),
-        //     contract,
-        //   }
-        // );
+        const openseaCollection = await this.queryRunner.manager.save(
+          OpenseaCollection,
+          {
+            ...createEntityData.createTableRowData(),
+            contract,
+          }
+        );
 
-        const openseaCollection = await getRepository(OpenseaCollection).save({
-          ...createEntityData.createTableRowData(),
-          contract,
-        });
+        // const openseaCollection = await getRepository(OpenseaCollection).save({
+        //   ...createEntityData.createTableRowData(),
+        //   contract,
+        // });
 
-        // await this.queryRunner.manager.update(
-        //   ContractEntity,
-        //   {
-        //     id: contract.id,
-        //   },
-        //   {
-        //     openseaCollection,
-        //   }
-        // );
-
-        await getRepository(ContractEntity).update(
+        await this.queryRunner.manager.update(
+          ContractEntity,
           {
             id: contract.id,
           },
@@ -130,19 +117,28 @@ export class Contract {
             openseaCollection,
           }
         );
+
+        // await getRepository(ContractEntity).update(
+        //   {
+        //     id: contract.id,
+        //   },
+        //   {
+        //     openseaCollection,
+        //   }
+        // );
       } catch (e: any) {
         if (e.code === "23505") {
-          // contract = await this.queryRunner.manager.findOne(ContractEntity, {
-          //   where: {
-          //     address: this.address,
-          //   },
-          // });
-
-          contract = await getRepository(ContractEntity).findOne({
+          contract = await this.queryRunner.manager.findOne(ContractEntity, {
             where: {
               address: this.address,
             },
           });
+
+          // contract = await getRepository(ContractEntity).findOne({
+          //   where: {
+          //     address: this.address,
+          //   },
+          // });
         }
       }
     }

@@ -196,7 +196,6 @@ export class Transaction {
     try {
       const contract = new Contract({
         address: contractAddress,
-        queryRunner: this.queryRunner,
       });
       const contractData = await contract.saveContract();
 
@@ -220,7 +219,6 @@ export class Transaction {
       if (tokenId) {
         const nft = new NFT({
           contract: contractData,
-          queryRunner: this.queryRunner,
           tokenId,
         });
         nftData = await nft.saveNFT();
