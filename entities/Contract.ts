@@ -10,7 +10,7 @@ import {
   JoinColumn,
 } from "typeorm";
 import { NFT } from "./NFT";
-import { Transfer } from "./Transfer";
+
 import { TrendCollection } from "./TrendCollection";
 import * as dotenv from "dotenv";
 import { OpenseaCollection } from "./OpenseaCollection";
@@ -121,7 +121,7 @@ export class Contract {
       onDelete: "CASCADE",
     }
   )
-  @JoinColumn({ name: "transferId", referencedColumnName: "id" })
+  @JoinColumn({ name: "openseaCollectionId", referencedColumnName: "id" })
   openseaCollection: OpenseaCollection;
 
   @OneToMany(() => NFT, (nft) => nft.contract, {
@@ -133,11 +133,6 @@ export class Contract {
     onDelete: "SET NULL",
   })
   logs: Log[];
-
-  @OneToMany(() => Transfer, (transfer) => transfer.contract, {
-    onDelete: "CASCADE",
-  })
-  transfers: Transfer[];
 
   @OneToMany(
     () => TrendCollection,

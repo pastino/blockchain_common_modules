@@ -38,15 +38,25 @@ export async function handleBlockEvent(blockNum: number) {
       });
       await transaction.progressTransaction();
     }
+
     await getRepository(BlockNumber).update(
       { id: blockNumber.id },
       { isCompletedUpdate: true }
     );
 
-    await getRepository(LogError).delete({
-      blockNumber: blockNum,
+    const logErrorList = await getRepository(LogError).find({
+      where: {
+        blockNumber: blockNum,
+      },
     });
-    console.log("블록 데이터 생성 완료", blockNum);
+
+    if (logErrorList.length > 0) {
+      for (let i = 0; i < logErrorList.length; i++) {
+        const logError = logErrorList[i];
+        await getRepository(LogError).delete({ id: logError.id });
+      }
+    }
+
     return { isSuccess: true, message: "블록 데이터 생성 완료" };
   } catch (e: any) {
     await kakaoMessage.sendMessage(
@@ -55,10 +65,10 @@ export async function handleBlockEvent(blockNum: number) {
       )}\n\n블록 데이터 생성 실패 ${blockNum}\n\n${e.message}`
     );
 
+    await getRepository(BlockNumber).delete({ blockNumber: blockNum });
     await getRepository(LogError).save({
       blockNumber: blockNum,
     });
-    await getRepository(BlockNumber).delete({ blockNumber: blockNum });
     console.log(e);
     throw new Error(e);
   }

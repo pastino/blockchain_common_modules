@@ -1,4 +1,4 @@
-import { QueryRunner } from "typeorm";
+import { getRepository, QueryRunner } from "typeorm";
 import { Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 import { alchemy } from "../blockEventHandler";
@@ -24,7 +24,14 @@ export class NFT {
 
   async saveNFT() {
     try {
-      let nft = await this.queryRunner.manager.findOne(NFTEntity, {
+      // let nft = await this.queryRunner.manager.findOne(NFTEntity, {
+      //   where: {
+      //     contract: this.contract,
+      //     tokenId: this.tokenId,
+      //   },
+      // });
+
+      let nft = await getRepository(NFTEntity).findOne({
         where: {
           contract: this.contract,
           tokenId: this.tokenId,
@@ -36,14 +43,26 @@ export class NFT {
           this.tokenId
         );
         try {
-          nft = await this.queryRunner.manager.save(NFTEntity, {
+          // nft = await this.queryRunner.manager.save(NFTEntity, {
+          //   ...nftData,
+          //   mediaThumbnail: nftData?.media?.[0]?.thumbnail,
+          //   contract: this.contract,
+          // });
+
+          nft = await getRepository(NFTEntity).save({
             ...nftData,
             mediaThumbnail: nftData?.media?.[0]?.thumbnail,
             contract: this.contract,
           });
         } catch (e: any) {
           if (e.code === "23505") {
-            nft = await this.queryRunner.manager.findOne(NFTEntity, {
+            // nft = await this.queryRunner.manager.findOne(NFTEntity, {
+            //   where: {
+            //     contract: this.contract,
+            //     tokenId: this.tokenId,
+            //   },
+            // });
+            nft = await getRepository(NFTEntity).findOne({
               where: {
                 contract: this.contract,
                 tokenId: this.tokenId,

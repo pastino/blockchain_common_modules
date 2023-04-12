@@ -14,13 +14,16 @@ export class Topic {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ nullable: false })
+  index: number;
+
   @ManyToOne(() => Log, (log) => log.topics, {
     onDelete: "CASCADE",
   })
   @JoinColumn({ name: "logId", referencedColumnName: "id" })
   log: Log;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   topic: string;
 
   @CreateDateColumn()

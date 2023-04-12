@@ -199,6 +199,23 @@ export class Transaction {
         queryRunner: this.queryRunner,
       });
       const contractData = await contract.saveContract();
+
+      // await this.queryRunner.manager.update(
+      //   TransactionEntity,
+      //   { hash: this.transactionHash },
+      //   { contract: contractData }
+      // );
+
+      await getRepository(TransactionEntity).update(
+        { hash: this.transactionHash },
+        { contract: contractData }
+      );
+
+      await getRepository(TransactionEntity).update(
+        { hash: this.transactionHash },
+        { contract: contractData }
+      );
+
       let nftData;
       if (tokenId) {
         const nft = new NFT({
@@ -239,30 +256,38 @@ export class Transaction {
         logInputData.nft = nftData;
       }
 
-      const logData = await this.queryRunner.manager.save(LogEntity, {
+      // const logData = await this.queryRunner.manager.save(LogEntity, {
+      //   transaction,
+      //   ...logWithoutTopics,
+      //   ...logInputData,
+      // });
+
+      const logData = await getRepository(LogEntity).save({
         transaction,
         ...logWithoutTopics,
         ...logInputData,
       });
 
       for (let value of topics) {
-        await this.queryRunner.manager.save(TopicEntity, {
+        // await this.queryRunner.manager.save(TopicEntity, {
+        //   topic: value,
+        //   log: logData,
+        // });
+
+        await getRepository(TopicEntity).save({
+          index: topics.indexOf(value),
           topic: value,
           log: logData,
         });
       }
-    } catch (e) {
-      await getRepository(LogError).save({
-        blockNumber: this.blockNumber.blockNumber,
-        transactionHash: this.transactionHash,
-        logId: log.logIndex,
-      });
+    } catch (e: any) {
+      throw new Error(e);
     }
   }
 
   public async progressTransaction(): Promise<any> {
-    await this.queryRunner.connect();
-    await this.queryRunner.startTransaction();
+    // await this.queryRunner.connect();
+    // await this.queryRunner.startTransaction();
     try {
       const transactionData = await this.getTransaction(this.transactionHash);
       if (!transactionData)
@@ -282,21 +307,32 @@ export class Transaction {
         timestamp,
         eventTime,
       };
-      const transaction = await this.queryRunner.manager.save(
-        TransactionEntity,
-        {
-          ...transactionData,
-          blockNumber: this.blockNumber,
-          gasPrice: this.hexToStringValue(
-            transactionData?.gasPrice?._hex || "0x0"
-          ),
-          gasLimit: this.hexToStringValue(
-            transactionData?.gasLimit?._hex || "0x0"
-          ),
-          value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
-          ...timeOption,
-        }
-      );
+      // const transaction = await this.queryRunner.manager.save(
+      //   TransactionEntity,
+      //   {
+      //     ...transactionData,
+      //     blockNumber: this.blockNumber,
+      //     gasPrice: this.hexToStringValue(
+      //       transactionData?.gasPrice?._hex || "0x0"
+      //     ),
+      //     gasLimit: this.hexToStringValue(
+      //       transactionData?.gasLimit?._hex || "0x0"
+      //     ),
+      //     value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
+      //     ...timeOption,
+      //   }
+      const transaction = await getRepository(TransactionEntity).save({
+        ...transactionData,
+        blockNumber: this.blockNumber,
+        gasPrice: this.hexToStringValue(
+          transactionData?.gasPrice?._hex || "0x0"
+        ),
+        gasLimit: this.hexToStringValue(
+          transactionData?.gasLimit?._hex || "0x0"
+        ),
+        value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
+        ...timeOption,
+      });
       // 트랜잭션 로그 데이터들 저장
       for (let i = 0; i < logs.length; i++) {
         const log = logs[i];
@@ -316,13 +352,13 @@ export class Transaction {
         await this.createLog({ log, transaction, contractData, nftData });
       }
 
-      await this.queryRunner.commitTransaction();
+      // await this.queryRunner.commitTransaction();
       return { isSuccess: true };
     } catch (e: any) {
-      await this.queryRunner.rollbackTransaction();
+      // await this.queryRunner.rollbackTransaction();
       throw new Error(e);
     } finally {
-      await this.queryRunner.release();
+      // await this.queryRunner.release();
     }
   }
 }
