@@ -5,7 +5,7 @@ import {
   ReceivedItem,
   SEAPORT_ITEM_TYPE,
 } from "./seportTypes";
-import { BLUR_TYPE, checkIsAddress } from "./utils";
+import { BLUR_TYPE, checkIsAddress, X2Y2_TYPE } from "./utils";
 
 const web3 = new Web3();
 
@@ -190,7 +190,6 @@ export const SALE_HEX_SIGNATURE_LIST = [
       data: string;
     }): SaleInterface => {
       const hexString: any = data.slice(2).match(/.{1,64}/g);
-
       const decodedData = hexString.map((chunk: any, index: number) => {
         const type = BLUR_TYPE[index];
         if (!type) {
@@ -230,6 +229,54 @@ export const SALE_HEX_SIGNATURE_LIST = [
 
   {
     hexSignature:
+      "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33",
+    decode: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }): SaleInterface => {
+      const hexString: any = data.slice(2).match(/.{1,64}/g);
+      const decodedData = hexString.map((chunk: any, index: number) => {
+        const type = X2Y2_TYPE[index];
+        if (!type) {
+          return chunk;
+        }
+        if (type === "hex") {
+          return chunk;
+        }
+        const data = web3.eth.abi.decodeParameter(type, chunk);
+        return data;
+      });
+
+      const contract = decodedData?.[17];
+      const value = Number(decodedData?.[12]) / 10 ** 18;
+      const tokenId = decodedData?.[18];
+      const from: any = decodedData?.[0];
+      const to: any = decodedData?.[1];
+
+      const quantity = Number(decodedData?.[16]);
+
+      return {
+        action: "Sale",
+        contract,
+        tokenId,
+        from,
+        to,
+        ethValue: value,
+        unit: "ETH",
+        value,
+        platform: "X2Y2",
+        quantity,
+        data: decodedData,
+      };
+    },
+  },
+
+  {
+    hexSignature:
       "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
     decode: ({
       address,
@@ -239,7 +286,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
       topics: string[];
       data: string;
     }): any => {
-      if (topics.length === 3) return;
+      if (topics.length <= 3) return;
 
       return {
         action: "Transfer",

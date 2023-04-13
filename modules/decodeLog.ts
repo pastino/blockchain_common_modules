@@ -37,7 +37,7 @@ export class DecodeLog<T extends Action> {
     if (!signatureData) return;
 
     const decodedData = signatureData.decode({
-      address: this.address,
+      address: this.address, // Sale에서는 사용 안함, Transfer에서는 Contract address로 사용함
       topics: this.topics,
       data: this.data,
     });

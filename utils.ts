@@ -76,3 +76,38 @@ export const BLUR_TYPE = [
   "uint256",
   "uint256",
 ];
+
+export const X2Y2_TYPE = [
+  "address", // from
+  "address", // to
+  "hex",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256", // value
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256", // count
+  "address", // contract
+  "uint256", // tokenId
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "hex",
+  "address",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+  "uint256",
+];

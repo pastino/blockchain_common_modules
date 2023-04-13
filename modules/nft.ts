@@ -34,12 +34,6 @@ export class NFT {
         },
       });
 
-      // let nft = await getRepository(NFTEntity).findOne({
-      //   where: {
-      //     contract: this.contract,
-      //     tokenId: this.tokenId,
-      //   },
-      // });
       if (!nft) {
         const nftData = await alchemy.nft.getNftMetadata(
           this.contract.address,
@@ -51,12 +45,6 @@ export class NFT {
             mediaThumbnail: nftData?.media?.[0]?.thumbnail,
             contract: this.contract,
           });
-
-          // nft = await getRepository(NFTEntity).save({
-          //   ...nftData,
-          //   mediaThumbnail: nftData?.media?.[0]?.thumbnail,
-          //   contract: this.contract,
-          // });
         } catch (e: any) {
           if (e.code === "23505") {
             nft = await getRepository(NFTEntity).findOne({
@@ -65,12 +53,6 @@ export class NFT {
                 tokenId: this.tokenId,
               },
             });
-            // nft = await getRepository(NFTEntity).findOne({
-            //   where: {
-            //     contract: this.contract,
-            //     tokenId: this.tokenId,
-            //   },
-            // });
           } else {
             console.error("Unexpected error:", e);
           }

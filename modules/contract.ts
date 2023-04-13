@@ -65,12 +65,6 @@ export class Contract {
         },
       });
 
-      // let contract = await getRepository(ContractEntity).findOne({
-      //   where: {
-      //     address: this.address,
-      //   },
-      // });
-
       if (!contract) {
         const contractMetaData = await alchemy.nft.getContractMetadata(
           this.address
@@ -90,8 +84,6 @@ export class Contract {
             newContract
           );
 
-          // contract = await getRepository(ContractEntity).save(newContract);
-
           const openseaData = await this.handleOpenseaContract(
             contract.address
           );
@@ -109,11 +101,6 @@ export class Contract {
             }
           );
 
-          // const openseaCollection = await getRepository(OpenseaCollection).save({
-          //   ...createEntityData.createTableRowData(),
-          //   contract,
-          // });
-
           await this.queryRunner.manager.update(
             ContractEntity,
             {
@@ -123,15 +110,6 @@ export class Contract {
               openseaCollection,
             }
           );
-
-          // await getRepository(ContractEntity).update(
-          //   {
-          //     id: contract.id,
-          //   },
-          //   {
-          //     openseaCollection,
-          //   }
-          // );
         } catch (e: any) {
           if (e.code === "23505") {
             contract = await getRepository(ContractEntity).findOne({
@@ -139,12 +117,6 @@ export class Contract {
                 address: this.address,
               },
             });
-
-            // contract = await getRepository(ContractEntity).findOne({
-            //   where: {
-            //     address: this.address,
-            //   },
-            // });
           }
         }
       }

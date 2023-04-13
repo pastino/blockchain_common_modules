@@ -7,12 +7,8 @@ import {
 import { alchemy } from "../blockEventHandler";
 import { Message } from "./kakao";
 import moment from "moment";
-import {
-  getIsERC721Event,
-  SALE_HEX_SIGNATURE_LIST,
-  SIGNATURE_LIST,
-} from "../ABI";
-import { getConnection, getRepository, QueryRunner } from "typeorm";
+import { getIsERC721Event, SIGNATURE_LIST } from "../ABI";
+import { getRepository } from "typeorm";
 import { Contract } from "./contract";
 import { NFT } from "./nft";
 import { Transaction as TransactionEntity } from "../entities/Transaction";
@@ -20,7 +16,6 @@ import { Log as LogEntity } from "../entities/Log";
 import { Topic as TopicEntity } from "../entities/Topic";
 import { sleep } from "../utils";
 import { BlockNumber as BlockNumberEntity } from "../entities/BlockNumber";
-import { LogError } from "../entities/LogError";
 import { Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 
@@ -41,7 +36,6 @@ interface Success<T = undefined> {
 export class Transaction {
   private transactionHash = "";
   private blockData: Block;
-  private queryRunner: QueryRunner;
   private blockNumber: BlockNumberEntity;
 
   constructor({
@@ -56,9 +50,6 @@ export class Transaction {
     this.transactionHash = transactionHash;
     this.blockData = blockData;
     this.blockNumber = blockNumber;
-    const connection = getConnection();
-    const queryRunner = connection.createQueryRunner();
-    this.queryRunner = queryRunner;
   }
 
   private async getTransactionReceipt(
@@ -122,7 +113,7 @@ export class Transaction {
     ).length;
 
     let signatureData;
-
+    // TODO 1. 여기 수정 필요
     if (signatureDataLength > 1) {
       signatureData = SIGNATURE_LIST.find(
         (signature) =>
@@ -165,19 +156,6 @@ export class Transaction {
     return { isERC721: isERC721 ? true : false, decodedLogs };
   }
 
-  private async getIsERC721Transaction(logs: Log[]): Promise<boolean> {
-    for (let i = 0; i < logs.length; i++) {
-      const decodedSignatureData = await this.anylyzeLog(logs[i]);
-      if (
-        (await decodedSignatureData.data?.name) === "Transfer" &&
-        decodedSignatureData.data?.type === "ERC721"
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   private hexToStringValue = (hexValue: string): string => {
     return parseInt(hexValue, 16).toString();
   };
@@ -200,11 +178,6 @@ export class Transaction {
         address: contractAddress,
       });
       const contractData = await contract.saveContract();
-      // await this.queryRunner.manager.update(
-      //   TransactionEntity,
-      //   { hash: this.transactionHash },
-      //   { contract: contractData }
-      // );
 
       await getRepository(TransactionEntity).update(
         { id: transaction.id },
@@ -249,26 +222,16 @@ export class Transaction {
         logInputData.nft = nftData;
       }
 
-      // const logData = await this.queryRunner.manager.save(LogEntity, {
-      //   transaction,
-      //   ...logWithoutTopics,
-      //   ...logInputData,
-      // });
-
       const logData = await getRepository(LogEntity).save({
         transaction,
         ...logWithoutTopics,
         ...logInputData,
       });
 
-      for (let value of topics) {
-        // await this.queryRunner.manager.save(TopicEntity, {
-        //   topic: value,
-        //   log: logData,
-        // });
-
+      for (let i = 0; i < topics.length; i++) {
+        const value = topics[i];
         await getRepository(TopicEntity).save({
-          index: topics.indexOf(value),
+          index: i,
           topic: value,
           log: logData,
         });
@@ -279,8 +242,6 @@ export class Transaction {
   }
 
   public async progressTransaction(): Promise<any> {
-    // await this.queryRunner.connect();
-    // await this.queryRunner.startTransaction();
     try {
       const transactionData = await this.getTransaction(this.transactionHash);
       if (!transactionData)
@@ -302,20 +263,6 @@ export class Transaction {
         eventTime,
       };
 
-      // const transaction = await this.queryRunner.manager.save(
-      //   TransactionEntity,
-      //   {
-      //     ...transactionData,
-      //     blockNumber: this.blockNumber,
-      //     gasPrice: this.hexToStringValue(
-      //       transactionData?.gasPrice?._hex || "0x0"
-      //     ),
-      //     gasLimit: this.hexToStringValue(
-      //       transactionData?.gasLimit?._hex || "0x0"
-      //     ),
-      //     value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
-      //     ...timeOption,
-      //   }
       const transaction = await getRepository(TransactionEntity).save({
         ...transactionData,
         blockNumber: this.blockNumber,
@@ -349,13 +296,9 @@ export class Transaction {
         await this.createLog({ log, transaction, contractData, nftData });
       }
 
-      // await this.queryRunner.commitTransaction();
       return { isSuccess: true };
     } catch (e: any) {
-      // await this.queryRunner.rollbackTransaction();
       throw new Error(e);
-    } finally {
-      // await this.queryRunner.release();
     }
   }
 }
