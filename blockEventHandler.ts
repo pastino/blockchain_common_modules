@@ -28,9 +28,7 @@ export async function handleBlockEvent(blockNum: number) {
       blockNumber: blockNum,
     });
     const transactions = blockData?.transactions;
-    console.log("트랜잭션 개수", transactions?.length);
     for (let i = 0; i < transactions.length; i++) {
-      console.log(`${i + 1}번째 트랜잭션`);
       const transactionHash = transactions[i];
 
       const transaction = new Transaction({
