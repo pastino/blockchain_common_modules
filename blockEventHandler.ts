@@ -28,7 +28,9 @@ export async function handleBlockEvent(blockNum: number) {
       blockNumber: blockNum,
     });
     const transactions = blockData?.transactions;
+    console.log("트랜잭션 개수", transactions?.length);
     for (let i = 0; i < transactions.length; i++) {
+      console.log(`${i + 1}번째 트랜잭션`);
       const transactionHash = transactions[i];
 
       const transaction = new Transaction({
@@ -56,7 +58,7 @@ export async function handleBlockEvent(blockNum: number) {
         await getRepository(LogError).delete({ id: logError.id });
       }
     }
-
+    console.log("블록 데이터 생성 완료", blockNum);
     return { isSuccess: true, message: "블록 데이터 생성 완료" };
   } catch (e: any) {
     await kakaoMessage.sendMessage(

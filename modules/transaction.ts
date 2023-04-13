@@ -185,20 +185,23 @@ export class Transaction {
   private async createContractAndNFT({
     tokenId,
     contractAddress,
+    transaction,
   }: {
     tokenId: number | string;
     contractAddress: string;
+    transaction: TransactionEntity;
   }): Promise<{
     isSuccess: boolean;
     contractData: ContractEntity;
     nftData?: NFTEntity;
   }> {
     try {
+      console.log(1);
       const contract = new Contract({
         address: contractAddress,
       });
       const contractData = await contract.saveContract();
-
+      console.log(2);
       // await this.queryRunner.manager.update(
       //   TransactionEntity,
       //   { hash: this.transactionHash },
@@ -206,15 +209,10 @@ export class Transaction {
       // );
 
       await getRepository(TransactionEntity).update(
-        { hash: this.transactionHash },
+        { id: transaction.id },
         { contract: contractData }
       );
-
-      await getRepository(TransactionEntity).update(
-        { hash: this.transactionHash },
-        { contract: contractData }
-      );
-
+      console.log(3);
       let nftData;
       if (tokenId) {
         const nft = new NFT({
@@ -223,6 +221,7 @@ export class Transaction {
         });
         nftData = await nft.saveNFT();
       }
+      console.log(4);
 
       return { isSuccess: true, contractData, nftData };
     } catch (e: any) {
@@ -293,6 +292,7 @@ export class Transaction {
       const transactionReceipt = await this.getTransactionReceipt(
         this.transactionHash
       );
+
       const logs = transactionReceipt?.logs;
       if (!logs || logs.length === 0)
         return { isSuccess: false, message: "logs is empty" };
@@ -305,6 +305,7 @@ export class Transaction {
         timestamp,
         eventTime,
       };
+
       // const transaction = await this.queryRunner.manager.save(
       //   TransactionEntity,
       //   {
@@ -331,8 +332,10 @@ export class Transaction {
         value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
         ...timeOption,
       });
+
       // 트랜잭션 로그 데이터들 저장
       for (let i = 0; i < logs.length; i++) {
+        console.log(`log ${i} start`);
         const log = logs[i];
         const data = await getIsERC721Event(log);
         let contractData;
@@ -341,6 +344,7 @@ export class Transaction {
           const decodedData = data.decodedData;
           const contractAddress = decodedData?.contract;
           const result = await this.createContractAndNFT({
+            transaction,
             tokenId: decodedData?.tokenId,
             contractAddress,
           });
