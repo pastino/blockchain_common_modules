@@ -5,22 +5,19 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-} from 'typeorm';
-import { Transaction } from './Transaction';
-import * as dotenv from 'dotenv';
-import { blockNumberExample } from '../entityExamples';
+} from "typeorm";
+import { Transaction } from "./Transaction";
+import * as dotenv from "dotenv";
+import { blockNumberExample } from "../entityExamples";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
-const { id, blockNumber, transactions, isCompletedUpdate, createAt, updateAt } =
-  blockNumberExample;
-
-@Entity({ name: 'blockNumber' })
+@Entity({ name: "blockNumber" })
 export class BlockNumber {
   @PrimaryGeneratedColumn()
   id: number;
@@ -29,7 +26,7 @@ export class BlockNumber {
   blockNumber: number;
 
   @OneToMany(() => Transaction, (transaction) => transaction.blockNumber, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
   transactions: Transaction[];
 
@@ -53,42 +50,51 @@ export class BlockNumber {
 }
 
 if (isNestJs) {
+  const {
+    id,
+    blockNumber,
+    transactions,
+    isCompletedUpdate,
+    createAt,
+    updateAt,
+  } = blockNumberExample;
+
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
     ApiProperty({
-      name: 'blockNumber',
+      name: "blockNumber",
       type: Number,
       example: blockNumber,
-      description: '블록 넘버',
+      description: "블록 넘버",
     }),
     ApiProperty({
-      name: 'transactions',
+      name: "transactions",
       type: [Transaction],
       example: transactions,
-      description: '트랜잭션',
+      description: "트랜잭션",
     }),
     ApiProperty({
-      name: 'isCompletedUpdate',
+      name: "isCompletedUpdate",
       type: Boolean,
       example: isCompletedUpdate,
-      description: '업데이트 완료 여부',
+      description: "업데이트 완료 여부",
     }),
     ApiProperty({
-      name: 'createAt',
+      name: "createAt",
       type: Date,
       example: createAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updateAt',
+      name: "updateAt",
       type: Date,
       example: updateAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 

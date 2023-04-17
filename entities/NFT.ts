@@ -8,41 +8,27 @@ import {
   JoinColumn,
   OneToMany,
   Unique,
-} from 'typeorm';
-import { Contract } from './Contract';
-import { Log } from './Log';
-import { nftExample } from '../entityExamples';
-import * as dotenv from 'dotenv';
+} from "typeorm";
+import { Contract } from "./Contract";
+import { Log } from "./Log";
+import { nftExample } from "../entityExamples";
+import * as dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
-const {
-  id,
-  contract,
-  tokenId,
-  tokenType,
-  title,
-  description,
-  mediaThumbnail,
-  rawMetadataImage,
-  logs,
-  createAt,
-  updateAt,
-} = nftExample;
-
-@Entity({ name: 'nft' })
-@Unique('uniqueIndex', ['contract', 'tokenId'])
+@Entity({ name: "nft" })
+@Unique("uniqueIndex", ["contract", "tokenId"])
 export class NFT {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(() => Contract, (contract) => contract.nfts)
-  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
 
   @Column({ nullable: true })
@@ -54,7 +40,7 @@ export class NFT {
   @Column({ nullable: true, length: 1000 })
   title: string;
 
-  @Column({ type: 'longtext', nullable: true })
+  @Column({ type: "longtext", nullable: true })
   description: string;
 
   @Column({ nullable: true })
@@ -64,7 +50,7 @@ export class NFT {
   rawMetadataImage: string;
 
   @OneToMany(() => Log, (log) => log.nft, {
-    onDelete: 'SET NULL',
+    onDelete: "SET NULL",
   })
   logs: Log[];
 
@@ -85,55 +71,69 @@ export class NFT {
 }
 
 if (isNestJs) {
+  const {
+    id,
+    contract,
+    tokenId,
+    tokenType,
+    title,
+    description,
+    mediaThumbnail,
+    rawMetadataImage,
+    logs,
+    createAt,
+    updateAt,
+  } = nftExample;
+
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
 
     ApiProperty({
-      name: 'contract',
+      name: "contract",
       type: () => Contract,
       example: contract,
-      description: 'Contract',
+      description: "Contract",
     }),
     ApiProperty({
-      name: 'tokenId',
+      name: "tokenId",
       type: String,
       example: tokenId,
-      description: '토큰 ID',
+      description: "토큰 ID",
     }),
     ApiProperty({
-      name: 'tokenType',
+      name: "tokenType",
       type: String,
       example: tokenType,
-      description: '토큰 타입',
+      description: "토큰 타입",
     }),
     ApiProperty({
-      name: 'title',
+      name: "title",
       type: String,
       example: title,
-      description: '제목',
+      description: "제목",
     }),
     ApiProperty({
-      name: 'description',
+      name: "description",
       type: String,
       example: description,
-      description: '설명',
+      description: "설명",
     }),
     ApiProperty({
-      name: 'mediaThumbnail',
+      name: "mediaThumbnail",
       type: String,
       example: mediaThumbnail,
-      description: '미디어 썸네일',
+      description: "미디어 썸네일",
     }),
     ApiProperty({
-      name: 'rawMetadataImage',
+      name: "rawMetadataImage",
       type: String,
       example: rawMetadataImage,
-      description: '메타데이터 이미지',
+      description: "메타데이터 이미지",
     }),
     // ApiProperty({
     //   name: 'logs',
@@ -142,16 +142,16 @@ if (isNestJs) {
     //   description: '메타데이터 이미지',
     // }),
     ApiProperty({
-      name: 'createAt',
+      name: "createAt",
       type: Date,
       example: createAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updateAt',
+      name: "updateAt",
       type: Date,
       example: updateAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 
