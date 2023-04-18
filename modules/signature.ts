@@ -29,7 +29,6 @@ export class Signature {
   }
 
   async getABI(hexSignature: string) {
-    // console.log("hexSignature", hexSignature);
     const signatureData: SignatureEntity | undefined = await getRepository(
       SignatureEntity
     ).findOne({

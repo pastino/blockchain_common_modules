@@ -8,13 +8,12 @@ import { alchemy } from "../blockEventHandler";
 import moment from "moment";
 import { sleep } from "../utils";
 
+const kakaoMessage = new Message();
 const openSeaConfig: any = {
   headers: {
     "X-API-KEY": process.env.OPENSEA_API_KEY,
   },
 };
-
-const kakaoMessage = new Message();
 
 export class Contract {
   private address = "";
@@ -87,6 +86,7 @@ export class Contract {
           const openseaData = await this.handleOpenseaContract(
             contract.address
           );
+
           const createEntityData = new CreateEntityData({
             snakeObject: openseaData?.data?.collection,
             entity: OpenseaCollection,
@@ -111,6 +111,7 @@ export class Contract {
             }
           );
         } catch (e: any) {
+          console.log("e", e);
           if (e.code === "23505") {
             contract = await getRepository(ContractEntity).findOne({
               where: {

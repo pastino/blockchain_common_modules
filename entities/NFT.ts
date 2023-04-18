@@ -8,11 +8,13 @@ import {
   JoinColumn,
   OneToMany,
   Unique,
+  OneToOne,
 } from "typeorm";
 import { Contract } from "./Contract";
 import { Log } from "./Log";
 import { nftExample } from "../entityExamples";
 import * as dotenv from "dotenv";
+import { OpenseaNFT } from "./OpenseaNFT";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -53,6 +55,12 @@ export class NFT {
     onDelete: "SET NULL",
   })
   logs: Log[];
+
+  @OneToOne(() => OpenseaNFT, (openseaNFT) => openseaNFT.nft, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "openseaNFTId", referencedColumnName: "id" })
+  openseaNFT: OpenseaNFT;
 
   @CreateDateColumn()
   createAt: Date;

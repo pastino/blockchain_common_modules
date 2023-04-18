@@ -2,6 +2,16 @@ import { getConnection, getRepository, QueryRunner } from "typeorm";
 import { Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 import { alchemy } from "../blockEventHandler";
+import axios, { AxiosResponse } from "axios";
+import { sleep } from "../utils";
+import { OpenseaNFT } from "../entities/OpenseaNFT";
+import { CreateEntityData } from "./manufactureData";
+
+const openSeaConfig: any = {
+  headers: {
+    "X-API-KEY": process.env.OPENSEA_API_KEY,
+  },
+};
 
 export class NFT {
   private contract: ContractEntity;
@@ -22,6 +32,34 @@ export class NFT {
     this.tokenId = tokenId;
   }
 
+  async handleOpenseaNFT(
+    contractAddress: string,
+    tokenId: string | number,
+    retryCount: number = 10
+  ): Promise<AxiosResponse | undefined> {
+    try {
+      const response = await axios.get(
+        `https://api.opensea.io/api/v1/asset/${contractAddress}/${tokenId}`,
+        openSeaConfig
+      );
+
+      return response;
+    } catch (e: any) {
+      if (e.response && e.response.status !== 404) {
+        if (retryCount > 0) {
+          await sleep(3);
+          return this.handleOpenseaNFT(
+            contractAddress,
+            tokenId,
+            retryCount - 1
+          );
+        } else {
+          throw new Error(e);
+        }
+      }
+    }
+  }
+
   async saveNFT() {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
@@ -39,12 +77,31 @@ export class NFT {
           this.contract.address,
           this.tokenId
         );
+
         try {
           nft = await this.queryRunner.manager.save(NFTEntity, {
             ...nftData,
             mediaThumbnail: nftData?.media?.[0]?.thumbnail,
             contract: this.contract,
           });
+
+          const openseaNFT = await this.handleOpenseaNFT(
+            this.contract.address,
+            this.tokenId
+          );
+
+          if (openseaNFT?.data) {
+            const createEntityData = new CreateEntityData({
+              snakeObject: openseaNFT?.data,
+              entity: OpenseaNFT,
+              filterList: ["id"],
+            });
+
+            await this.queryRunner.manager.save(OpenseaNFT, {
+              nft,
+              ...createEntityData.createTableRowData(),
+            });
+          }
         } catch (e: any) {
           if (e.code === "23505") {
             nft = await getRepository(NFTEntity).findOne({

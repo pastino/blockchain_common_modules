@@ -124,11 +124,22 @@ export const SALE_HEX_SIGNATURE_LIST = [
         }),
       };
 
+      // if (orderFulfilledEvent?.offer?.length > 1) {
+      //   console.log("orderFulfilledEvent", orderFulfilledEvent);
+      // }
+
       const offer = orderFulfilledEvent?.offer[0];
-      const isERC721 = Number(offer.itemType) === SEAPORT_ITEM_TYPE["ERC721"];
+      const isERC721 = offer.itemType === SEAPORT_ITEM_TYPE["ERC721"];
+      const isERC20 = offer.itemType === SEAPORT_ITEM_TYPE["ERC20"];
 
       if (isERC721) {
-        const value = orderFulfilledEvent.consideration?.reduce(
+        const natives = orderFulfilledEvent.consideration.filter(
+          (item) => item.itemType === SEAPORT_ITEM_TYPE["NATIVE"]
+        );
+
+        if (natives.length === 0) return null;
+
+        const value = natives?.reduce(
           (sum: number, transaction: ReceivedItem) => {
             let value = Number(transaction.amount) / 10 ** 18;
             return sum + value;
@@ -179,6 +190,30 @@ export const SALE_HEX_SIGNATURE_LIST = [
           value,
           platform: "OpenSea",
           quantity: Number(offer?.amount),
+          data: orderFulfilledEvent,
+        };
+      } else if (isERC20) {
+        const value = offer?.amount / 10 ** 18;
+
+        let ethValue = value;
+        let unit = "ETH";
+
+        const target = orderFulfilledEvent?.consideration.find(
+          (item) => item.itemType === SEAPORT_ITEM_TYPE["ERC721"]
+        );
+        if (!target) return null;
+
+        return {
+          action: "Sale",
+          contract: target?.token,
+          tokenId: String(target?.identifier),
+          from: orderFulfilledEvent?.recipient,
+          to: orderFulfilledEvent?.offerer,
+          ethValue,
+          unit,
+          value,
+          platform: "OpenSea",
+          quantity: Number(target?.amount),
           data: orderFulfilledEvent,
         };
       }
