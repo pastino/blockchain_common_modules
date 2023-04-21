@@ -7,6 +7,7 @@ import {
   JoinColumn,
   Column,
   OneToMany,
+  OneToOne,
 } from "typeorm";
 import { Contract } from "./Contract";
 import { NFT } from "./NFT";
@@ -14,6 +15,7 @@ import { Topic } from "./Topic";
 import { Transaction } from "./Transaction";
 import * as dotenv from "dotenv";
 import { logExample } from "../entityExamples";
+import { DecodedLog } from "./DecodedLog";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -26,6 +28,12 @@ const ApiProperty = isNestJs
 export class Log {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @OneToOne(() => DecodedLog, (decodeLog) => decodeLog.log, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "decodedLog", referencedColumnName: "id" })
+  decodedLog: DecodedLog;
 
   @ManyToOne(() => Transaction, (transaction) => transaction.logs, {
     onDelete: "CASCADE",

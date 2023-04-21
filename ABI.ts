@@ -38,6 +38,8 @@ export interface MintInterface {
   mintCount: number;
 }
 
+export type DecodedLogType = SaleInterface | TransferInterface | MintInterface;
+
 export function getIsERC721Event({
   address,
   topics,
@@ -164,20 +166,6 @@ export const SALE_HEX_SIGNATURE_LIST = [
           default:
             break;
         }
-
-        console.log({
-          action: "Sale",
-          contract: offer?.token,
-          tokenId: offer?.identifier,
-          from: orderFulfilledEvent?.offerer,
-          to: orderFulfilledEvent?.recipient,
-          ethValue,
-          unit,
-          value,
-          platform: "OpenSea",
-          quantity: Number(offer?.amount),
-          data: orderFulfilledEvent,
-        });
 
         return {
           action: "Sale",

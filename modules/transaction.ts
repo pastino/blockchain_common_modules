@@ -7,7 +7,7 @@ import {
 import { alchemy } from "../blockEventHandler";
 import { Message } from "./kakao";
 import moment from "moment";
-import { getIsERC721Event, SIGNATURE_LIST } from "../ABI";
+import { DecodedLogType, getIsERC721Event, SIGNATURE_LIST } from "../ABI";
 import { getRepository } from "typeorm";
 import { Contract } from "./contract";
 import { NFT } from "./nft";
@@ -18,6 +18,7 @@ import { sleep } from "../utils";
 import { BlockNumber as BlockNumberEntity } from "../entities/BlockNumber";
 import { Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
+import { DecodedLog } from "../entities/DecodedLog";
 
 const kakaoMessage = new Message();
 
@@ -203,11 +204,13 @@ export class Transaction {
     transaction,
     contractData,
     nftData,
+    decodedLog,
   }: {
     log: Log;
     transaction: TransactionEntity;
     contractData?: ContractEntity;
     nftData?: NFTEntity;
+    decodedLog: any;
   }) {
     try {
       const { topics, ...logWithoutTopics } = log;
@@ -227,6 +230,13 @@ export class Transaction {
         ...logWithoutTopics,
         ...logInputData,
       });
+
+      if (decodedLog) {
+        await getRepository(DecodedLog).save({
+          ...decodedLog,
+          log: logData,
+        });
+      }
 
       for (let i = 0; i < topics.length; i++) {
         const value = topics[i];
@@ -293,7 +303,13 @@ export class Transaction {
           contractData = result.contractData;
           nftData = result.nftData;
         }
-        await this.createLog({ log, transaction, contractData, nftData });
+        await this.createLog({
+          log,
+          transaction,
+          contractData,
+          nftData,
+          decodedLog: data.decodedData || null,
+        });
       }
 
       return { isSuccess: true };
