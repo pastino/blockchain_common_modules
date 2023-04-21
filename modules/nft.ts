@@ -90,7 +90,7 @@ export class NFT {
             this.tokenId
           );
 
-          if (openseaNFT?.data) {
+          if (openseaNFT?.data?.tokenId) {
             const createEntityData = new CreateEntityData({
               snakeObject: openseaNFT?.data,
               entity: OpenseaNFT,
