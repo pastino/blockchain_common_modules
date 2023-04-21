@@ -54,7 +54,7 @@ export class NFT {
             retryCount - 1
           );
         } else {
-          throw new Error(e);
+          throw e;
         }
       }
     }
@@ -103,7 +103,7 @@ export class NFT {
             });
           }
         } catch (e: any) {
-          if (e.code === "23505") {
+          if (e.code === "ER_DUP_ENTRY") {
             nft = await getRepository(NFTEntity).findOne({
               where: {
                 contract: this.contract,
@@ -116,13 +116,13 @@ export class NFT {
         }
       }
       if (!nft) {
-        throw new Error(`Failed to find or save nft`);
+        throw `Failed to find or save nft`;
       }
       await this.queryRunner.commitTransaction();
       return nft;
     } catch (e: any) {
       await this.queryRunner.rollbackTransaction();
-      throw new Error(e);
+      throw e;
     } finally {
       await this.queryRunner.release();
     }

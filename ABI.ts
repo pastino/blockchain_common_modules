@@ -55,7 +55,11 @@ export function getIsERC721Event({
   );
 
   if (signature) {
-    const decodedData = signature.decode({ address, topics, data });
+    const decodedData = signature.decode({
+      address,
+      topics,
+      data,
+    });
     if (decodedData) {
       return { isERC721Event: true, decodedData };
     }
@@ -131,12 +135,12 @@ export const SALE_HEX_SIGNATURE_LIST = [
       // }
 
       const offer = orderFulfilledEvent?.offer[0];
-      const isERC721 = offer.itemType === SEAPORT_ITEM_TYPE["ERC721"];
-      const isERC20 = offer.itemType === SEAPORT_ITEM_TYPE["ERC20"];
+      const isERC721 = offer.itemType == SEAPORT_ITEM_TYPE["ERC721"];
+      const isERC20 = offer.itemType == SEAPORT_ITEM_TYPE["ERC20"];
 
       if (isERC721) {
         const natives = orderFulfilledEvent.consideration.filter(
-          (item) => item.itemType === SEAPORT_ITEM_TYPE["NATIVE"]
+          (item) => item.itemType == SEAPORT_ITEM_TYPE["NATIVE"]
         );
 
         if (natives.length === 0) return null;

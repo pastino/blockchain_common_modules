@@ -48,7 +48,7 @@ export class Contract {
               "MM/DD HH:mm"
             )}\n\nopensea error - handleOpenseaContract`
           );
-          throw new Error(e);
+          throw e;
         }
       }
     }
@@ -112,7 +112,7 @@ export class Contract {
           );
         } catch (e: any) {
           console.log("e", e);
-          if (e.code === "23505") {
+          if (e.code === "ER_DUP_ENTRY") {
             contract = await getRepository(ContractEntity).findOne({
               where: {
                 address: this.address,
@@ -122,16 +122,14 @@ export class Contract {
         }
       }
       if (!contract) {
-        throw new Error(
-          `Failed to find or save contract with address: ${this.address}`
-        );
+        throw `Failed to find or save contract with address: ${this.address}`;
       }
       await this.queryRunner.commitTransaction();
 
       return contract;
     } catch (e: any) {
       await this.queryRunner.rollbackTransaction();
-      throw new Error(e);
+      throw e;
     } finally {
       await this.queryRunner.release();
     }

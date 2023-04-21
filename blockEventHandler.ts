@@ -36,6 +36,7 @@ export async function handleBlockEvent(blockNum: number) {
         blockData,
         blockNumber,
       });
+
       await transaction.progressTransaction();
     }
 

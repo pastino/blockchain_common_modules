@@ -72,7 +72,7 @@ export class Transaction {
             "MM/DD HH:mm"
           )}\n\ntransactionReceipt error - getTransactionReceipt`
         );
-        throw new Error(e);
+        throw e;
       }
     }
   }
@@ -94,7 +94,7 @@ export class Transaction {
             "MM/DD HH:mm"
           )}\n\ntransaction error - getTransaction`
         );
-        throw new Error(e);
+        throw e;
       }
     }
   }
@@ -195,7 +195,7 @@ export class Transaction {
 
       return { isSuccess: true, contractData, nftData };
     } catch (e: any) {
-      throw new Error(e);
+      throw e;
     }
   }
 
@@ -247,7 +247,7 @@ export class Transaction {
         });
       }
     } catch (e: any) {
-      throw new Error(e);
+      throw e;
     }
   }
 
@@ -314,7 +314,7 @@ export class Transaction {
 
       return { isSuccess: true };
     } catch (e: any) {
-      throw new Error(e);
+      throw e;
     }
   }
 }
