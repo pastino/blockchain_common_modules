@@ -23,6 +23,7 @@ const ApiProperty = isNestJs
   ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
+// slug 추가
 @Entity({ name: "contract" })
 @Unique(["address"])
 export class Contract {

@@ -7,6 +7,7 @@ import axios, { AxiosResponse } from "axios";
 import { alchemy } from "../blockEventHandler";
 import moment from "moment";
 import { sleep } from "../utils";
+import { ContractError } from "../entities/ContractError";
 
 const kakaoMessage = new Message();
 const openSeaConfig: any = {
@@ -71,11 +72,18 @@ export class Contract {
 
         const newContract = {
           ...contractMetaData,
-          ...contractMetaData.openSea,
+          ...(contractMetaData.openSea || {}),
           name:
             contractMetaData.name || contractMetaData.openSea?.collectionName,
         };
         delete contractMetaData.openSea;
+
+        if (!contractMetaData.name) {
+          await getRepository(ContractError).save({
+            address: this.address,
+            returnStringData: JSON.stringify(newContract),
+          });
+        }
 
         try {
           contract = await this.queryRunner.manager.save(

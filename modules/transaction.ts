@@ -7,7 +7,7 @@ import {
 import { alchemy } from "../blockEventHandler";
 import { Message } from "./kakao";
 import moment from "moment";
-import { DecodedLogType, getIsERC721Event, SIGNATURE_LIST } from "../ABI";
+import { getIsERC721Event, SIGNATURE_LIST } from "../ABI";
 import { getRepository } from "typeorm";
 import { Contract } from "./contract";
 import { NFT } from "./nft";
