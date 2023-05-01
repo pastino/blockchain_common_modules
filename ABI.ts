@@ -135,12 +135,12 @@ export const SALE_HEX_SIGNATURE_LIST = [
       // }
 
       const offer = orderFulfilledEvent?.offer[0];
-      const isERC721 = offer.itemType == SEAPORT_ITEM_TYPE["ERC721"];
-      const isERC20 = offer.itemType == SEAPORT_ITEM_TYPE["ERC20"];
+      const isERC721 = Number(offer.itemType) == SEAPORT_ITEM_TYPE["ERC721"];
+      const isERC20 = Number(offer.itemType) == SEAPORT_ITEM_TYPE["ERC20"];
 
       if (isERC721) {
         const natives = orderFulfilledEvent.consideration.filter(
-          (item) => item.itemType == SEAPORT_ITEM_TYPE["NATIVE"]
+          (item) => Number(item.itemType) == SEAPORT_ITEM_TYPE["NATIVE"]
         );
 
         if (natives.length === 0) return null;
@@ -191,7 +191,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
         let unit = "ETH";
 
         const target = orderFulfilledEvent?.consideration.find(
-          (item) => item.itemType === SEAPORT_ITEM_TYPE["ERC721"]
+          (item) => Number(item.itemType) === SEAPORT_ITEM_TYPE["ERC721"]
         );
         if (!target) return null;
 
