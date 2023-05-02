@@ -6,10 +6,14 @@ import {
   ManyToOne,
   JoinColumn,
   Column,
-} from "typeorm";
-import { Log } from "./Log";
+  Index,
+} from 'typeorm';
+import { Log } from './Log';
 
-@Entity({ name: "topic" })
+@Entity({ name: 'topic' })
+@Index('idx_topic_log', ['log'])
+@Index('idx_topic_topic', ['topic'])
+@Index('idx_topic_index', ['index'])
 export class Topic {
   @PrimaryGeneratedColumn()
   id: number;
@@ -18,9 +22,9 @@ export class Topic {
   index: number;
 
   @ManyToOne(() => Log, (log) => log.topics, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: "logId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'logId', referencedColumnName: 'id' })
   log: Log;
 
   @Column({ nullable: false })
