@@ -162,9 +162,9 @@ export const SALE_HEX_SIGNATURE_LIST = [
             ethValue = value * ashToEthRate;
             unit = "ASH";
             break;
-          case "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" ||
-            "0x79f1C4cF7266746698E91034d658E56913E6644f" ||
-            "0xED5AF388653567Af2F388E6224dC7C4b3241C544":
+          case "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2":
+          case "0x79f1C4cF7266746698E91034d658E56913E6644f":
+          case "0xED5AF388653567Af2F388E6224dC7C4b3241C544":
             unit = "WETH";
             break;
           default:
