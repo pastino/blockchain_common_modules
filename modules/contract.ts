@@ -91,33 +91,33 @@ export class Contract {
             newContract
           );
 
-          // const openseaData = await this.handleOpenseaContract(
-          //   contract.address
-          // );
+          const openseaData = await this.handleOpenseaContract(
+            contract.address
+          );
 
-          // const createEntityData = new CreateEntityData({
-          //   snakeObject: openseaData?.data?.collection,
-          //   entity: OpenseaCollection,
-          //   filterList: ["id"],
-          // });
+          const createEntityData = new CreateEntityData({
+            snakeObject: openseaData?.data?.collection,
+            entity: OpenseaCollection,
+            filterList: ["id"],
+          });
 
-          // const openseaCollection = await this.queryRunner.manager.save(
-          //   OpenseaCollection,
-          //   {
-          //     ...createEntityData.createTableRowData(),
-          //     contract,
-          //   }
-          // );
+          const openseaCollection = await this.queryRunner.manager.save(
+            OpenseaCollection,
+            {
+              ...createEntityData.createTableRowData(),
+              contract,
+            }
+          );
 
-          // await this.queryRunner.manager.update(
-          //   ContractEntity,
-          //   {
-          //     id: contract.id,
-          //   },
-          //   {
-          //     openseaCollection,
-          //   }
-          // );
+          await this.queryRunner.manager.update(
+            ContractEntity,
+            {
+              id: contract.id,
+            },
+            {
+              openseaCollection,
+            }
+          );
         } catch (e: any) {
           console.log("e", e);
           if (e.code === "ER_DUP_ENTRY") {
