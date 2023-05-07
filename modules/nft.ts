@@ -4,8 +4,8 @@ import { NFT as NFTEntity } from "../entities/NFT";
 import { alchemy } from "../blockEventHandler";
 import axios, { AxiosResponse } from "axios";
 import { sleep } from "../utils";
-import { OpenseaNFT } from "../entities/OpenseaNFT";
-import { CreateEntityData } from "./manufactureData";
+// import { OpenseaNFT } from "../entities/OpenseaNFT";
+// import { CreateEntityData } from "./manufactureData";
 
 const openSeaConfig: any = {
   headers: {
@@ -38,6 +38,7 @@ export class NFT {
     retryCount: number = 10
   ): Promise<AxiosResponse | undefined> {
     try {
+      console.log(contractAddress, tokenId);
       const response = await axios.get(
         `https://api.opensea.io/api/v1/asset/${contractAddress}/${tokenId}`,
         openSeaConfig
@@ -85,34 +86,34 @@ export class NFT {
             contract: this.contract,
           });
 
-          const openseaNFT = await this.handleOpenseaNFT(
-            this.contract.address,
-            this.tokenId
-          );
-          if (openseaNFT?.data?.token_id) {
-            const createEntityData = new CreateEntityData({
-              snakeObject: openseaNFT?.data,
-              entity: OpenseaNFT,
-              filterList: ["id"],
-            });
+          // const openseaNFT = await this.handleOpenseaNFT(
+          //   this.contract.address,
+          //   this.tokenId
+          // );
+          // if (openseaNFT?.data?.token_id) {
+          //   const createEntityData = new CreateEntityData({
+          //     snakeObject: openseaNFT?.data,
+          //     entity: OpenseaNFT,
+          //     filterList: ["id"],
+          //   });
 
-            const openseaNFTData = await this.queryRunner.manager.save(
-              OpenseaNFT,
-              {
-                nft,
-                ...createEntityData.createTableRowData(),
-              }
-            );
-            await this.queryRunner.manager.update(
-              NFTEntity,
-              {
-                id: nft.id,
-              },
-              {
-                openseaNFT: openseaNFTData,
-              }
-            );
-          }
+          //   const openseaNFTData = await this.queryRunner.manager.save(
+          //     OpenseaNFT,
+          //     {
+          //       nft,
+          //       ...createEntityData.createTableRowData(),
+          //     }
+          //   );
+          //   await this.queryRunner.manager.update(
+          //     NFTEntity,
+          //     {
+          //       id: nft.id,
+          //     },
+          //     {
+          //       openseaNFT: openseaNFTData,
+          //     }
+          //   );
+          // }
         } catch (e: any) {
           if (e.code === "ER_DUP_ENTRY") {
             nft = await getRepository(NFTEntity).findOne({
