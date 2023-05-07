@@ -234,7 +234,12 @@ export class Transaction {
       if (decodedLog) {
         await getRepository(DecodedLog).save({
           ...decodedLog,
+          contractAddress: decodedLog.contract,
           log: logData,
+          ...logInputData,
+          transaction,
+          timestamp: transaction.timestamp,
+          eventTime: transaction.eventTime,
         });
       }
 

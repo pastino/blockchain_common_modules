@@ -80,9 +80,9 @@ export class Log {
   topics: Topic[];
 
   @CreateDateColumn()
-  createAt: Date;
+  createdAt: Date;
   @UpdateDateColumn()
-  updateAt: Date;
+  updatedAt: Date;
 
   static example(): Log {
     const instance: any = new Log();
@@ -109,8 +109,8 @@ if (isNestJs) {
     logIndex,
     blockHash,
     topics,
-    createAt,
-    updateAt,
+    createdAt,
+    updatedAt,
   } = logExample;
 
   const propertyDecorators = [
@@ -180,15 +180,15 @@ if (isNestJs) {
     // topics
 
     ApiProperty({
-      name: "createAt",
+      name: "createdAt",
       type: Date,
-      example: createAt,
+      example: createdAt,
       description: "생성된 시간",
     }),
     ApiProperty({
-      name: "updateAt",
+      name: "updatedAt",
       type: Date,
-      example: updateAt,
+      example: updatedAt,
       description: "업데이트된 시간",
     }),
   ];

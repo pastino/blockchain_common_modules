@@ -34,9 +34,9 @@ export class BlockNumber {
   isCompletedUpdate: boolean;
 
   @CreateDateColumn()
-  createAt: Date;
+  createdAt: Date;
   @UpdateDateColumn()
-  updateAt: Date;
+  updatedAt: Date;
 
   static example(): BlockNumber {
     const instance: any = new BlockNumber();
@@ -55,8 +55,8 @@ if (isNestJs) {
     blockNumber,
     transactions,
     isCompletedUpdate,
-    createAt,
-    updateAt,
+    createdAt,
+    updatedAt,
   } = blockNumberExample;
 
   const propertyDecorators = [
@@ -85,15 +85,15 @@ if (isNestJs) {
       description: "업데이트 완료 여부",
     }),
     ApiProperty({
-      name: "createAt",
+      name: "createdAt",
       type: Date,
-      example: createAt,
+      example: createdAt,
       description: "생성된 시간",
     }),
     ApiProperty({
-      name: "updateAt",
+      name: "updatedAt",
       type: Date,
-      example: updateAt,
+      example: updatedAt,
       description: "업데이트된 시간",
     }),
   ];

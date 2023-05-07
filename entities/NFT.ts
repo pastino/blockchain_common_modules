@@ -63,9 +63,9 @@ export class NFT {
   openseaNFT: OpenseaNFT;
 
   @CreateDateColumn()
-  createAt: Date;
+  createdAt: Date;
   @UpdateDateColumn()
-  updateAt: Date;
+  updatedAt: Date;
 
   static example(): NFT {
     const instance: any = new NFT();
@@ -89,8 +89,8 @@ if (isNestJs) {
     mediaThumbnail,
     rawMetadataImage,
     logs,
-    createAt,
-    updateAt,
+    createdAt,
+    updatedAt,
   } = nftExample;
 
   const propertyDecorators = [
@@ -150,15 +150,15 @@ if (isNestJs) {
     //   description: '메타데이터 이미지',
     // }),
     ApiProperty({
-      name: "createAt",
+      name: "createdAt",
       type: Date,
-      example: createAt,
+      example: createdAt,
       description: "생성된 시간",
     }),
     ApiProperty({
-      name: "updateAt",
+      name: "updatedAt",
       type: Date,
-      example: updateAt,
+      example: updatedAt,
       description: "업데이트된 시간",
     }),
   ];

@@ -31,7 +31,7 @@ export class SendMessage {
   };
 
   private isTokenExpired = (tokenData: KakaoAccessToken) => {
-    const createdTimeStamp = new Date(tokenData?.createAt).getTime();
+    const createdTimeStamp = new Date(tokenData?.createdAt).getTime();
     const currentTimeStamp = new Date().getTime();
 
     const passedTimeSecond = (currentTimeStamp - createdTimeStamp) / 1000;

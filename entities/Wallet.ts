@@ -32,7 +32,7 @@ export class Wallet {
   walletContract: WalletContractConnection[];
 
   @CreateDateColumn()
-  createAt: Date;
+  createdAt: Date;
   @UpdateDateColumn()
-  updateAt: Date;
+  updatedAt: Date;
 }

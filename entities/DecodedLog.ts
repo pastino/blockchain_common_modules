@@ -6,9 +6,13 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  ManyToOne,
 } from "typeorm";
 import { Action } from "../modules/decodeLog";
 import { Log } from "./Log";
+import { Transaction } from "./Transaction";
+import { Contract } from "./Contract";
+import { NFT } from "./NFT";
 
 @Entity({ name: "decodedLog" })
 export class DecodedLog {
@@ -21,11 +25,29 @@ export class DecodedLog {
   @JoinColumn({ name: "logId", referencedColumnName: "id" })
   log: Log;
 
+  @ManyToOne(() => Transaction, (transaction) => transaction.logs, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "transactionId", referencedColumnName: "id" })
+  transaction: Transaction;
+
+  @ManyToOne(() => Contract, (contract) => contract.nfts, {
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
+  contract: Contract;
+
+  @ManyToOne(() => NFT, (nft) => nft.logs, {
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "nftId", referencedColumnName: "id" })
+  nft: NFT;
+
   @Column({ nullable: true })
   action: Action;
 
   @Column({ nullable: true })
-  contract: String;
+  contractAddress: String;
 
   @Column({ nullable: true })
   tokenId: String;
@@ -60,8 +82,13 @@ export class DecodedLog {
   @Column({ nullable: true })
   mintCount: number;
 
+  @Column({ nullable: true })
+  timestamp: number;
+  @Column({ nullable: true })
+  eventTime: Date;
+
   @CreateDateColumn()
-  createAt: Date;
+  createdAt: Date;
   @UpdateDateColumn()
-  updateAt: Date;
+  updatedAt: Date;
 }

@@ -25,7 +25,7 @@ export class LogError {
   isCompletedCreate: number;
 
   @CreateDateColumn()
-  createAt: Date;
+  createdAt: Date;
   @UpdateDateColumn()
-  updateAt: Date;
+  updatedAt: Date;
 }

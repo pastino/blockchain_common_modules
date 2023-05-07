@@ -58,8 +58,8 @@ const {
   twitterUsername,
   instagramUsername,
   wikiUrl,
-  createAt,
-  updateAt,
+  createdAt,
+  updatedAt,
 } = contractExample;
 
 @Entity({ name: "openseaCollection" })
@@ -122,9 +122,9 @@ export class OpenseaCollection {
   wikiUrl: string;
 
   @CreateDateColumn()
-  createAt: Date;
+  createdAt: Date;
   @UpdateDateColumn()
-  updateAt: Date;
+  updatedAt: Date;
 
   static example(): OpenseaCollection {
     const instance: any = new OpenseaCollection();
@@ -236,15 +236,15 @@ if (isNestJs) {
       description: "위키 URL",
     }),
     ApiProperty({
-      name: "createAt",
+      name: "createdAt",
       type: Date,
-      example: createAt,
+      example: createdAt,
       description: "생성된 시간",
     }),
     ApiProperty({
-      name: "updateAt",
+      name: "updatedAt",
       type: Date,
-      example: updateAt,
+      example: updatedAt,
       description: "업데이트된 시간",
     }),
   ];

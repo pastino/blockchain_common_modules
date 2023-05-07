@@ -30,7 +30,7 @@ export class KakaoAccessToken {
   tokenType: string;
 
   @CreateDateColumn()
-  createAt: Date;
+  createdAt: Date;
   @UpdateDateColumn()
-  updateAt: Date;
+  updatedAt: Date;
 }
