@@ -184,7 +184,9 @@ export class Transaction {
         { id: transaction.id },
         { contract: contractData }
       );
+
       let nftData;
+
       if (tokenId) {
         const nft = new NFT({
           contract: contractData,

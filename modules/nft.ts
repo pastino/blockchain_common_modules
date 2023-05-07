@@ -89,18 +89,29 @@ export class NFT {
             this.contract.address,
             this.tokenId
           );
-
-          if (openseaNFT?.data?.tokenId) {
+          if (openseaNFT?.data?.token_id) {
             const createEntityData = new CreateEntityData({
               snakeObject: openseaNFT?.data,
               entity: OpenseaNFT,
               filterList: ["id"],
             });
 
-            await this.queryRunner.manager.save(OpenseaNFT, {
-              nft,
-              ...createEntityData.createTableRowData(),
-            });
+            const openseaNFTData = await this.queryRunner.manager.save(
+              OpenseaNFT,
+              {
+                nft,
+                ...createEntityData.createTableRowData(),
+              }
+            );
+            await this.queryRunner.manager.update(
+              NFTEntity,
+              {
+                id: nft.id,
+              },
+              {
+                openseaNFT: openseaNFTData,
+              }
+            );
           }
         } catch (e: any) {
           if (e.code === "ER_DUP_ENTRY") {

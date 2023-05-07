@@ -7,6 +7,7 @@ import {
   OneToOne,
   JoinColumn,
   ManyToOne,
+  Index,
 } from "typeorm";
 import { Action } from "../modules/decodeLog";
 import { Log } from "./Log";
@@ -15,6 +16,8 @@ import { Contract } from "./Contract";
 import { NFT } from "./NFT";
 
 @Entity({ name: "decodedLog" })
+@Index("idx_decodedlog_eventTime", ["eventTime"])
+@Index("idx_decodedlog_timestamp", ["timestamp"])
 export class DecodedLog {
   @PrimaryGeneratedColumn()
   id: number;
@@ -84,6 +87,7 @@ export class DecodedLog {
 
   @Column({ nullable: true })
   timestamp: number;
+
   @Column({ nullable: true })
   eventTime: Date;
 
