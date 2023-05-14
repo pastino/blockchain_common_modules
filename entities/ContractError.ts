@@ -4,11 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Unique,
 } from "typeorm";
 
 @Entity({ name: "contractError" })
-@Unique(["address"])
 export class ContractError {
   @PrimaryGeneratedColumn()
   id: number;

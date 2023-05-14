@@ -76,6 +76,7 @@ export class Contract {
           name:
             contractMetaData.name || contractMetaData.openSea?.collectionName,
         };
+
         delete contractMetaData.openSea;
 
         if (!contractMetaData.name) {
@@ -119,7 +120,6 @@ export class Contract {
             }
           );
         } catch (e: any) {
-          console.log("e", e);
           if (e.code === "ER_DUP_ENTRY") {
             contract = await getRepository(ContractEntity).findOne({
               where: {
@@ -133,7 +133,6 @@ export class Contract {
         throw `Failed to find or save contract with address: ${this.address}`;
       }
       await this.queryRunner.commitTransaction();
-
       return contract;
     } catch (e: any) {
       await this.queryRunner.rollbackTransaction();
