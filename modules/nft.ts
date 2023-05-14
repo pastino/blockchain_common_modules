@@ -85,35 +85,6 @@ export class NFT {
             mediaThumbnail: nftData?.media?.[0]?.thumbnail,
             contract: this.contract,
           });
-
-          // const openseaNFT = await this.handleOpenseaNFT(
-          //   this.contract.address,
-          //   this.tokenId
-          // );
-          // if (openseaNFT?.data?.token_id) {
-          //   const createEntityData = new CreateEntityData({
-          //     snakeObject: openseaNFT?.data,
-          //     entity: OpenseaNFT,
-          //     filterList: ["id"],
-          //   });
-
-          //   const openseaNFTData = await this.queryRunner.manager.save(
-          //     OpenseaNFT,
-          //     {
-          //       nft,
-          //       ...createEntityData.createTableRowData(),
-          //     }
-          //   );
-          //   await this.queryRunner.manager.update(
-          //     NFTEntity,
-          //     {
-          //       id: nft.id,
-          //     },
-          //     {
-          //       openseaNFT: openseaNFTData,
-          //     }
-          //   );
-          // }
         } catch (e: any) {
           if (e.code === "ER_DUP_ENTRY") {
             nft = await getRepository(NFTEntity).findOne({

@@ -4,21 +4,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
-  OneToOne,
 } from "typeorm";
-import { NFT } from "./NFT";
 
 @Entity({ name: "openseaNFT" })
 export class OpenseaNFT {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @OneToOne(() => NFT, (nft) => nft.openseaNFT, {
-    onDelete: "CASCADE",
-  })
-  @JoinColumn({ name: "nftId", referencedColumnName: "id" })
-  nft: NFT;
 
   @Column({ nullable: true })
   tokenId: string;
