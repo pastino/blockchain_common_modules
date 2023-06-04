@@ -12,22 +12,25 @@ export class DecodeLog<T extends Action> {
   private data: string;
   private action: Action;
   private address: string;
-
+  private log: any;
   constructor({
     topics,
     data,
     action,
     address,
+    log,
   }: {
     topics: string[];
     data: string;
     action: Action;
     address: string;
+    log: any;
   }) {
     this.topics = topics;
     this.data = data;
     this.action = action;
     this.address = address;
+    this.log = log;
   }
 
   private decode(signature: string) {
@@ -40,6 +43,7 @@ export class DecodeLog<T extends Action> {
       address: this.address, // Sale에서는 사용 안함, Transfer에서는 Contract address로 사용함
       topics: this.topics,
       data: this.data,
+      log: this.log,
     });
 
     if (decodedData?.action === this.action) {

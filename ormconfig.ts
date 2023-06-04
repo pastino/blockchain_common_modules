@@ -10,12 +10,15 @@ export const ormconfig: ConnectionOptions = {
   password: process.env.PASSWORD,
   database: process.env.DATABASE,
   // database: IS_PRODUCTION ? process.env.DATABASE : process.env.TEST_DATABASE,
-  synchronize: true,
+  synchronize: false,
   logging: ["warn", "error"],
   charset: "utf8mb4_unicode_ci",
   entities: [__dirname + "/entities/*.*"],
   migrations: [__dirname + "/migrations/*.*"],
   subscribers: [__dirname + "/subscribers/*.*"],
+  cli: {
+    migrationsDir: "src/shared/migrations",
+  },
   extra: {},
   timezone: "Z",
 };

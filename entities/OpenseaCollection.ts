@@ -70,7 +70,6 @@ export class OpenseaCollection {
   @OneToOne(() => Contract, (contract) => contract.openseaCollection, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
 
   @Column({ nullable: true, length: 4000 })

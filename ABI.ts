@@ -74,142 +74,159 @@ export const SALE_HEX_SIGNATURE_LIST = [
     decode: ({
       topics,
       data,
+      log,
     }: {
       address: string;
       topics: string[];
       data: string;
-    }): SaleInterface | null => {
-      const decodedData = web3.eth.abi.decodeParameters(
-        [
-          "bytes32",
-          "address",
-          {
-            type: "tuple[]",
-            components: [
-              { type: "uint8" },
-              { type: "address" },
-              { type: "uint256" },
-              { type: "uint256" },
-            ],
-          },
-          {
-            type: "tuple[]",
-            components: [
-              { type: "uint8" },
-              { type: "address" },
-              { type: "uint256" },
-              { type: "uint256" },
-              { type: "address" },
-            ],
-          },
-        ],
-        data
-      );
-
-      const orderFulfilledEvent: OrderFulfilledEvent = {
-        offerer: web3.eth.abi.decodeParameter("address", topics[1]),
-        zone: web3.eth.abi.decodeParameter("address", topics[2]),
-        orderHash: decodedData[0],
-        recipient: decodedData[1],
-        offer: decodedData[2].map((item: any) => {
-          return {
-            itemType: item[0],
-            token: item[1],
-            identifier: item[2],
-            amount: item[3],
-          };
-        }),
-        consideration: decodedData[3].map((item: any) => {
-          return {
-            itemType: item[0],
-            token: item[1],
-            identifier: item[2],
-            amount: item[3],
-            recipient: item[4],
-          };
-        }),
-      };
-
-      // if (orderFulfilledEvent?.offer?.length > 1) {
-      //   console.log("orderFulfilledEvent", orderFulfilledEvent);
-      // }
-
-      const offer = orderFulfilledEvent?.offer[0];
-      const isERC721 = offer.itemType == SEAPORT_ITEM_TYPE["ERC721"];
-      const isERC20 = offer.itemType == SEAPORT_ITEM_TYPE["ERC20"];
-
-      if (isERC721) {
-        const natives = orderFulfilledEvent.consideration.filter(
-          (item) => item.itemType == SEAPORT_ITEM_TYPE["NATIVE"]
+      log?: any;
+    }): SaleInterface | null | undefined => {
+      try {
+        const decodedData = web3.eth.abi.decodeParameters(
+          [
+            "bytes32",
+            "address",
+            {
+              type: "tuple[]",
+              components: [
+                { type: "uint8" },
+                { type: "address" },
+                { type: "uint256" },
+                { type: "uint256" },
+              ],
+            },
+            {
+              type: "tuple[]",
+              components: [
+                { type: "uint8" },
+                { type: "address" },
+                { type: "uint256" },
+                { type: "uint256" },
+                { type: "address" },
+              ],
+            },
+          ],
+          data
         );
 
-        if (natives.length === 0) return null;
+        const orderFulfilledEvent: OrderFulfilledEvent = {
+          offerer: topics[1]
+            ? web3.eth.abi.decodeParameter("address", topics[1])
+            : "",
+          zone: topics[2]
+            ? web3.eth.abi.decodeParameter("address", topics[2])
+            : "",
+          orderHash: decodedData[0],
+          recipient: decodedData[1],
+          offer: decodedData[2].map((item: any) => {
+            return {
+              itemType: item[0],
+              token: item[1],
+              identifier: item[2],
+              amount: item[3],
+            };
+          }),
+          consideration: decodedData[3].map((item: any) => {
+            return {
+              itemType: item[0],
+              token: item[1],
+              identifier: item[2],
+              amount: item[3],
+              recipient: item[4],
+            };
+          }),
+        };
 
-        const value = natives?.reduce(
-          (sum: number, transaction: ReceivedItem) => {
-            let value = Number(transaction.amount) / 10 ** 18;
-            return sum + value;
-          },
-          0
-        );
+        // if (orderFulfilledEvent?.offer?.length > 1) {
+        //   console.log("orderFulfilledEvent", orderFulfilledEvent);
+        // }
 
-        let ethValue = value;
-        let unit = "ETH";
+        const offer = orderFulfilledEvent?.offer[0];
+        const isERC721 = offer.itemType == SEAPORT_ITEM_TYPE["ERC721"];
+        const isERC20 = offer.itemType == SEAPORT_ITEM_TYPE["ERC20"];
 
-        switch (orderFulfilledEvent?.consideration?.[0]?.token) {
-          case "0x64D91f12Ece7362F91A6f8E7940Cd55F05060b92":
-            const ashToEthRate = 0.00045211;
-            ethValue = value * ashToEthRate;
-            unit = "ASH";
-            break;
-          case "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2":
-          case "0x79f1C4cF7266746698E91034d658E56913E6644f":
-          case "0xED5AF388653567Af2F388E6224dC7C4b3241C544":
-            unit = "WETH";
-            break;
-          default:
-            break;
+        if (isERC721) {
+          const natives = orderFulfilledEvent.consideration.filter(
+            (item) => item.itemType == SEAPORT_ITEM_TYPE["NATIVE"]
+          );
+
+          if (natives.length === 0) return null;
+
+          const value = natives?.reduce(
+            (sum: number, transaction: ReceivedItem) => {
+              let value = Number(transaction.amount) / 10 ** 18;
+              return sum + value;
+            },
+            0
+          );
+
+          let ethValue = value;
+          let unit = "ETH";
+
+          switch (orderFulfilledEvent?.consideration?.[0]?.token) {
+            case "0x64D91f12Ece7362F91A6f8E7940Cd55F05060b92":
+              const ashToEthRate = 0.00045211;
+              ethValue = value * ashToEthRate;
+              unit = "ASH";
+              break;
+            case "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2":
+            case "0x79f1C4cF7266746698E91034d658E56913E6644f":
+            case "0xED5AF388653567Af2F388E6224dC7C4b3241C544":
+              unit = "WETH";
+              break;
+            default:
+              break;
+          }
+
+          return {
+            action: "Sale",
+            contract: offer?.token,
+            tokenId: offer?.identifier,
+            from: orderFulfilledEvent?.offerer,
+            to: orderFulfilledEvent?.recipient,
+            ethValue,
+            unit,
+            value,
+            platform: "OpenSea",
+            quantity: Number(offer?.amount),
+            data: orderFulfilledEvent,
+          };
+        } else if (isERC20) {
+          const value = offer?.amount / 10 ** 18;
+
+          let ethValue = value;
+          let unit = "ETH";
+
+          const target = orderFulfilledEvent?.consideration.find(
+            (item) => item.itemType == SEAPORT_ITEM_TYPE["ERC721"]
+          );
+          if (!target) return null;
+
+          return {
+            action: "Sale",
+            contract: target?.token,
+            tokenId: String(target?.identifier),
+            from: orderFulfilledEvent?.recipient,
+            to: orderFulfilledEvent?.offerer,
+            ethValue,
+            unit,
+            value,
+            platform: "OpenSea",
+            quantity: Number(target?.amount),
+            data: orderFulfilledEvent,
+          };
         }
-
-        return {
-          action: "Sale",
-          contract: offer?.token,
-          tokenId: offer?.identifier,
-          from: orderFulfilledEvent?.offerer,
-          to: orderFulfilledEvent?.recipient,
-          ethValue,
-          unit,
-          value,
-          platform: "OpenSea",
-          quantity: Number(offer?.amount),
-          data: orderFulfilledEvent,
-        };
-      } else if (isERC20) {
-        const value = offer?.amount / 10 ** 18;
-
-        let ethValue = value;
-        let unit = "ETH";
-
-        const target = orderFulfilledEvent?.consideration.find(
-          (item) => item.itemType == SEAPORT_ITEM_TYPE["ERC721"]
+        return null;
+      } catch (e) {
+        console.log(
+          e,
+          "SALE_HEX_SIGNATURE_LIST error",
+          "0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31",
+          topics,
+          data,
+          log
         );
-        if (!target) return null;
-
-        return {
-          action: "Sale",
-          contract: target?.token,
-          tokenId: String(target?.identifier),
-          from: orderFulfilledEvent?.recipient,
-          to: orderFulfilledEvent?.offerer,
-          ethValue,
-          unit,
-          value,
-          platform: "OpenSea",
-          quantity: Number(target?.amount),
-          data: orderFulfilledEvent,
-        };
       }
-      return null;
     },
   },
   {
@@ -218,48 +235,65 @@ export const SALE_HEX_SIGNATURE_LIST = [
     decode: ({
       topics,
       data,
+      log,
     }: {
       address: string;
       topics: string[];
       data: string;
-    }): SaleInterface => {
-      const hexString: any = data.slice(2).match(/.{1,64}/g);
-      const decodedData = hexString.map((chunk: any, index: number) => {
-        const type = BLUR_TYPE[index];
-        if (!type) {
-          return chunk;
-        }
-        if (type === "hex") {
-          return chunk;
-        }
+      log?: any;
+    }): SaleInterface | undefined => {
+      try {
+        const hexString: any = data.slice(2).match(/.{1,64}/g);
+        const decodedData = hexString.map((chunk: any, index: number) => {
+          const type = BLUR_TYPE[index];
+          if (!type) {
+            return chunk;
+          }
+          if (type === "hex") {
+            return chunk;
+          }
 
-        const data = web3.eth.abi.decodeParameter(type, chunk);
-        return data;
-      });
+          const data = web3.eth.abi.decodeParameter(type, chunk);
+          return data;
+        });
 
-      const contract = decodedData?.[7];
-      const value = Number(decodedData?.[11]) / 10 ** 18;
-      const tokenId = decodedData?.[8];
-      const from: any = web3.eth.abi.decodeParameter("address", topics[1]);
-      const to: any = web3.eth.abi.decodeParameter("address", topics[2]);
+        const contract = decodedData?.[7];
+        const value = Number(decodedData?.[11]) / 10 ** 18;
+        const tokenId = decodedData?.[8];
 
-      const quantity = Number(decodedData?.[9]);
-      return {
-        action: "Sale",
-        contract,
-        tokenId,
-        from,
-        to,
-        ethValue: value,
-        unit: "ETH",
-        value,
-        platform: "Blur",
-        quantity,
-        data: decodedData,
-      };
+        const from: any = topics[1]
+          ? web3.eth.abi.decodeParameter("address", topics[1])
+          : "";
+        const to: any = topics[2]
+          ? web3.eth.abi.decodeParameter("address", topics[2])
+          : "";
+
+        const quantity = Number(decodedData?.[9]);
+        return {
+          action: "Sale",
+          contract,
+          tokenId,
+          from,
+          to,
+          ethValue: value,
+          unit: "ETH",
+          value,
+          platform: "Blur",
+          quantity,
+          data: decodedData,
+        };
+      } catch (e) {
+        console.log(
+          e,
+          "SALE_HEX_SIGNATURE_LIST error",
+          "0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64",
+          topics,
+          data,
+          log
+        );
+      }
     },
   },
-
   {
     hexSignature:
       "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33",
@@ -270,43 +304,49 @@ export const SALE_HEX_SIGNATURE_LIST = [
       address: string;
       topics: string[];
       data: string;
-    }): SaleInterface => {
-      const hexString: any = data.slice(2).match(/.{1,64}/g);
-      const decodedData = hexString.map((chunk: any, index: number) => {
-        const type = X2Y2_TYPE[index];
-        if (!type) {
-          return chunk;
-        }
-        if (type === "hex") {
-          return chunk;
-        }
-        const data = web3.eth.abi.decodeParameter(type, chunk);
-        return data;
-      });
+    }): SaleInterface | undefined => {
+      try {
+        const hexString: any = data.slice(2).match(/.{1,64}/g);
+        const decodedData = hexString.map((chunk: any, index: number) => {
+          const type = X2Y2_TYPE[index];
+          if (!type) {
+            return chunk;
+          }
+          if (type === "hex") {
+            return chunk;
+          }
+          const data = web3.eth.abi.decodeParameter(type, chunk);
+          return data;
+        });
 
-      const contract = decodedData?.[17];
-      const value = Number(decodedData?.[12]) / 10 ** 18;
-      const tokenId = decodedData?.[18];
-      const from: any = decodedData?.[0];
-      const to: any = decodedData?.[1];
+        const contract = decodedData?.[17];
+        const value = Number(decodedData?.[12]) / 10 ** 18;
+        const tokenId = decodedData?.[18];
+        const from: any = decodedData?.[0];
+        const to: any = decodedData?.[1];
 
-      const quantity = Number(decodedData?.[16]);
-      return {
-        action: "Sale",
-        contract,
-        tokenId,
-        from,
-        to,
-        ethValue: value,
-        unit: "ETH",
-        value,
-        platform: "X2Y2",
-        quantity: 1,
-        data: decodedData,
-      };
+        const quantity = Number(decodedData?.[16]);
+        return {
+          action: "Sale",
+          contract,
+          tokenId,
+          from,
+          to,
+          ethValue: value,
+          unit: "ETH",
+          value,
+          platform: "X2Y2",
+          quantity: 1,
+          data: decodedData,
+        };
+      } catch (e) {
+        console.log(
+          "SALE_HEX_SIGNATURE_LIST error",
+          "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33"
+        );
+      }
     },
   },
-
   {
     hexSignature:
       "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
@@ -318,15 +358,22 @@ export const SALE_HEX_SIGNATURE_LIST = [
       topics: string[];
       data: string;
     }): any => {
-      if (topics.length <= 3) return;
+      try {
+        if (topics.length <= 3) return;
 
-      return {
-        action: "Transfer",
-        contract: address,
-        tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]) as any,
-        from: web3.eth.abi.decodeParameter("address", topics[1]) as any,
-        to: web3.eth.abi.decodeParameter("address", topics[2]) as any,
-      };
+        return {
+          action: "Transfer",
+          contract: address,
+          tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]) as any,
+          from: web3.eth.abi.decodeParameter("address", topics[1]) as any,
+          to: web3.eth.abi.decodeParameter("address", topics[2]) as any,
+        };
+      } catch (e) {
+        console.log(
+          "SALE_HEX_SIGNATURE_LIST error",
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+        );
+      }
     },
   },
   {
@@ -341,30 +388,37 @@ export const SALE_HEX_SIGNATURE_LIST = [
       topics: string[];
       data: string;
     }): any => {
-      if (topics.length === 2) return;
+      try {
+        if (topics.length === 2) return;
 
-      if (topics.length === 4) {
+        if (topics.length === 4) {
+          return {
+            action: "Mint",
+            contract: address,
+            minterAddress: web3.eth.abi.decodeParameter("address", topics[1]),
+            stage: web3.eth.abi.decodeParameter("uint256", topics[2]),
+            mintCount: web3.eth.abi.decodeParameter("uint256", topics[3]),
+          };
+        }
+
+        const decodedData = web3.eth.abi.decodeParameters(
+          ["address", "uint256", "uint256"],
+          data
+        );
+
         return {
           action: "Mint",
           contract: address,
-          minterAddress: web3.eth.abi.decodeParameter("address", topics[1]),
-          stage: web3.eth.abi.decodeParameter("uint256", topics[2]),
-          mintCount: web3.eth.abi.decodeParameter("uint256", topics[3]),
+          minterAddress: decodedData[0],
+          stage: decodedData[1],
+          mintCount: decodedData[2],
         };
+      } catch (e) {
+        console.log(
+          "SALE_HEX_SIGNATURE_LIST error",
+          "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f"
+        );
       }
-
-      const decodedData = web3.eth.abi.decodeParameters(
-        ["address", "uint256", "uint256"],
-        data
-      );
-
-      return {
-        action: "Mint",
-        contract: address,
-        minterAddress: decodedData[0],
-        stage: decodedData[1],
-        mintCount: decodedData[2],
-      };
     },
   },
 ];
@@ -910,7 +964,6 @@ export const SIGNATURE_LIST = [
       };
     },
   },
-
   {
     hexSignature:
       "0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64",
