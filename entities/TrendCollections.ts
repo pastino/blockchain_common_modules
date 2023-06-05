@@ -10,7 +10,6 @@ import {
 import { Contract } from "./Contract";
 import * as dotenv from "dotenv";
 import { contractExample } from "../entityExamples";
-import cron from "node-cron";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
