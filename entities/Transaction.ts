@@ -65,6 +65,15 @@ export class Transaction {
   from: string;
 
   @Column({ nullable: true })
+  gasUsed: string;
+
+  @Column({ nullable: true })
+  cumulativeGasUsed: string;
+
+  @Column({ nullable: true })
+  effectiveGasPrice: string;
+
+  @Column({ nullable: true })
   gasPrice: string;
 
   @Column({ nullable: true })

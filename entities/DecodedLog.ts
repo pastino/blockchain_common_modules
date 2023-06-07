@@ -93,6 +93,21 @@ export class DecodedLog {
   @Column({ nullable: true })
   eventTime: Date;
 
+  @Column({ nullable: true })
+  gasUsed: string;
+
+  @Column({ nullable: true })
+  cumulativeGasUsed: string;
+
+  @Column({ nullable: true })
+  effectiveGasPrice: string;
+
+  @Column({ nullable: true })
+  gasPrice: string;
+
+  @Column({ nullable: true })
+  gasLimit: string;
+
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()

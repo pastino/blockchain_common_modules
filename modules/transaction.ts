@@ -242,6 +242,11 @@ export class Transaction {
           transaction,
           timestamp: transaction.timestamp,
           eventTime: transaction.eventTime,
+          gasUsed: transaction.gasUsed,
+          cumulativeGasUsed: transaction.cumulativeGasUsed,
+          effectiveGasPrice: transaction.effectiveGasPrice,
+          gasPrice: transaction.gasPrice,
+          gasLimit: transaction.gasLimit,
         });
       }
 
@@ -283,6 +288,15 @@ export class Transaction {
       const transaction = await getRepository(TransactionEntity).save({
         ...transactionData,
         blockNumber: this.blockNumber,
+        gasUsed: this.hexToStringValue(
+          transactionReceipt?.gasUsed?._hex || "0x0"
+        ),
+        cumulativeGasUsed: this.hexToStringValue(
+          transactionReceipt?.cumulativeGasUsed?._hex || "0x0"
+        ),
+        effectiveGasPrice: this.hexToStringValue(
+          transactionReceipt?.effectiveGasPrice?._hex || "0x0"
+        ),
         gasPrice: this.hexToStringValue(
           transactionData?.gasPrice?._hex || "0x0"
         ),
