@@ -14,6 +14,7 @@ import { Contract } from "./Contract";
 import { Log } from "./Log";
 import { transactionExample } from "../entityExamples";
 import * as dotenv from "dotenv";
+import { DecodedLog } from "./DecodedLog";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -85,6 +86,11 @@ export class Transaction {
     onDelete: "CASCADE",
   })
   logs: Log[];
+
+  @OneToMany(() => DecodedLog, (decodedLog) => decodedLog.transaction, {
+    onDelete: "CASCADE",
+  })
+  decodedLogs: DecodedLog[];
 
   @CreateDateColumn()
   createdAt: Date;
