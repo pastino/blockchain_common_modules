@@ -6,26 +6,26 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-} from "typeorm";
-import { Contract } from "./Contract";
-import * as dotenv from "dotenv";
-import { contractExample } from "../entityExamples";
+} from 'typeorm';
+import { Contract } from './Contract';
+import * as dotenv from 'dotenv';
+import { contractExample } from '../entityExamples';
 
-dotenv.config({ path: __dirname + "/../../../.env.dev" });
-const isNestJs = process.env.APP_TYPE === "nestjs";
+dotenv.config({ path: __dirname + '/../../../.env.dev' });
+const isNestJs = process.env.APP_TYPE === 'nestjs';
 
 const ApiProperty = isNestJs
-  ? require("@nestjs/swagger").ApiProperty
+  ? require('@nestjs/swagger').ApiProperty
   : () => {};
 
 export enum TimeRange {
-  ONE_HOUR = "1H",
-  SIX_HOURS = "6H",
-  TWELVE_HOURS = "12H",
-  TWENTY_FOUR_HOURS = "24H",
+  ONE_HOUR = '1H',
+  SIX_HOURS = '6H',
+  TWELVE_HOURS = '12H',
+  TWENTY_FOUR_HOURS = '24H',
 }
 
-const trandCollectionExample: any = {
+export const trandCollectionExample: any = {
   id: 1,
   contract: isNestJs ? contractExample : {},
   floorPrice: 0.945,
@@ -49,28 +49,28 @@ const {
   updatedAt,
 } = trandCollectionExample;
 
-@Entity({ name: "trendCollection" })
+@Entity({ name: 'trendCollection' })
 export class TrendCollection {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(() => Contract, (contract) => contract.trendCollections)
-  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
   contract: Contract;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   floorPrice: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   volume: number;
 
-  @Column({ type: "enum", enum: TimeRange })
+  @Column({ type: 'enum', enum: TimeRange })
   timeRange: TimeRange;
 
   @Column({ nullable: true })
   sales: number;
 
-  @Column({ type: Date, default: () => "CURRENT_TIMESTAMP" })
+  @Column({ type: Date, default: () => 'CURRENT_TIMESTAMP' })
   staticCreateAt: Date;
 
   @CreateDateColumn()
@@ -92,59 +92,59 @@ export class TrendCollection {
 if (isNestJs) {
   const propertyDecorators = [
     ApiProperty({
-      name: "id",
+      name: 'id',
       type: Number,
       example: id,
-      description: "Uniqe ID",
+      description: 'Uniqe ID',
     }),
     ApiProperty({
-      name: "contract",
+      name: 'contract',
       type: () => Contract,
       example: contract,
-      description: "Contract",
+      description: 'Contract',
     }),
     ApiProperty({
-      name: "floorPrice",
+      name: 'floorPrice',
       type: Number,
       example: floorPrice,
-      description: "오픈시 바닥가격",
+      description: '오픈시 바닥가격',
     }),
     ApiProperty({
-      name: "volume",
+      name: 'volume',
       type: Number,
       example: volume,
-      description: "Volume (거래량)",
+      description: 'Volume (거래량)',
     }),
     ApiProperty({
-      name: "timeRange",
+      name: 'timeRange',
       type: TimeRange,
       enum: TimeRange,
       example: timeRange,
-      description: "시간대 - 현재시간으로부터 몇시간 전",
+      description: '시간대 - 현재시간으로부터 몇시간 전',
     }),
     ApiProperty({
-      name: "sales",
+      name: 'sales',
       type: Number,
       example: sales,
-      description: "거래갯수",
+      description: '거래갯수',
     }),
     ApiProperty({
-      name: "staticCreateAt",
+      name: 'staticCreateAt',
       type: Date,
       example: staticCreateAt,
-      description: "생성 기준 시간",
+      description: '생성 기준 시간',
     }),
     ApiProperty({
-      name: "createdAt",
+      name: 'createdAt',
       type: Date,
       example: createdAt,
-      description: "생성된 시간",
+      description: '생성된 시간',
     }),
     ApiProperty({
-      name: "updatedAt",
+      name: 'updatedAt',
       type: Date,
       example: updatedAt,
-      description: "업데이트된 시간",
+      description: '업데이트된 시간',
     }),
   ];
 
