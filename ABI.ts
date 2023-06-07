@@ -71,6 +71,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
   {
     hexSignature:
       '0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31',
+    action: 'Sale',
     decode: ({
       topics,
       data,
@@ -232,6 +233,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
   {
     hexSignature:
       '0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64',
+    action: 'Sale',
     decode: ({
       topics,
       data,
@@ -297,6 +299,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
   {
     hexSignature:
       '0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33',
+    action: 'Sale',
     decode: ({
       topics,
       data,
@@ -350,6 +353,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
   {
     hexSignature:
       '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+    action: 'Transfer',
     decode: ({
       address,
       topics,
@@ -379,6 +383,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
   {
     hexSignature:
       '0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f',
+    action: 'Mint',
     decode: ({
       topics,
       address,
