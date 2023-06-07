@@ -29,6 +29,7 @@ const ApiProperty = isNestJs
 @Index("idx_transaction", ["transaction"])
 @Index("idx_contract", ["contract"])
 @Index("idx_address", ["address"])
+@Index("idx_transactionIndex", ["transactionIndex"])
 export class Log {
   @PrimaryGeneratedColumn()
   id: number;
