@@ -13,6 +13,7 @@ import { Contract } from "./Contract";
 import { Log } from "./Log";
 import { nftExample } from "../entityExamples";
 import * as dotenv from "dotenv";
+import { AttributeNFT } from "./AttributeNFT";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -46,13 +47,30 @@ export class NFT {
   @Column({ nullable: true })
   mediaThumbnail: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: "longtext" })
   rawMetadataImage: string;
+
+  @Column({ nullable: true, type: "longtext" })
+  attributesRaw: string;
+
+  @Column({ nullable: true, type: "longtext" })
+  imageRaw: string;
+
+  @Column({ nullable: true })
+  imageFormat: string;
+
+  @Column({ nullable: true })
+  imageBytes: number;
 
   @OneToMany(() => Log, (log) => log.nft, {
     onDelete: "SET NULL",
   })
   logs: Log[];
+
+  @OneToMany(() => AttributeNFT, (attributeNFT) => attributeNFT.nft, {
+    onDelete: "CASCADE",
+  })
+  attributeNFTs: AttributeNFT[];
 
   @CreateDateColumn()
   createdAt: Date;

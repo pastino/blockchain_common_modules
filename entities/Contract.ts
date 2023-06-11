@@ -16,6 +16,7 @@ import { OpenseaCollection } from "./OpenseaCollection";
 import { Log } from "./Log";
 import * as dotenv from "dotenv";
 import { contractExample } from "../entityExamples";
+import { TraitTypeContract } from "./TraitTypeContract";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -102,6 +103,15 @@ export class Contract {
     }
   )
   trendCollections: TrendCollection[];
+
+  @OneToMany(
+    () => TraitTypeContract,
+    (traitTypeContract) => traitTypeContract.contract,
+    {
+      onDelete: "CASCADE",
+    }
+  )
+  traitTypeContracts: TraitTypeContract[];
 
   @CreateDateColumn()
   createdAt: Date;
