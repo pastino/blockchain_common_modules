@@ -1,7 +1,7 @@
 import {MigrationInterface, QueryRunner} from "typeorm";
 
-export class migrations1686452178445 implements MigrationInterface {
-    name = 'migrations1686452178445'
+export class migrations1686453975665 implements MigrationInterface {
+    name = 'migrations1686453975665'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query("ALTER TABLE `nft` ADD `isAttributeUpdated` tinyint NULL");
