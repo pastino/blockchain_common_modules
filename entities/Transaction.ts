@@ -8,6 +8,7 @@ import {
   ManyToOne,
   OneToMany,
   Index,
+  AfterLoad,
 } from "typeorm";
 import { BlockNumber } from "./BlockNumber";
 import { Contract } from "./Contract";
@@ -105,6 +106,17 @@ export class Transaction {
   createdAt: Date;
   @UpdateDateColumn()
   updatedAt: Date;
+
+  transactionFee: string;
+  @AfterLoad()
+  convertGasPrice() {
+    if (this.gasPrice && this.effectiveGasPrice) {
+      const fee =
+        (parseFloat(this.effectiveGasPrice) * parseFloat(this.gasUsed)) /
+        Math.pow(10, 18);
+      this.transactionFee = fee.toFixed(4);
+    }
+  }
 
   static example(): Transaction {
     const instance: any = new Transaction();
