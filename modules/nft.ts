@@ -168,6 +168,7 @@ export class NFT {
             imageRaw: nftData.rawMetadata?.image,
             imageFormat: nftData.media?.[0]?.format,
             imageBytes: nftData.media?.[0]?.bytes,
+            isAttributeUpdated: true,
           });
 
           if (
