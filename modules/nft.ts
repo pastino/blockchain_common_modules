@@ -162,6 +162,7 @@ export class NFT {
         try {
           nft = await this.queryRunner.manager.save(NFTEntity, {
             ...nftData,
+            isAttributeUpdated: true,
             mediaThumbnail: nftData?.media?.[0]?.thumbnail,
             contract: this.contract,
             attributesRaw:
@@ -181,10 +182,9 @@ export class NFT {
                 ? nftData.media[0].format
                 : "",
             imageBytes:
-              typeof nftData.media[0].bytes === "number"
-                ? nftData.media[0].bytes
+              typeof nftData.media?.[0]?.bytes === "number"
+                ? nftData.media?.[0]?.bytes
                 : 0,
-            isAttributeUpdated: true,
           });
 
           if (
