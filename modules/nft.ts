@@ -164,11 +164,26 @@ export class NFT {
             ...nftData,
             mediaThumbnail: nftData?.media?.[0]?.thumbnail,
             contract: this.contract,
-            attributesRaw: nftData.tokenUri?.raw,
-            rawMetadataImage: nftData.rawMetadata?.image,
-            imageRaw: nftData.rawMetadata?.image,
-            imageFormat: nftData.media?.[0]?.format,
-            imageBytes: nftData.media?.[0]?.bytes,
+            attributesRaw:
+              typeof nftData.tokenUri?.raw === "string"
+                ? nftData.tokenUri.raw
+                : "",
+            rawMetadataImage:
+              typeof nftData.rawMetadata?.image === "string"
+                ? nftData.rawMetadata.image
+                : "",
+            imageRaw:
+              typeof nftData.rawMetadata?.image === "string"
+                ? nftData.rawMetadata.image
+                : "",
+            imageFormat:
+              typeof nftData.media?.[0]?.format === "string"
+                ? nftData.media[0].format
+                : "",
+            imageBytes:
+              typeof nftData.media[0].bytes === "number"
+                ? nftData.media[0].bytes
+                : 0,
             isAttributeUpdated: true,
           });
 
