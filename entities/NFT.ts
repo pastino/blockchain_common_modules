@@ -72,6 +72,9 @@ export class NFT {
   })
   attributeNFTs: AttributeNFT[];
 
+  @Column({ nullable: true, default: null })
+  isAttributeUpdated: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()
