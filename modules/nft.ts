@@ -174,7 +174,7 @@ export class NFT {
 
         try {
           nftData.media?.[0]?.raw;
-
+          //1
           nft = await this.queryRunner.manager.save(NFTEntity, {
             ...nftData,
             isAttributeUpdated: true,
