@@ -159,7 +159,22 @@ export class NFT {
           this.tokenId
         );
 
+        // NFT 이미지 생성
         try {
+          if (IS_PRODUCTION)
+            await axios.post("http://121.168.75.64/image", {
+              contractAddress: this.contract.address,
+              imageUrl: nftData.rawMetadata?.image,
+              tokenId: this.tokenId,
+              format: nftData.media?.[0]?.format,
+            });
+        } catch (e) {
+          null;
+        }
+
+        try {
+          nftData.media?.[0]?.raw;
+          //1
           nft = await this.queryRunner.manager.save(NFTEntity, {
             ...nftData,
             isAttributeUpdated: true,
@@ -170,12 +185,12 @@ export class NFT {
                 ? nftData.tokenUri.raw
                 : "",
             rawMetadataImage:
-              typeof nftData.rawMetadata?.image === "string"
-                ? nftData.rawMetadata.image
+              typeof nftData.media?.[0]?.raw === "string"
+                ? nftData.media?.[0]?.raw
                 : "",
             imageRaw:
-              typeof nftData.rawMetadata?.image === "string"
-                ? nftData.rawMetadata.image
+              typeof nftData.media?.[0]?.raw === "string"
+                ? nftData.media?.[0]?.raw
                 : "",
             imageFormat:
               typeof nftData.media?.[0]?.format === "string"
@@ -197,18 +212,6 @@ export class NFT {
               nftData.rawMetadata?.attributes,
               this.queryRunner
             );
-          }
-          // NFT 이미지 생성
-          try {
-            if (IS_PRODUCTION)
-              await axios.post("http://121.168.75.64/image", {
-                contractAddress: this.contract.address,
-                imageUrl: nftData.rawMetadata?.image,
-                tokenId: this.tokenId,
-                format: nftData.media?.[0]?.format,
-              });
-          } catch (e) {
-            null;
           }
         } catch (e: any) {
           if (e.code === "ER_DUP_ENTRY") {
