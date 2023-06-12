@@ -98,7 +98,8 @@ export class NFT {
       queryRunner.manager.getRepository(TraitTypeContract);
 
     for (const attributeData of attributesData) {
-      if (!attributeData.trait_type) continue;
+      if (!attributeData.trait_type || !attributeData.value) continue;
+
       // TraitType이 이미 생성되었는지 확인 후, 없으면 생성
       let traitType = await traitTypeRepo.findOne({
         traitType: attributeData.trait_type,
