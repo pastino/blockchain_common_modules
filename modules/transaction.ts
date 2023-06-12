@@ -234,7 +234,7 @@ export class Transaction {
       });
 
       if (decodedLog) {
-        await getRepository(DecodedLog).save({
+        const createdDecodeLog = await getRepository(DecodedLog).save({
           ...decodedLog,
           contractAddress: decodedLog.contract,
           log: logData,
@@ -248,6 +248,10 @@ export class Transaction {
           gasPrice: transaction.gasPrice,
           gasLimit: transaction.gasLimit,
         });
+        await getRepository(LogEntity).update(
+          { id: logData.id },
+          { decodedLog: createdDecodeLog }
+        );
       }
 
       for (let i = 0; i < topics.length; i++) {

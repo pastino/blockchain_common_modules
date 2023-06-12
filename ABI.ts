@@ -296,6 +296,59 @@ export const SALE_HEX_SIGNATURE_LIST = [
       }
     },
   },
+  // {
+  //   hexSignature:
+  //     "0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3",
+  //   action: "Sale",
+  //   decode: ({
+  //     topics,
+  //     data,
+  //   }: {
+  //     address: string;
+  //     topics: string[];
+  //     data: string;
+  //   }): SaleInterface | any => {
+  //     console.log(123);
+  //     try {
+  //       // const hexString: any = data.slice(2).match(/.{1,64}/g);
+  //       // const decodedData = hexString.map((chunk: any, index: number) => {
+  //       //   const type = X2Y2_TYPE[index];
+  //       //   if (!type) {
+  //       //     return chunk;
+  //       //   }
+  //       //   if (type === "hex") {
+  //       //     return chunk;
+  //       //   }
+  //       //   const data = web3.eth.abi.decodeParameter(type, chunk);
+  //       //   return data;
+  //       // });
+  //       // const contract = decodedData?.[17];
+  //       // const value = Number(decodedData?.[12]) / 10 ** 18;
+  //       // const tokenId = decodedData?.[18];
+  //       // const from: any = decodedData?.[0];
+  //       // const to: any = decodedData?.[1];
+  //       // const quantity = Number(decodedData?.[16]);
+  //       // return {
+  //       //   action: "Sale",
+  //       //   contract,
+  //       //   tokenId,
+  //       //   from,
+  //       //   to,
+  //       //   ethValue: value,
+  //       //   unit: "ETH",
+  //       //   value,
+  //       //   platform: "X2Y2",
+  //       //   quantity: 1,
+  //       //   data: decodedData,
+  //       // };
+  //     } catch (e) {
+  //       console.log(
+  //         "SALE_HEX_SIGNATURE_LIST error",
+  //         "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33"
+  //       );
+  //     }
+  //   },
+  // },
   {
     hexSignature:
       "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33",

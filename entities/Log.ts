@@ -37,7 +37,7 @@ export class Log {
   @OneToOne(() => DecodedLog, (decodeLog) => decodeLog.log, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "decodedLog", referencedColumnName: "id" })
+  @JoinColumn({ name: "decodedLogId", referencedColumnName: "id" })
   decodedLog: DecodedLog;
 
   @ManyToOne(() => Transaction, (transaction) => transaction.logs, {
