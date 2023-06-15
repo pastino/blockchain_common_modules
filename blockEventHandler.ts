@@ -58,7 +58,7 @@ export async function handleBlockEvent(blockNum: number) {
       }
     }
     console.log("블록 데이터 생성 완료", blockNum);
-    return { isSuccess: true, message: "블록 데이터 생성 완료" };
+    return { isSuccess: true, message: `블록 데이터 생성 완료 - ${blockNum}` };
   } catch (e: any) {
     await kakaoMessage.sendMessage(
       `${moment(new Date()).format(

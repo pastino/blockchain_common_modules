@@ -169,7 +169,7 @@ export class NFT {
         // NFT 이미지 생성
         try {
           if (IS_PRODUCTION)
-            await axios.post("http://121.168.75.64/image", {
+            axios.post("http://121.168.75.64/image", {
               contractAddress: this.contract.address,
               imageUrl: nftData.rawMetadata?.image,
               tokenId: this.tokenId,
