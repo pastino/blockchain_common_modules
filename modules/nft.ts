@@ -193,6 +193,10 @@ export class NFT {
             ...nftData,
             isAttributeUpdated: true,
             mediaThumbnail: nftData?.media?.[0]?.thumbnail,
+            title:
+              nftData.title.length > 500
+                ? nftData.title.slice(0, 500)
+                : nftData.title,
             contract: this.contract,
             attributesRaw:
               typeof nftData.tokenUri?.raw === "string"
