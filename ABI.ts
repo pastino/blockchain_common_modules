@@ -465,6 +465,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
         );
 
         if (decodedData[2] > 1000000000) {
+          if (typeof decodedData[1] !== "number") return;
           return {
             action: "Mint",
             contract: address,

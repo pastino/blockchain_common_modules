@@ -97,54 +97,61 @@ export class NFT {
     const traitTypeContractRepo =
       queryRunner.manager.getRepository(TraitTypeContract);
 
-    for (const attributeData of attributesData) {
-      if (
-        !attributeData.trait_type ||
-        typeof attributeData.trait_type !== "string" ||
-        !attributeData.value ||
-        typeof attributeData.value !== "string"
-      )
-        continue;
+    try {
+      for (const attributeData of attributesData) {
+        if (
+          !attributeData.trait_type ||
+          typeof attributeData.trait_type !== "string" ||
+          !attributeData.value ||
+          typeof attributeData.value !== "string" ||
+          attributeData.value.length > 100
+        )
+          continue;
 
-      // TraitType이 이미 생성되었는지 확인 후, 없으면 생성
-      let traitType = await traitTypeRepo.findOne({
-        traitType: attributeData.trait_type,
-      });
-      if (!traitType) {
-        traitType = new TraitType();
-        traitType.traitType = attributeData.trait_type;
-        traitType = await traitTypeRepo.save(traitType);
+        // TraitType이 이미 생성되었는지 확인 후, 없으면 생성
+        let traitType = await traitTypeRepo.findOne({
+          traitType: attributeData.trait_type,
+        });
+        if (!traitType) {
+          traitType = new TraitType();
+          traitType.traitType = attributeData.trait_type;
+          traitType = await traitTypeRepo.save(traitType);
+        }
+
+        // TraitTypeContract이 이미 생성되었는지 확인 후, 없으면 생성
+        let traitTypeContract = await traitTypeContractRepo.findOne({
+          traitType,
+          contract,
+        });
+        if (!traitTypeContract) {
+          traitTypeContract = new TraitTypeContract();
+          traitTypeContract.traitType = traitType;
+          traitTypeContract.contract = contract;
+          traitTypeContract = await traitTypeContractRepo.save(
+            traitTypeContract
+          );
+        }
+
+        // Attribute이 이미 생성되었는지 확인 후, 없으면 생성
+        let attribute = await attributeRepo.findOne({
+          value: attributeData.value,
+          traitType,
+        });
+        if (!attribute) {
+          attribute = new Attribute();
+          attribute.value = attributeData.value;
+          attribute.traitType = traitType;
+          attribute = await attributeRepo.save(attribute);
+        }
+
+        // AttributeNFT 생성
+        const attributeNFT = new AttributeNFT();
+        attributeNFT.nft = nft;
+        attributeNFT.attribute = attribute;
+        await attributeNFTRepo.save(attributeNFT);
       }
-
-      // TraitTypeContract이 이미 생성되었는지 확인 후, 없으면 생성
-      let traitTypeContract = await traitTypeContractRepo.findOne({
-        traitType,
-        contract,
-      });
-      if (!traitTypeContract) {
-        traitTypeContract = new TraitTypeContract();
-        traitTypeContract.traitType = traitType;
-        traitTypeContract.contract = contract;
-        traitTypeContract = await traitTypeContractRepo.save(traitTypeContract);
-      }
-
-      // Attribute이 이미 생성되었는지 확인 후, 없으면 생성
-      let attribute = await attributeRepo.findOne({
-        value: attributeData.value,
-        traitType,
-      });
-      if (!attribute) {
-        attribute = new Attribute();
-        attribute.value = attributeData.value;
-        attribute.traitType = traitType;
-        attribute = await attributeRepo.save(attribute);
-      }
-
-      // AttributeNFT 생성
-      const attributeNFT = new AttributeNFT();
-      attributeNFT.nft = nft;
-      attributeNFT.attribute = attribute;
-      await attributeNFTRepo.save(attributeNFT);
+    } catch (e) {
+      throw e;
     }
   }
 
@@ -181,7 +188,7 @@ export class NFT {
 
         try {
           nftData.media?.[0]?.raw;
-          //1
+
           nft = await this.queryRunner.manager.save(NFTEntity, {
             ...nftData,
             isAttributeUpdated: true,
@@ -229,7 +236,7 @@ export class NFT {
               },
             });
           } else {
-            console.error("Unexpected error:", e);
+            throw e;
           }
         }
       }
