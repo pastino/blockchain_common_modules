@@ -24,7 +24,10 @@ export class UpcomingContract {
   totalSupply: number;
 
   @Column({ nullable: true })
-  imageUrl: string;
+  bannerImageUrl: string;
+
+  @Column({ nullable: true })
+  profileImageUrl: string;
 
   @Column({ type: "longtext", nullable: true })
   description: string;
