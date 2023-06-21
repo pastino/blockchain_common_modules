@@ -16,7 +16,10 @@ export class UpcomingTwitter {
 
   @ManyToOne(
     () => UpcomingContract,
-    (upcomingContract) => upcomingContract.upcomingTwitters
+    (upcomingContract) => upcomingContract.upcomingTwitters,
+    {
+      onDelete: "CASCADE",
+    }
   )
   @JoinColumn({ name: "upcomingContractId", referencedColumnName: "id" })
   upcomingContract: UpcomingContract;
