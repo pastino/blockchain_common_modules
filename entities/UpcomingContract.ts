@@ -21,6 +21,9 @@ export class UpcomingContract {
   name: string;
 
   @Column({ nullable: true })
+  category: string;
+
+  @Column({ nullable: true })
   totalSupply: number;
 
   @Column({ nullable: true })
