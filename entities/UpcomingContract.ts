@@ -44,10 +44,7 @@ export class UpcomingContract {
   @Column({ nullable: true })
   premintUrl: string;
 
-  @Column({ nullable: true })
-  symbol: string;
-
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: "ERC721" })
   tokenType: string;
 
   @OneToMany(
