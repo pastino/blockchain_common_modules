@@ -47,8 +47,11 @@ export class UpcomingContract {
   @Column({ nullable: true })
   premintUrl: string;
 
-  @Column({ nullable: true })
-  mintPrice: number;
+  @Column({ nullable: true, type: "float" })
+  preSalePrice: number;
+
+  @Column({ nullable: true, type: "float" })
+  publicSalePrice: number;
 
   @Column({ nullable: true, default: "ERC721" })
   tokenType: string;
