@@ -26,8 +26,10 @@ const ApiProperty = isNestJs
   : () => {};
 
 @Entity({ name: "decodedLog" })
-@Index("idx_decodedlog_eventTime", ["eventTime"])
-@Index("idx_decodedlog_timestamp", ["timestamp"])
+@Index("idx_decodedlog_contractaddress_timestamp", [
+  "contractAddress",
+  "timestamp",
+])
 @Index("idx_decodedlog_contractAddress", ["contractAddress"])
 @Index("idx_transaction", ["transaction"])
 export class DecodedLog {
