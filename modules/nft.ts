@@ -9,7 +9,7 @@ import { TraitType } from "../entities/TraitType";
 import { AttributeNFT } from "../entities/AttributeNFT";
 import { TraitTypeContract } from "../entities/TraitTypeContract";
 import { Attribute } from "../entities/Attribute";
-import { IS_PRODUCTION } from "../..";
+import { IS_PRODUCTION } from "../../index";
 
 const openSeaConfig: any = {
   headers: {
