@@ -9,7 +9,6 @@ import { TraitType } from "../entities/TraitType";
 import { AttributeNFT } from "../entities/AttributeNFT";
 import { TraitTypeContract } from "../entities/TraitTypeContract";
 import { Attribute } from "../entities/Attribute";
-import { IS_PRODUCTION } from "../../index";
 
 const openSeaConfig: any = {
   headers: {
@@ -175,13 +174,12 @@ export class NFT {
 
         // NFT 이미지 생성
         try {
-          if (IS_PRODUCTION)
-            axios.post("http://121.168.75.64/image", {
-              contractAddress: this.contract.address,
-              imageUrl: nftData.rawMetadata?.image,
-              tokenId: this.tokenId,
-              format: nftData.media?.[0]?.format,
-            });
+          axios.post("http://121.168.75.64/image", {
+            contractAddress: this.contract.address,
+            imageUrl: nftData.rawMetadata?.image,
+            tokenId: this.tokenId,
+            format: nftData.media?.[0]?.format,
+          });
         } catch (e) {
           null;
         }
