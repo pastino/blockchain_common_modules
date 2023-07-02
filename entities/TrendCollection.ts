@@ -32,6 +32,9 @@ export const trandCollectionExample: any = {
   volume: 45.3,
   timeRange: TimeRange.ONE_HOUR,
   sales: 35,
+  averageValue: 0.034,
+  priceDeviation: 0.01,
+  priceDeviationPercent: 58,
   staticCreateAt: new Date(),
   createAt: new Date(),
   updateAt: new Date(),
@@ -44,6 +47,9 @@ const {
   volume,
   timeRange,
   sales,
+  averageValue,
+  priceDeviation,
+  priceDeviationPercent,
   staticCreateAt,
   createdAt,
   updatedAt,
@@ -70,13 +76,13 @@ export class TrendCollection {
   @Column({ nullable: true })
   sales: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: "float" })
   averageValue: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: "float" })
   priceDeviation: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: "float" })
   priceDeviationPercent: number;
 
   @Column({ type: Date, default: () => "CURRENT_TIMESTAMP" })
@@ -136,6 +142,24 @@ if (isNestJs) {
       type: Number,
       example: sales,
       description: "거래갯수",
+    }),
+    ApiProperty({
+      name: "averageValue",
+      type: Number,
+      example: averageValue,
+      description: "평균가격",
+    }),
+    ApiProperty({
+      name: "priceDeviation",
+      type: Number,
+      example: priceDeviation,
+      description: "가격차이",
+    }),
+    ApiProperty({
+      name: "priceDeviationPercent",
+      type: Number,
+      example: priceDeviationPercent,
+      description: "가격차이 퍼센트",
     }),
     ApiProperty({
       name: "staticCreateAt",
