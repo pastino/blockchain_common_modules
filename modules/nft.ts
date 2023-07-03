@@ -174,12 +174,18 @@ export class NFT {
 
         // NFT 이미지 생성
         try {
-          axios.post("http://121.168.75.64/image", {
-            contractAddress: this.contract.address,
-            imageUrl: nftData.rawMetadata?.image,
-            tokenId: this.tokenId,
-            format: nftData.media?.[0]?.format,
-          });
+          axios.post(
+            "http://121.168.75.64/image",
+            {
+              contractAddress: this.contract.address,
+              imageUrl: nftData.rawMetadata?.image,
+              tokenId: this.tokenId,
+              format: nftData.media?.[0]?.format,
+            },
+            {
+              timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
+            }
+          );
         } catch (e) {
           null;
         }
