@@ -23,6 +23,7 @@ export enum TimeRange {
   SIX_HOURS = "6H",
   TWELVE_HOURS = "12H",
   TWENTY_FOUR_HOURS = "24H",
+  SEVEN_DAYS = "7D",
 }
 
 export const trandCollectionExample: any = {
