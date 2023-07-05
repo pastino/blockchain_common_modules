@@ -45,6 +45,46 @@ export const contractExample: any = {
   updateAt: new Date(),
 };
 
+// export const upcomingContract: any = {
+//   id: 1,
+//   // openseaCollection: isNestJs ? OpenseaCollection.example() : {},
+//   address: "0xd774557b647330c91bf44cfeab205095f7e6c367",
+//   tokenId: "",
+//   name: "Nakamigos",
+//   totalSupply: "20000",
+//   isSpam: "",
+//   imageUrl:
+//     "https://i.seadn.io/gcs/files/beabfabb47c6baeb6008f21bc0681986.jpg?w=500&auto=format",
+//   description: "",
+//   externalUrl: "https://www.0xhoneyjar.xyz/",
+//   twitterUsername: "",
+//   discordUrl: "",
+//   symbol: "HONEYCOMB",
+//   tokenType: "ERC721",
+//   contractDeployer: "0xf951ba8107d7bf63733188e64d7e07bd27b46af7",
+//   deployedBlockNumber: "16751283",
+//   // nfts: [
+//   //   {
+//   //     ...nftExample,
+//   //     contract: undefined,
+//   //   },
+//   // ],
+//   // logs: [
+//   //   {
+//   //     ...logExample,
+//   //     contract: undefined,
+//   //   },
+//   // ],
+//   // trendCollections: [
+//   //   {
+//   //     ...transactionExample,
+//   //     contract: undefined,
+//   //   },
+//   // ],
+//   createAt: new Date(),
+//   updateAt: new Date(),
+// };
+
 export var nftExample: any = {
   id: 1,
   contract: isNestJs ? contractExample : {},
