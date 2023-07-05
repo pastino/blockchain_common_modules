@@ -29,6 +29,7 @@ const ApiProperty = isNestJs
 @Entity({ name: "contract" })
 @Unique(["address"])
 @Index("idx_contract_address", ["address"])
+@Index("idx_contract_openseaCollection", ["openseaCollection"])
 export class Contract {
   @PrimaryGeneratedColumn()
   id: number;
