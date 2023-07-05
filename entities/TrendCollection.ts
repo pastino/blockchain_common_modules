@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from "typeorm";
 import { Contract } from "./Contract";
 import * as dotenv from "dotenv";
@@ -57,6 +58,7 @@ const {
 } = trandCollectionExample;
 
 @Entity({ name: "trendCollection" })
+@Index("idx_trend_time_static", ["timeRange", "staticCreateAt"])
 export class TrendCollection {
   @PrimaryGeneratedColumn()
   id: number;
