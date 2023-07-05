@@ -14,6 +14,7 @@ import { Log } from "./Log";
 @Index("idx_topic_log", ["log"])
 @Index("idx_topic_topic", ["topic"])
 @Index("idx_topic_index", ["index"])
+@Index("idx_topic_log_topic_index", ["log", "topic", "index"])
 export class Topic {
   @PrimaryGeneratedColumn()
   id: number;
