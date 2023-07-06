@@ -70,14 +70,26 @@ export class TrendCollection {
   @Column({ nullable: true, type: "float" })
   floorPrice: number;
 
-  @Column({ nullable: true, type: "float" })
-  volume: number;
-
   @Column({ type: "enum", enum: TimeRange })
   timeRange: TimeRange;
 
   @Column({ nullable: true })
   sales: number;
+
+  @Column({ nullable: true, type: "float" })
+  salesDeviation: number;
+
+  @Column({ nullable: true, type: "float" })
+  salesDeviationPercent: number;
+
+  @Column({ nullable: true, type: "float" })
+  volume: number;
+
+  @Column({ nullable: true, type: "float" })
+  volumeDeviation: number;
+
+  @Column({ nullable: true, type: "float" })
+  volumeDeviationPercent: number;
 
   @Column({ nullable: true, type: "float" })
   averageValue: number;
