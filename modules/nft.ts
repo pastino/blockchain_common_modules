@@ -120,8 +120,8 @@ export class NFT {
         // TraitTypeContract이 이미 생성되었는지 확인 후, 없으면 생성
         let traitTypeContract = await traitTypeContractRepo.findOne({
           where: {
-            traitType,
-            contract,
+            traitType: traitType as any,
+            contract: contract as any,
           },
         });
         if (!traitTypeContract) {
@@ -137,7 +137,7 @@ export class NFT {
         let attribute = await attributeRepo.findOne({
           where: {
             value: attributeData.value,
-            traitType,
+            traitType: traitType as any,
           },
         });
         if (!attribute) {
