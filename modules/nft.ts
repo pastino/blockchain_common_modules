@@ -1,18 +1,18 @@
-import { getConnection, getRepository, QueryRunner } from "typeorm";
-import { Contract as ContractEntity } from "../entities/Contract";
-import { NFT as NFTEntity } from "../entities/NFT";
-import { alchemy } from "../blockEventHandler";
-import axios, { AxiosResponse } from "axios";
-import { sleep } from "../utils";
-import crypto from "crypto";
-import { TraitType } from "../entities/TraitType";
-import { AttributeNFT } from "../entities/AttributeNFT";
-import { TraitTypeContract } from "../entities/TraitTypeContract";
-import { Attribute } from "../entities/Attribute";
+import { getConnection, getRepository, QueryRunner } from 'typeorm';
+import { Contract as ContractEntity } from '../entities/Contract';
+import { NFT as NFTEntity } from '../entities/NFT';
+import { alchemy } from '../blockEventHandler';
+import axios, { AxiosResponse } from 'axios';
+import { sleep } from '../utils';
+import crypto from 'crypto';
+import { TraitType } from '../entities/TraitType';
+import { AttributeNFT } from '../entities/AttributeNFT';
+import { TraitTypeContract } from '../entities/TraitTypeContract';
+import { Attribute } from '../entities/Attribute';
 
 const openSeaConfig: any = {
   headers: {
-    "X-API-KEY": process.env.OPENSEA_API_KEY,
+    'X-API-KEY': process.env.OPENSEA_API_KEY,
   },
 };
 
@@ -38,13 +38,13 @@ export class NFT {
   async handleOpenseaNFT(
     contractAddress: string,
     tokenId: string | number,
-    retryCount: number = 10
+    retryCount: number = 10,
   ): Promise<AxiosResponse | undefined> {
     try {
       console.log(contractAddress, tokenId);
       const response = await axios.get(
         `https://api.opensea.io/api/v1/asset/${contractAddress}/${tokenId}`,
-        openSeaConfig
+        openSeaConfig,
       );
 
       return response;
@@ -55,7 +55,7 @@ export class NFT {
           return this.handleOpenseaNFT(
             contractAddress,
             tokenId,
-            retryCount - 1
+            retryCount - 1,
           );
         } else {
           throw e;
@@ -66,21 +66,21 @@ export class NFT {
 
   encrypt(tokenId: string | number) {
     const cipher = crypto.createCipher(
-      "aes-256-cbc",
-      process.env.SECRET as string
+      'aes-256-cbc',
+      process.env.SECRET as string,
     );
-    let encrypted = cipher.update(String(tokenId), "utf8", "hex");
-    encrypted += cipher.final("hex");
+    let encrypted = cipher.update(String(tokenId), 'utf8', 'hex');
+    encrypted += cipher.final('hex');
     return encrypted;
   }
 
   decrypt(encrypted: string) {
     const decipher = crypto.createDecipher(
-      "aes-256-cbc",
-      process.env.SECRET as string
+      'aes-256-cbc',
+      process.env.SECRET as string,
     );
-    let decrypted = decipher.update(encrypted, "hex", "utf8");
-    decrypted += decipher.final("utf8");
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
     return decrypted;
   }
 
@@ -88,7 +88,7 @@ export class NFT {
     nft: NFTEntity,
     contract: ContractEntity,
     attributesData: any[],
-    queryRunner: QueryRunner
+    queryRunner: QueryRunner,
   ) {
     const traitTypeRepo = queryRunner.manager.getRepository(TraitType);
     const attributeRepo = queryRunner.manager.getRepository(Attribute);
@@ -100,16 +100,16 @@ export class NFT {
       for (const attributeData of attributesData) {
         if (
           !attributeData.trait_type ||
-          typeof attributeData.trait_type !== "string" ||
+          typeof attributeData.trait_type !== 'string' ||
           !attributeData.value ||
-          typeof attributeData.value !== "string" ||
+          typeof attributeData.value !== 'string' ||
           attributeData.value.length > 100
         )
           continue;
 
         // TraitType이 이미 생성되었는지 확인 후, 없으면 생성
         let traitType = await traitTypeRepo.findOne({
-          traitType: attributeData.trait_type,
+          where: { traitType: attributeData.trait_type },
         });
         if (!traitType) {
           traitType = new TraitType();
@@ -119,22 +119,26 @@ export class NFT {
 
         // TraitTypeContract이 이미 생성되었는지 확인 후, 없으면 생성
         let traitTypeContract = await traitTypeContractRepo.findOne({
-          traitType,
-          contract,
+          where: {
+            traitType,
+            contract,
+          },
         });
         if (!traitTypeContract) {
           traitTypeContract = new TraitTypeContract();
           traitTypeContract.traitType = traitType;
           traitTypeContract.contract = contract;
           traitTypeContract = await traitTypeContractRepo.save(
-            traitTypeContract
+            traitTypeContract,
           );
         }
 
         // Attribute이 이미 생성되었는지 확인 후, 없으면 생성
         let attribute = await attributeRepo.findOne({
-          value: attributeData.value,
-          traitType,
+          where: {
+            value: attributeData.value,
+            traitType,
+          },
         });
         if (!attribute) {
           attribute = new Attribute();
@@ -161,21 +165,21 @@ export class NFT {
     try {
       let nft = await this.queryRunner.manager.findOne(NFTEntity, {
         where: {
-          contract: this.contract,
-          tokenId: this.tokenId,
+          contract: this.contract as any,
+          tokenId: this.tokenId as any,
         },
       });
 
       if (!nft) {
         const nftData = await alchemy.nft.getNftMetadata(
           this.contract.address,
-          this.tokenId
+          this.tokenId,
         );
 
         // NFT 이미지 생성
         try {
           axios.post(
-            "http://121.168.75.64/image",
+            'http://121.168.75.64/image',
             {
               contractAddress: this.contract.address,
               imageUrl: nftData.rawMetadata?.image,
@@ -184,7 +188,7 @@ export class NFT {
             },
             {
               timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
-            }
+            },
           );
         } catch (e) {
           null;
@@ -203,23 +207,23 @@ export class NFT {
                 : nftData.title,
             contract: this.contract,
             attributesRaw:
-              typeof nftData.tokenUri?.raw === "string"
+              typeof nftData.tokenUri?.raw === 'string'
                 ? nftData.tokenUri.raw
-                : "",
+                : '',
             rawMetadataImage:
-              typeof nftData.media?.[0]?.raw === "string"
+              typeof nftData.media?.[0]?.raw === 'string'
                 ? nftData.media?.[0]?.raw
-                : "",
+                : '',
             imageRaw:
-              typeof nftData.media?.[0]?.raw === "string"
+              typeof nftData.media?.[0]?.raw === 'string'
                 ? nftData.media?.[0]?.raw
-                : "",
+                : '',
             imageFormat:
-              typeof nftData.media?.[0]?.format === "string"
+              typeof nftData.media?.[0]?.format === 'string'
                 ? nftData.media[0].format
-                : "",
+                : '',
             imageBytes:
-              typeof nftData.media?.[0]?.bytes === "number"
+              typeof nftData.media?.[0]?.bytes === 'number'
                 ? nftData.media?.[0]?.bytes
                 : 0,
           });
@@ -232,15 +236,15 @@ export class NFT {
               nft,
               this.contract,
               nftData.rawMetadata?.attributes,
-              this.queryRunner
+              this.queryRunner,
             );
           }
         } catch (e: any) {
-          if (e.code === "ER_DUP_ENTRY") {
+          if (e.code === 'ER_DUP_ENTRY') {
             nft = await getRepository(NFTEntity).findOne({
               where: {
-                contract: this.contract,
-                tokenId: this.tokenId,
+                contract: this.contract as any,
+                tokenId: this.tokenId as any,
               },
             });
           } else {
