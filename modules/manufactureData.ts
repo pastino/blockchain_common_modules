@@ -22,7 +22,9 @@ export class CreateEntityData {
 
   // response 데이터 snake case 키값을 camel case로 변경
   private snakeToCamelObject = () => {
-    return _.mapKeys(this.snakeObject, (value, key) => _.camelCase(key));
+    return _.mapKeys(this.snakeObject, (value: string, key: string) =>
+      _.camelCase(key)
+    );
   };
 
   // Entity 키값 리스트 얻기
