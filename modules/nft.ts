@@ -210,7 +210,7 @@ export class NFT {
                 : 0,
           });
 
-          // NFT 이미지 생성 api 호출
+          // NFT 이미지 생성 api
           try {
             axios.post(
               "http://121.168.75.64/image",
