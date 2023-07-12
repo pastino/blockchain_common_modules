@@ -210,7 +210,7 @@ export class NFT {
                 : 0,
           });
 
-          // NFT 이미지 생성 api
+          // NFT 이미지 생성 api/
           try {
             console.log({
               nftId: nft?.id,
