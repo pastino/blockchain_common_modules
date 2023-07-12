@@ -162,16 +162,17 @@ export class NFT {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
 
-    try {
-      let nft = await this.queryRunner.manager.findOne(NFTEntity, {
-        where: {
-          contract: this.contract as any,
-          tokenId: this.tokenId as any,
-        },
-      });
+    let nftData: any;
+    let nft = await this.queryRunner.manager.findOne(NFTEntity, {
+      where: {
+        contract: this.contract as any,
+        tokenId: this.tokenId as any,
+      },
+    });
 
+    try {
       if (!nft) {
-        const nftData = await alchemy.nft.getNftMetadata(
+        nftData = await alchemy.nft.getNftMetadata(
           this.contract.address,
           this.tokenId
         );
@@ -210,33 +211,8 @@ export class NFT {
                 : 0,
           });
 
-          // NFT 이미지 생성 api/
-          try {
-            console.log({
-              nftId: nft?.id,
-              contractAddress: this.contract.address,
-              imageUrl: nftData.rawMetadata?.image,
-              tokenId: this.tokenId,
-              format: nftData.media?.[0]?.format,
-            });
-            axios.post(
-              "http://121.168.75.64/image",
-              {
-                nftId: nft?.id,
-                contractAddress: this.contract.address,
-                imageUrl: nftData.rawMetadata?.image,
-                tokenId: this.tokenId,
-                format: nftData.media?.[0]?.format,
-              },
-              {
-                timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
-              }
-            );
-          } catch (e) {
-            null;
-          }
-
           if (
+            nft &&
             nftData.rawMetadata?.attributes &&
             nftData.rawMetadata?.attributes.length > 0
           ) {
@@ -270,6 +246,24 @@ export class NFT {
       throw e;
     } finally {
       await this.queryRunner.release();
+      // NFT 이미지 생성 api/
+      try {
+        axios.post(
+          "http://121.168.75.64/image",
+          {
+            nftId: nft?.id,
+            contractAddress: this.contract.address,
+            imageUrl: nftData.rawMetadata?.image,
+            tokenId: this.tokenId,
+            format: nftData.media?.[0]?.format,
+          },
+          {
+            timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
+          }
+        );
+      } catch (e) {
+        null;
+      }
     }
   }
 }
