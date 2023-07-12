@@ -75,6 +75,12 @@ export class NFT {
   @Column({ nullable: true, default: null })
   isAttributeUpdated: boolean;
 
+  @Column({ nullable: true, default: null, length: 1000 })
+  imageRoute: string;
+
+  @Column({ nullable: true, default: null })
+  isImageUploaded: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()
@@ -102,6 +108,11 @@ if (isNestJs) {
     mediaThumbnail,
     rawMetadataImage,
     logs,
+    attributesRaw,
+    imageRaw,
+    imageFormat,
+    imageBytes,
+    isAttributeUpdated,
     createdAt,
     updatedAt,
   } = nftExample;
@@ -156,6 +167,42 @@ if (isNestJs) {
       example: rawMetadataImage,
       description: "메타데이터 이미지",
     }),
+
+    ApiProperty({
+      name: "attributesRaw",
+      type: String,
+      example: attributesRaw,
+      description: "특성 데이터",
+    }),
+
+    ApiProperty({
+      name: "imageRaw",
+      type: String,
+      example: imageRaw,
+      description: "이미지 데이터",
+    }),
+
+    ApiProperty({
+      name: "imageFormat",
+      type: String,
+      example: imageFormat,
+      description: "이미지 포맷",
+    }),
+
+    ApiProperty({
+      name: "imageBytes",
+      type: Number,
+      example: imageBytes,
+      description: "이미지 용량",
+    }),
+
+    ApiProperty({
+      name: "isAttributeUpdated",
+      type: Boolean,
+      example: isAttributeUpdated,
+      description: "특성 업데이트 여부",
+    }),
+
     // ApiProperty({
     //   name: 'logs',
     //   type: Log,

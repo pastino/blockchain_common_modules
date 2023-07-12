@@ -109,7 +109,7 @@ export class NFT {
 
         // TraitType이 이미 생성되었는지 확인 후, 없으면 생성
         let traitType = await traitTypeRepo.findOne({
-          traitType: attributeData.trait_type,
+          where: { traitType: attributeData.trait_type },
         });
         if (!traitType) {
           traitType = new TraitType();
@@ -119,8 +119,10 @@ export class NFT {
 
         // TraitTypeContract이 이미 생성되었는지 확인 후, 없으면 생성
         let traitTypeContract = await traitTypeContractRepo.findOne({
-          traitType,
-          contract,
+          where: {
+            traitType: traitType as any,
+            contract: contract as any,
+          },
         });
         if (!traitTypeContract) {
           traitTypeContract = new TraitTypeContract();
@@ -133,8 +135,10 @@ export class NFT {
 
         // Attribute이 이미 생성되었는지 확인 후, 없으면 생성
         let attribute = await attributeRepo.findOne({
-          value: attributeData.value,
-          traitType,
+          where: {
+            value: attributeData.value,
+            traitType: traitType as any,
+          },
         });
         if (!attribute) {
           attribute = new Attribute();
@@ -161,8 +165,8 @@ export class NFT {
     try {
       let nft = await this.queryRunner.manager.findOne(NFTEntity, {
         where: {
-          contract: this.contract,
-          tokenId: this.tokenId,
+          contract: this.contract as any,
+          tokenId: this.tokenId as any,
         },
       });
 
@@ -240,8 +244,8 @@ export class NFT {
           if (e.code === "ER_DUP_ENTRY") {
             nft = await getRepository(NFTEntity).findOne({
               where: {
-                contract: this.contract,
-                tokenId: this.tokenId,
+                contract: this.contract as any,
+                tokenId: this.tokenId as any,
               },
             });
           } else {

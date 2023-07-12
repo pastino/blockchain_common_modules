@@ -8,6 +8,7 @@ import {
 } from "typeorm";
 import { UpcomingTwitter } from "./UpcomingTwitter";
 import { UpcomingDiscord } from "./UpcomingDiscord";
+import { TrendUpcomingCollection } from "./TrendUpcomingCollection";
 
 @Entity({ name: "upcomingContract" })
 export class UpcomingContract {
@@ -64,6 +65,15 @@ export class UpcomingContract {
     }
   )
   upcomingTwitters: UpcomingTwitter[];
+
+  @OneToMany(
+    () => TrendUpcomingCollection,
+    (trendUpcomingCollection) => trendUpcomingCollection.upcomingContract,
+    {
+      onDelete: "CASCADE",
+    }
+  )
+  trendUpcomingCollections: TrendUpcomingCollection[];
 
   @OneToMany(
     () => UpcomingDiscord,
