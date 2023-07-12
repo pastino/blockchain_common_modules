@@ -212,6 +212,13 @@ export class NFT {
 
           // NFT 이미지 생성 api
           try {
+            console.log({
+              nftId: nft?.id,
+              contractAddress: this.contract.address,
+              imageUrl: nftData.rawMetadata?.image,
+              tokenId: this.tokenId,
+              format: nftData.media?.[0]?.format,
+            });
             axios.post(
               "http://121.168.75.64/image",
               {
