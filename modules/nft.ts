@@ -172,24 +172,6 @@ export class NFT {
           this.tokenId
         );
 
-        // NFT 이미지 생성
-        try {
-          axios.post(
-            "http://121.168.75.64/image",
-            {
-              contractAddress: this.contract.address,
-              imageUrl: nftData.rawMetadata?.image,
-              tokenId: this.tokenId,
-              format: nftData.media?.[0]?.format,
-            },
-            {
-              timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
-            }
-          );
-        } catch (e) {
-          null;
-        }
-
         try {
           nftData.media?.[0]?.raw;
 
@@ -223,6 +205,25 @@ export class NFT {
                 ? nftData.media?.[0]?.bytes
                 : 0,
           });
+
+          // NFT 이미지 생성
+          try {
+            axios.post(
+              "http://121.168.75.64/image",
+              {
+                nftId: nft?.id,
+                contractAddress: this.contract.address,
+                imageUrl: nftData.rawMetadata?.image,
+                tokenId: this.tokenId,
+                format: nftData.media?.[0]?.format,
+              },
+              {
+                timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
+              }
+            );
+          } catch (e) {
+            null;
+          }
 
           if (
             nftData.rawMetadata?.attributes &&
