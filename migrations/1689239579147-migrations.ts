@@ -1,7 +1,7 @@
 import {MigrationInterface, QueryRunner} from "typeorm";
 
-export class migrations1689235535546 implements MigrationInterface {
-    name = 'migrations1689235535546'
+export class migrations1689239579147 implements MigrationInterface {
+    name = 'migrations1689239579147'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query("ALTER TABLE `nft` ADD `imageRoute` varchar(1000) NULL");
