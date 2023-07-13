@@ -81,6 +81,9 @@ export class NFT {
   @Column({ nullable: true, default: null })
   isImageUploaded: boolean;
 
+  @Column({ type: "longtext", nullable: true, default: null })
+  imageSaveError: string;
+
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()
