@@ -13,24 +13,29 @@ export class DecodeLog<T extends Action> {
   private action: Action;
   private address: string;
   private log: any;
+  private logs: any;
+
   constructor({
     topics,
     data,
     action,
     address,
     log,
+    logs,
   }: {
     topics: string[];
     data: string;
     action: Action;
     address: string;
     log: any;
+    logs: any;
   }) {
     this.topics = topics;
     this.data = data;
     this.action = action;
     this.address = address;
     this.log = log;
+    this.logs = logs;
   }
 
   private decode(signature: string) {
@@ -44,6 +49,7 @@ export class DecodeLog<T extends Action> {
       topics: this.topics,
       data: this.data,
       log: this.log,
+      logs: this.logs,
     });
 
     if (decodedData?.action === this.action) {
