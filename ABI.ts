@@ -296,59 +296,140 @@ export const SALE_HEX_SIGNATURE_LIST = [
       }
     },
   },
-  // {
-  //   hexSignature:
-  //     "0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3",
-  //   action: "Sale",
-  //   decode: ({
-  //     topics,
-  //     data,
-  //   }: {
-  //     address: string;
-  //     topics: string[];
-  //     data: string;
-  //   }): SaleInterface | any => {
-  //     console.log(123);
-  //     try {
-  //       // const hexString: any = data.slice(2).match(/.{1,64}/g);
-  //       // const decodedData = hexString.map((chunk: any, index: number) => {
-  //       //   const type = X2Y2_TYPE[index];
-  //       //   if (!type) {
-  //       //     return chunk;
-  //       //   }
-  //       //   if (type === "hex") {
-  //       //     return chunk;
-  //       //   }
-  //       //   const data = web3.eth.abi.decodeParameter(type, chunk);
-  //       //   return data;
-  //       // });
-  //       // const contract = decodedData?.[17];
-  //       // const value = Number(decodedData?.[12]) / 10 ** 18;
-  //       // const tokenId = decodedData?.[18];
-  //       // const from: any = decodedData?.[0];
-  //       // const to: any = decodedData?.[1];
-  //       // const quantity = Number(decodedData?.[16]);
-  //       // return {
-  //       //   action: "Sale",
-  //       //   contract,
-  //       //   tokenId,
-  //       //   from,
-  //       //   to,
-  //       //   ethValue: value,
-  //       //   unit: "ETH",
-  //       //   value,
-  //       //   platform: "X2Y2",
-  //       //   quantity: 1,
-  //       //   data: decodedData,
-  //       // };
-  //     } catch (e) {
-  //       console.log(
-  //         "SALE_HEX_SIGNATURE_LIST error",
-  //         "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33"
-  //       );
-  //     }
-  //   },
-  // },
+  {
+    hexSignature:
+      "0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3",
+    action: "Sale",
+    decode: ({
+      topics,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+    }): SaleInterface | any => {
+      try {
+        const LOOKSRARE_ABI = {
+          anonymous: false,
+          inputs: [
+            {
+              components: [
+                { internalType: "bytes32", name: "orderHash", type: "bytes32" },
+                {
+                  internalType: "uint256",
+                  name: "orderNonce",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bool",
+                  name: "isNonceInvalidated",
+                  type: "bool",
+                },
+              ],
+              indexed: false,
+              internalType:
+                "struct ILooksRareProtocol.NonceInvalidationParameters",
+              name: "nonceInvalidationParameters",
+              type: "tuple",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "bidUser",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "bidRecipient",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "strategyId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "currency",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "collection",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256[]",
+              name: "itemIds",
+              type: "uint256[]",
+            },
+            {
+              indexed: false,
+              internalType: "uint256[]",
+              name: "amounts",
+              type: "uint256[]",
+            },
+            {
+              indexed: false,
+              internalType: "address[2]",
+              name: "feeRecipients",
+              type: "address[2]",
+            },
+            {
+              indexed: false,
+              internalType: "uint256[3]",
+              name: "feeAmounts",
+              type: "uint256[3]",
+            },
+          ],
+          name: "TakerBid",
+          type: "event",
+        };
+
+        const decodedData: any = web3.eth.abi.decodeParameters(
+          LOOKSRARE_ABI.inputs,
+          data
+        );
+
+        const contract = decodedData?.collection;
+        let sum = BigInt(0);
+        const feeAmounts = decodedData?.feeAmounts;
+        for (let i = 0; i < feeAmounts.length; i++) {
+          sum += BigInt(feeAmounts[i]);
+        }
+        const value = Number(sum) / 10 ** 18;
+
+        const tokenId = decodedData.itemIds?.[0];
+        const from: any = decodedData.feeRecipients?.[0];
+        const to: any = decodedData.bidRecipient;
+        const quantity = Number(decodedData.amounts?.[0]);
+
+        return {
+          action: "Sale",
+          contract,
+          tokenId,
+          from,
+          to,
+          ethValue: value,
+          unit: "ETH",
+          value,
+          platform: "LooksRare",
+          quantity,
+          data: decodedData,
+        };
+      } catch (e) {
+        console.log(
+          "SALE_HEX_SIGNATURE_LIST error",
+          "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33"
+        );
+      }
+    },
+  },
   {
     hexSignature:
       "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33",
