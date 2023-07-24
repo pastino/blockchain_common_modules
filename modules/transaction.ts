@@ -314,7 +314,7 @@ export class Transaction {
       // 트랜잭션 로그 데이터들 저장
       for (let i = 0; i < logs.length; i++) {
         const log = logs[i];
-        const data = await getIsERC721Event(log);
+        const data = await getIsERC721Event(log, logs);
         let contractData;
         let nftData;
         if (data.isERC721Event) {

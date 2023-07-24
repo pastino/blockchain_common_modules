@@ -5,7 +5,15 @@ import {
   ReceivedItem,
   SEAPORT_ITEM_TYPE,
 } from "./seportTypes";
-import { BLUR_TYPE, checkIsAddress, X2Y2_TYPE } from "./utils";
+import {
+  BLUR_TYPE,
+  checkIsAddress,
+  findTargetLogFromTo,
+  unpackCollectionPriceSide,
+  unpackTakerFeeRecipientRate,
+  unpackTokenIdListingIndexTrader,
+  X2Y2_TYPE,
+} from "./utils";
 
 const web3 = new Web3();
 
@@ -40,15 +48,14 @@ export interface MintInterface {
 
 export type DecodedLogType = SaleInterface | TransferInterface | MintInterface;
 
-export function getIsERC721Event({
-  address,
-  topics,
-  data,
-}: {
+interface Log {
   address: string;
   topics: string[];
   data: string;
-}) {
+}
+
+export function getIsERC721Event(log: Log, logs: Log[]) {
+  const { address, topics, data } = log;
   const hexSignature = topics[0];
   const signature = SALE_HEX_SIGNATURE_LIST.find(
     (item) => item.hexSignature === hexSignature
@@ -59,6 +66,7 @@ export function getIsERC721Event({
       address,
       topics,
       data,
+      logs,
     });
     if (decodedData) {
       return { isERC721Event: true, decodedData };
@@ -76,11 +84,13 @@ export const SALE_HEX_SIGNATURE_LIST = [
       topics,
       data,
       log,
+      logs,
     }: {
       address: string;
       topics: string[];
       data: string;
       log?: any;
+      logs: Log[];
     }): SaleInterface | null | undefined => {
       try {
         const decodedData: any = web3.eth.abi.decodeParameters(
@@ -238,11 +248,13 @@ export const SALE_HEX_SIGNATURE_LIST = [
       topics,
       data,
       log,
+      logs,
     }: {
       address: string;
       topics: string[];
       data: string;
       log?: any;
+      logs: Log[];
     }): SaleInterface | undefined => {
       try {
         const hexString: any = data.slice(2).match(/.{1,64}/g);
@@ -298,15 +310,291 @@ export const SALE_HEX_SIGNATURE_LIST = [
   },
   {
     hexSignature:
+      "0x0fcf17fac114131b10f37b183c6a60f905911e52802caeeb3e6ea210398b81ab",
+    action: "Sale",
+    decode: ({
+      topics,
+      data,
+      log,
+      logs,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+      log?: any;
+      logs: Log[];
+    }): SaleInterface | undefined => {
+      try {
+        const BLUR_ABI = {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "bytes32",
+              name: "orderHash",
+              type: "bytes32",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "tokenIdListingIndexTrader",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "collectionPriceSide",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "takerFeeRecipientRate",
+              type: "uint256",
+            },
+          ],
+          name: "Execution721TakerFeePacked",
+          type: "event",
+        };
+
+        const decodedData: any = web3.eth.abi.decodeParameters(
+          BLUR_ABI.inputs,
+          data
+        );
+
+        const { tokenId } = unpackTokenIdListingIndexTrader(
+          BigInt(decodedData.tokenIdListingIndexTrader)
+        );
+
+        const { price, collection } = unpackCollectionPriceSide(
+          BigInt(decodedData.collectionPriceSide)
+        );
+
+        const value = Number(price) / 10 ** 18;
+
+        const fromToData = findTargetLogFromTo(String(tokenId), logs);
+        if (!fromToData) return;
+        const { from, to } = fromToData;
+
+        return {
+          action: "Sale",
+          contract: collection,
+          tokenId: String(tokenId),
+          from,
+          to,
+          ethValue: value,
+          unit: "ETH",
+          value,
+          platform: "Blur",
+          quantity: 1,
+          data: decodedData,
+        };
+      } catch (e) {
+        console.log(
+          e,
+          "SALE_HEX_SIGNATURE_LIST error",
+          "0x0fcf17fac114131b10f37b183c6a60f905911e52802caeeb3e6ea210398b81ab",
+          topics,
+          data,
+          log
+        );
+      }
+    },
+  },
+  {
+    hexSignature:
+      "0x7dc5c0699ac8dd5250cbe368a2fc3b4a2daadb120ad07f6cccea29f83482686e",
+    action: "Sale",
+    decode: ({
+      topics,
+      data,
+      log,
+      logs,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+      log?: any;
+      logs: Log[];
+    }): SaleInterface | undefined => {
+      try {
+        const BLUR_ABI = {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "bytes32",
+              name: "orderHash",
+              type: "bytes32",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "tokenIdListingIndexTrader",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "collectionPriceSide",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "makerFeeRecipientRate",
+              type: "uint256",
+            },
+          ],
+          name: "Execution721MakerFeePacked",
+          type: "event",
+        };
+
+        const decodedData: any = web3.eth.abi.decodeParameters(
+          BLUR_ABI.inputs,
+          data
+        );
+
+        const { tokenId } = unpackTokenIdListingIndexTrader(
+          BigInt(decodedData.tokenIdListingIndexTrader)
+        );
+
+        const { price, collection } = unpackCollectionPriceSide(
+          BigInt(decodedData.collectionPriceSide)
+        );
+
+        const value = Number(price) / 10 ** 18;
+
+        const fromToData = findTargetLogFromTo(String(tokenId), logs);
+        if (!fromToData) return;
+        const { from, to } = fromToData;
+
+        return {
+          action: "Sale",
+          contract: collection,
+          tokenId: String(tokenId),
+          from,
+          to,
+          ethValue: value,
+          unit: "ETH",
+          value,
+          platform: "Blur",
+          quantity: 1,
+          data: decodedData,
+        };
+      } catch (e) {
+        console.log(
+          e,
+          "SALE_HEX_SIGNATURE_LIST error",
+          "0x7dc5c0699ac8dd5250cbe368a2fc3b4a2daadb120ad07f6cccea29f83482686e",
+          topics,
+          data,
+          log
+        );
+      }
+    },
+  },
+  {
+    hexSignature:
+      "0x1d5e12b51dee5e4d34434576c3fb99714a85f57b0fd546ada4b0bddd736d12b2",
+    action: "Sale",
+    decode: ({
+      topics,
+      data,
+      log,
+      logs,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+      log?: any;
+      logs: Log[];
+    }): SaleInterface | undefined => {
+      try {
+        const BLUR_ABI = {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "bytes32",
+              name: "orderHash",
+              type: "bytes32",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "tokenIdListingIndexTrader",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "collectionPriceSide",
+              type: "uint256",
+            },
+          ],
+          name: "Execution721Packed",
+          type: "event",
+        };
+
+        const decodedData: any = web3.eth.abi.decodeParameters(
+          BLUR_ABI.inputs,
+          data
+        );
+
+        const { tokenId } = unpackTokenIdListingIndexTrader(
+          BigInt(decodedData.tokenIdListingIndexTrader)
+        );
+
+        const { price, collection } = unpackCollectionPriceSide(
+          BigInt(decodedData.collectionPriceSide)
+        );
+
+        const fromToData = findTargetLogFromTo(String(tokenId), logs);
+        if (!fromToData) return;
+        const { from, to } = fromToData;
+
+        const value = Number(price) / 10 ** 18;
+
+        return {
+          action: "Sale",
+          contract: collection,
+          tokenId: String(tokenId),
+          from,
+          to,
+          ethValue: value,
+          unit: "ETH",
+          value,
+          platform: "Blur",
+          quantity: 1,
+          data: decodedData,
+        };
+      } catch (e) {
+        console.log(
+          e,
+          "SALE_HEX_SIGNATURE_LIST error",
+          "0x1d5e12b51dee5e4d34434576c3fb99714a85f57b0fd546ada4b0bddd736d12b2",
+          topics,
+          data,
+          log
+        );
+      }
+    },
+  },
+
+  {
+    hexSignature:
       "0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3",
     action: "Sale",
     decode: ({
       topics,
       data,
+      logs,
     }: {
       address: string;
       topics: string[];
       data: string;
+      logs: Log[];
     }): SaleInterface | any => {
       try {
         const LOOKSRARE_ABI = {
@@ -425,7 +713,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
       } catch (e) {
         console.log(
           "SALE_HEX_SIGNATURE_LIST error",
-          "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33"
+          "0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3"
         );
       }
     },
@@ -437,10 +725,12 @@ export const SALE_HEX_SIGNATURE_LIST = [
     decode: ({
       topics,
       data,
+      logs,
     }: {
       address: string;
       topics: string[];
       data: string;
+      logs: Log[];
     }): SaleInterface | undefined => {
       try {
         const hexString: any = data.slice(2).match(/.{1,64}/g);
@@ -491,11 +781,13 @@ export const SALE_HEX_SIGNATURE_LIST = [
     decode: ({
       address,
       topics,
+      logs,
     }: {
       address: string;
       topics: string[];
       data: string;
-      log?: any;
+      log?: Log;
+      logs: Log[];
     }): any => {
       try {
         if (topics.length <= 3) return;
@@ -522,10 +814,12 @@ export const SALE_HEX_SIGNATURE_LIST = [
       topics,
       address,
       data,
+      logs,
     }: {
       address: string;
       topics: string[];
       data: string;
+      logs: Log[];
     }): any => {
       try {
         if (topics.length === 2) return;
