@@ -130,8 +130,11 @@ export const unpackTokenIdListingIndexTrader = (value: bigint) => {
 export const unpackCollectionPriceSide = (value: bigint) => {
   const collection = (
     value & BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-  ).toString(16);
-  const collectionHex = collection === "0" ? "0" : "0x" + collection;
+  )
+    .toString(16)
+    .padStart(40, "0");
+
+  const collectionHex = "0x" + collection;
   value >>= BigInt(160);
 
   const price = Number(value & BigInt("0xFFFFFFFFFFFFFFFF"));

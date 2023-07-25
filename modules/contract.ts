@@ -76,7 +76,6 @@ export class Contract {
           name:
             contractMetaData.name || contractMetaData.openSea?.collectionName,
         };
-
         delete contractMetaData.openSea;
 
         if (!contractMetaData.name) {
@@ -101,7 +100,6 @@ export class Contract {
             entity: OpenseaCollection,
             filterList: ["id"],
           });
-
           const openseaCollection = await this.queryRunner.manager.save(
             OpenseaCollection,
             {
@@ -109,7 +107,6 @@ export class Contract {
               contract,
             }
           );
-
           await this.queryRunner.manager.update(
             ContractEntity,
             {
