@@ -301,9 +301,11 @@ export class Transaction {
         value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
         ...timeOption,
       });
+
       const logs = transactionReceipt?.logs;
       if (!logs || logs.length === 0)
         return { isSuccess: false, message: "logs is empty" };
+
       // 트랜잭션 로그 데이터들 저장
       for (let i = 0; i < logs.length; i++) {
         const log = logs[i];
@@ -311,6 +313,7 @@ export class Transaction {
 
         let contractData;
         let nftData;
+
         if (data.isERC721Event) {
           const decodedData = data.decodedData;
           const contractAddress = decodedData?.contract;
@@ -322,6 +325,7 @@ export class Transaction {
           contractData = result.contractData;
           nftData = result.nftData;
         }
+
         await this.createLog({
           log,
           transaction,
