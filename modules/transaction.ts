@@ -273,12 +273,6 @@ export class Transaction {
         this.transactionHash
       );
 
-      const logs = transactionReceipt?.logs;
-      if (!logs || logs.length === 0)
-        return { isSuccess: false, message: "logs is empty" };
-      const { isERC721 } = await this.getDecodedLogs(logs);
-      if (!isERC721)
-        return { isSuccess: false, message: "is not ERC721 transaction" };
       const timestamp = this.blockData.timestamp;
       const eventTime = new Date(timestamp * 1000);
       const timeOption = {
@@ -307,7 +301,9 @@ export class Transaction {
         value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
         ...timeOption,
       });
-
+      const logs = transactionReceipt?.logs;
+      if (!logs || logs.length === 0)
+        return { isSuccess: false, message: "logs is empty" };
       // 트랜잭션 로그 데이터들 저장
       for (let i = 0; i < logs.length; i++) {
         const log = logs[i];
@@ -334,7 +330,6 @@ export class Transaction {
           decodedLog: data.decodedData || null,
         });
       }
-
       return { isSuccess: true };
     } catch (e: any) {
       throw e;

@@ -764,7 +764,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
           unit: "ETH",
           value,
           platform: "X2Y2",
-          quantity: 1,
+          quantity,
           data: decodedData,
         };
       } catch (e) {
@@ -795,6 +795,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
         return {
           action: "Transfer",
           contract: address,
+          quantity: 1,
           tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]) as any,
           from: web3.eth.abi.decodeParameter("address", topics[1]) as any,
           to: web3.eth.abi.decodeParameter("address", topics[2]) as any,
@@ -804,6 +805,44 @@ export const SALE_HEX_SIGNATURE_LIST = [
           "SALE_HEX_SIGNATURE_LIST error",
           "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
         );
+      }
+    },
+  },
+  {
+    hexSignature:
+      "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62",
+    action: "TransferSingle",
+    decode: ({
+      address,
+      topics,
+      logs,
+      data,
+    }: {
+      address: string;
+      topics: string[];
+      data: string;
+      log?: Log;
+      logs: Log[];
+    }): any => {
+      try {
+        const decodedData: any = web3.eth.abi.decodeParameters(
+          ["uint256", "uint256"],
+          data
+        );
+
+        const tokenId = decodedData?.[0];
+        const quantity = decodedData?.[1];
+
+        return {
+          action: "Transfer",
+          contract: address,
+          tokenId,
+          quantity,
+          from: web3.eth.abi.decodeParameter("address", topics[2]) as any,
+          to: web3.eth.abi.decodeParameter("address", topics[3]) as any,
+        };
+      } catch (e) {
+        console.log(e);
       }
     },
   },
