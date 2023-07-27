@@ -311,8 +311,8 @@ export class Transaction {
         });
 
         const logs = transactionReceipt?.logs;
-        if (!logs || logs.length === 0)
-          return { isSuccess: false, message: "logs is empty" };
+
+        if (!logs || logs.length === 0) continue;
 
         // 트랜잭션 로그 데이터들 필터링
         for (let j = 0; j < logs.length; j++) {
