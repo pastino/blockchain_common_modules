@@ -266,64 +266,74 @@ export class Transaction {
 
   public async progressTransaction(): Promise<any> {
     try {
-      const transactionData = await this.getTransaction(this.transactionHash);
-      if (!transactionData)
-        return { isSuccess: false, message: "transactionData is empty" };
-      const transactionReceipt = await this.getTransactionReceipt(
-        this.transactionHash
-      );
+      const transactions = this.blockData.transactions;
+      if (!transactions || transactions.length === 0)
+        return { isSuccess: false, message: "Transactions are empty" };
 
-      const timestamp = this.blockData.timestamp;
-      const eventTime = new Date(timestamp * 1000);
-      const timeOption = {
-        timestamp,
-        eventTime,
-      };
-
-      const transaction = await getRepository(TransactionEntity).save({
-        ...transactionData,
-        blockNumber: this.blockNumber,
-        gasUsed: this.hexToStringValue(
-          transactionReceipt?.gasUsed?._hex || "0x0"
-        ),
-        cumulativeGasUsed: this.hexToStringValue(
-          transactionReceipt?.cumulativeGasUsed?._hex || "0x0"
-        ),
-        effectiveGasPrice: this.hexToStringValue(
-          transactionReceipt?.effectiveGasPrice?._hex || "0x0"
-        ),
-        gasPrice: this.hexToStringValue(
-          transactionData?.gasPrice?._hex || "0x0"
-        ),
-        gasLimit: this.hexToStringValue(
-          transactionData?.gasLimit?._hex || "0x0"
-        ),
-        value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
-        ...timeOption,
-      });
-
-      const logs = transactionReceipt?.logs;
-      if (!logs || logs.length === 0)
-        return { isSuccess: false, message: "logs is empty" };
-
-      // 트랜잭션 로그 데이터들 필터링
       const erc721Logs = [];
       const nonErc721Logs = [];
 
-      for (let i = 0; i < logs.length; i++) {
-        const log = logs[i];
-        const data = await getIsERC721Event(log, logs);
+      // First pass: Process all transactions and gather ERC721 and non-ERC721 logs
+      for (let i = 0; i < transactions.length; i++) {
+        const transactionHash = transactions[i];
+        const transactionData = await this.getTransaction(transactionHash);
+        const transactionReceipt = await this.getTransactionReceipt(
+          transactionHash
+        );
 
-        if (data.isERC721Event) {
-          erc721Logs.push({ log, decodedData: data.decodedData });
-        } else {
-          nonErc721Logs.push({ log });
+        const timestamp = this.blockData.timestamp;
+        const eventTime = new Date(timestamp * 1000);
+        const timeOption = {
+          timestamp,
+          eventTime,
+        };
+
+        const transaction = await getRepository(TransactionEntity).save({
+          ...transactionData,
+          blockNumber: this.blockNumber,
+          gasUsed: this.hexToStringValue(
+            transactionReceipt?.gasUsed?._hex || "0x0"
+          ),
+          cumulativeGasUsed: this.hexToStringValue(
+            transactionReceipt?.cumulativeGasUsed?._hex || "0x0"
+          ),
+          effectiveGasPrice: this.hexToStringValue(
+            transactionReceipt?.effectiveGasPrice?._hex || "0x0"
+          ),
+          gasPrice: this.hexToStringValue(
+            transactionData?.gasPrice?._hex || "0x0"
+          ),
+          gasLimit: this.hexToStringValue(
+            transactionData?.gasLimit?._hex || "0x0"
+          ),
+          value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
+          ...timeOption,
+        });
+
+        const logs = transactionReceipt?.logs;
+        if (!logs || logs.length === 0)
+          return { isSuccess: false, message: "logs is empty" };
+
+        // 트랜잭션 로그 데이터들 필터링
+        for (let j = 0; j < logs.length; j++) {
+          const log = logs[j];
+          const data = await getIsERC721Event(log, logs);
+
+          if (data.isERC721Event) {
+            erc721Logs.push({
+              log,
+              decodedData: data.decodedData,
+              transaction,
+            });
+          } else {
+            nonErc721Logs.push({ log, transaction });
+          }
         }
       }
 
-      // ERC721 관련 로그 데이터들 저장
+      // Second pass: Process all ERC721 logs
       for (let i = 0; i < erc721Logs.length; i++) {
-        const { log, decodedData } = erc721Logs[i];
+        const { log, decodedData, transaction } = erc721Logs[i];
         const contractAddress = decodedData?.contract;
         const result = await this.createContractAndNFT({
           transaction,
@@ -341,23 +351,23 @@ export class Transaction {
           decodedLog: decodedData || null,
         });
       }
+
       await getRepository(BlockNumberEntity).update(
         { id: this.blockNumber.id },
         { isNFTCompletedUpdate: true }
       );
 
-      // 나머지 로그 데이터들 저장
+      // Third pass: Process all non-ERC721 logs
       for (let i = 0; i < nonErc721Logs.length; i++) {
-        const { log } = nonErc721Logs[i];
+        const { log, transaction } = nonErc721Logs[i];
 
         await this.createLog({
           log,
           transaction,
         });
       }
-
       return { isSuccess: true };
-    } catch (e: any) {
+    } catch (e) {
       throw e;
     }
   }
