@@ -340,11 +340,11 @@ export class Transaction {
           nftData,
           decodedLog: decodedData || null,
         });
-        await getRepository(BlockNumberEntity).update(
-          { id: this.blockNumber.id },
-          { isNFTCompletedUpdate: true }
-        );
       }
+      await getRepository(BlockNumberEntity).update(
+        { id: this.blockNumber.id },
+        { isNFTCompletedUpdate: true }
+      );
 
       // 나머지 로그 데이터들 저장
       for (let i = 0; i < nonErc721Logs.length; i++) {
@@ -356,34 +356,6 @@ export class Transaction {
         });
       }
 
-      // // 트랜잭션 로그 데이터들 저장
-      // for (let i = 0; i < logs.length; i++) {
-      //   const log = logs[i];
-      //   const data = await getIsERC721Event(log, logs);
-
-      //   let contractData;
-      //   let nftData;
-
-      //   if (data.isERC721Event) {
-      //     const decodedData = data.decodedData;
-      //     const contractAddress = decodedData?.contract;
-      //     const result = await this.createContractAndNFT({
-      //       transaction,
-      //       tokenId: decodedData?.tokenId,
-      //       contractAddress,
-      //     });
-      //     contractData = result.contractData;
-      //     nftData = result.nftData;
-      //   }
-
-      //   await this.createLog({
-      //     log,
-      //     transaction,
-      //     contractData,
-      //     nftData,
-      //     decodedLog: data.decodedData || null,
-      //   });
-      // }
       return { isSuccess: true };
     } catch (e: any) {
       throw e;
