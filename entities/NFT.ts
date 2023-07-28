@@ -41,19 +41,19 @@ export class NFT {
   @Column({ nullable: true, length: 1000 })
   title: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
   @Column({ nullable: true })
   mediaThumbnail: string;
 
-  @Column({ nullable: true, type: "longtext" })
+  @Column({ nullable: true, type: "text" })
   rawMetadataImage: string;
 
-  @Column({ nullable: true, type: "longtext" })
+  @Column({ nullable: true, type: "text" })
   attributesRaw: string;
 
-  @Column({ nullable: true, type: "longtext" })
+  @Column({ nullable: true, type: "text" })
   imageRaw: string;
 
   @Column({ nullable: true })
@@ -81,7 +81,7 @@ export class NFT {
   @Column({ nullable: true, default: null })
   isImageUploaded: boolean;
 
-  @Column({ type: "longtext", nullable: true, default: null })
+  @Column({ type: "text", nullable: true, default: null })
   imageSaveError: string;
 
   @CreateDateColumn()

@@ -52,7 +52,7 @@ export class Contract {
   @Column({ nullable: true })
   imageUrl: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
   @Column({ nullable: true })

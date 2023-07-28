@@ -33,7 +33,7 @@ export class UpcomingContract {
   @Column({ nullable: true })
   profileImageUrl: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
   @Column({ nullable: true })

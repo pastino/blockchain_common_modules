@@ -14,7 +14,7 @@ export class Signature {
   @Column({ nullable: false })
   signatureId: number;
 
-  @Column({ type: "longtext", nullable: false })
+  @Column({ type: "text", nullable: false })
   textSignature: string;
 
   @Column({ nullable: false })

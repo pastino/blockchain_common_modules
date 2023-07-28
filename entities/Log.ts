@@ -27,9 +27,9 @@ const ApiProperty = isNestJs
 
 @Entity({ name: "log" })
 @Index("idx_transaction_contract", ["transaction", "contract"])
-@Index("idx_transaction", ["transaction"])
-@Index("idx_contract", ["contract"])
-@Index("idx_address", ["address"])
+@Index("idx_log_transaction", ["transaction"])
+@Index("idx_log_contract", ["contract"])
+@Index("idx_log_address", ["address"])
 @Index("idx_transactionIndex", ["transactionIndex"])
 export class Log {
   @PrimaryGeneratedColumn()
@@ -71,7 +71,7 @@ export class Log {
   @Column({ nullable: true })
   address: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: "text", nullable: true })
   data: string;
 
   @Column({ nullable: true })

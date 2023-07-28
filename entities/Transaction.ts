@@ -86,7 +86,7 @@ export class Transaction {
   @Column({ nullable: true })
   nonce: number;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: "text", nullable: true })
   data: string;
 
   @Column({ nullable: true })

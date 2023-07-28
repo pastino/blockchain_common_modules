@@ -14,7 +14,7 @@ export class ContractError {
   @Column()
   address: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: "text", nullable: true })
   returnStringData: string;
 
   @CreateDateColumn()
