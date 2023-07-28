@@ -117,7 +117,7 @@ export class Contract {
             }
           );
         } catch (e: any) {
-          if (e.code === "ER_DUP_ENTRY") {
+          if (e.code === "23505") {
             contract = await getRepository(ContractEntity).findOne({
               where: {
                 address: this.address,

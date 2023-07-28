@@ -224,7 +224,7 @@ export class NFT {
             );
           }
         } catch (e: any) {
-          if (e.code === "ER_DUP_ENTRY") {
+          if (e.code === "23505") {
             nft = await getRepository(NFTEntity).findOne({
               where: {
                 contract: this.contract as any,
