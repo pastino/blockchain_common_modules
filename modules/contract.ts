@@ -21,7 +21,7 @@ export class Contract {
   private queryRunner: QueryRunner;
 
   constructor({ address }: { address: string }) {
-    this.address = address;
+    this.address = address.toLocaleLowerCase();
     const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
     this.queryRunner = queryRunner;
@@ -117,6 +117,7 @@ export class Contract {
             }
           );
         } catch (e: any) {
+          console.log(e.code);
           if (e.code === "23505") {
             contract = await getRepository(ContractEntity).findOne({
               where: {
