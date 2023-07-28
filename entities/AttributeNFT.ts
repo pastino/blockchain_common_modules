@@ -27,7 +27,9 @@ export class AttributeNFT {
   @JoinColumn({ name: "attributeId" })
   attribute: Attribute;
 
-  @ManyToOne(() => NFT)
+  @ManyToOne(() => NFT, (nft) => nft.attributeNFTs, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "nftId" })
   nft: NFT;
 

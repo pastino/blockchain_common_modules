@@ -21,7 +21,7 @@ export class Contract {
   private queryRunner: QueryRunner;
 
   constructor({ address }: { address: string }) {
-    this.address = address.toLocaleLowerCase();
+    this.address = address;
     const connection = getConnection();
     const queryRunner = connection.createQueryRunner();
     this.queryRunner = queryRunner;
@@ -59,11 +59,12 @@ export class Contract {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
     try {
-      let contract = await this.queryRunner.manager.findOne(ContractEntity, {
-        where: {
+      let contract = await this.queryRunner.manager
+        .createQueryBuilder(ContractEntity, "contractEntity")
+        .where("LOWER(contractEntity.address) = LOWER(:address)", {
           address: this.address,
-        },
-      });
+        })
+        .getOne();
 
       if (!contract) {
         const contractMetaData = await alchemy.nft.getContractMetadata(
@@ -119,11 +120,12 @@ export class Contract {
         } catch (e: any) {
           console.log(e.code);
           if (e.code === "23505") {
-            contract = await getRepository(ContractEntity).findOne({
-              where: {
+            contract = await getRepository(ContractEntity)
+              .createQueryBuilder("contractEntity")
+              .where("LOWER(contractEntity.address) = LOWER(:address)", {
                 address: this.address,
-              },
-            });
+              })
+              .getOne();
           }
         }
       }
