@@ -14,13 +14,13 @@ export class TraitTypeContract {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => TraitType, (traitType) => traitType.traitTypeContracts, {
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(() => TraitType)
   @JoinColumn({ name: "traitTypeId" })
   traitType: TraitType;
 
-  @ManyToOne(() => Contract)
+  @ManyToOne(() => Contract, (contract) => contract.traitTypeContracts, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "contractId" })
   contract: Contract;
 
