@@ -73,6 +73,12 @@ export class OpenseaCollection {
   @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
 
+  @Column({ nullable: true })
+  totalSupply: number;
+
+  @Column({ nullable: true })
+  count: number;
+
   @Column({ nullable: true, length: 4000 })
   bannerImageUrl: string;
 

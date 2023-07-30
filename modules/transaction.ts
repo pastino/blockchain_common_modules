@@ -335,6 +335,7 @@ export class Transaction {
       for (let i = 0; i < erc721Logs.length; i++) {
         const { log, decodedData, transaction } = erc721Logs[i];
         const contractAddress = decodedData?.contract;
+
         const result = await this.createContractAndNFT({
           transaction,
           tokenId: decodedData?.tokenId,

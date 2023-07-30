@@ -79,13 +79,6 @@ export class Contract {
         };
         delete contractMetaData.openSea;
 
-        if (!contractMetaData.name) {
-          await getRepository(ContractError).save({
-            address: this.address,
-            returnStringData: JSON.stringify(newContract),
-          });
-        }
-
         try {
           contract = await this.queryRunner.manager.save(
             ContractEntity,
@@ -97,7 +90,11 @@ export class Contract {
           );
 
           const createEntityData = new CreateEntityData({
-            snakeObject: openseaData?.data?.collection,
+            snakeObject: {
+              ...openseaData?.data?.collection,
+              totalSupply: openseaData?.data?.collection?.stats?.total_supply,
+              count: openseaData?.data?.collection?.stats?.count,
+            },
             entity: OpenseaCollection,
             filterList: ["id"],
           });
@@ -118,7 +115,6 @@ export class Contract {
             }
           );
         } catch (e: any) {
-          console.log(e.code);
           if (e.code === "23505") {
             contract = await getRepository(ContractEntity)
               .createQueryBuilder("contractEntity")
@@ -136,6 +132,10 @@ export class Contract {
       return contract;
     } catch (e: any) {
       await this.queryRunner.rollbackTransaction();
+      await getRepository(ContractError).save({
+        address: this.address,
+        returnStringData: JSON.stringify(e.message),
+      });
       throw e;
     } finally {
       await this.queryRunner.release();
