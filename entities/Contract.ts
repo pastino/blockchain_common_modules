@@ -76,7 +76,7 @@ export class Contract {
   @Column({ nullable: true })
   deployedBlockNumber: number;
 
-  @Column({ nullable: false })
+  @Column({ nullable: false, default: false })
   isNFTsCreated: boolean;
 
   @OneToOne(
