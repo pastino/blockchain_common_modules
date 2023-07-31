@@ -79,6 +79,9 @@ export class Contract {
   @Column({ nullable: false, default: false })
   isNFTsCreated: boolean;
 
+  @Column({ nullable: true, type: "text" })
+  alchemyCollectionError: string;
+
   @OneToOne(
     () => OpenseaCollection,
     (openseaCollectio) => openseaCollectio.contract,

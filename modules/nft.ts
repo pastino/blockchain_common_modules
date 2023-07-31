@@ -9,12 +9,18 @@ import { TraitType } from "../entities/TraitType";
 import { AttributeNFT } from "../entities/AttributeNFT";
 import { TraitTypeContract } from "../entities/TraitTypeContract";
 import { Attribute } from "../entities/Attribute";
+import Bottleneck from "bottleneck";
 
 const openSeaConfig: any = {
   headers: {
     "X-API-KEY": process.env.OPENSEA_API_KEY,
   },
 };
+
+// 인스턴스 생성
+const limiter = new Bottleneck({
+  minTime: 200, // 작업 사이의 최소 시간 (ms)
+});
 
 export class NFT {
   private contract: ContractEntity;
@@ -221,18 +227,21 @@ export class NFT {
     format: string;
   }) {
     try {
-      axios.post(
-        "http://121.168.75.64/image",
-        {
-          nftId,
-          contractAddress,
-          imageUrl,
-          tokenId,
-          format,
-        },
-        {
-          timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
-        }
+      // limiter.schedule을 사용하여 요청을 제한
+      await limiter.schedule(() =>
+        axios.post(
+          "http://121.168.75.64/image",
+          {
+            nftId,
+            contractAddress,
+            imageUrl,
+            tokenId,
+            format,
+          },
+          {
+            timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
+          }
+        )
       );
     } catch (e) {
       null;
