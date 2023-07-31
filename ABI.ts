@@ -10,7 +10,6 @@ import {
   checkIsAddress,
   findTargetLogFromTo,
   unpackCollectionPriceSide,
-  unpackTakerFeeRecipientRate,
   unpackTokenIdListingIndexTrader,
   X2Y2_TYPE,
 } from "./utils";
@@ -792,6 +791,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
     }): any => {
       try {
         if (topics.length <= 3) return;
+
         return {
           action: "Transfer",
           contract: address,
