@@ -288,7 +288,7 @@ export class NFT {
       await this.queryRunner.release();
       // NFT 이미지 생성 api/
       try {
-        this.createImage({
+        await this.createImage({
           nftId: nft?.id as number,
           contractAddress: this.contract.address,
           imageUrl: nftData.rawMetadata?.image,
