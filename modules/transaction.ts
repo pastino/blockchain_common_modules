@@ -270,7 +270,7 @@ export class Transaction {
       if (!transactions || transactions.length === 0)
         return { isSuccess: false, message: "Transactions are empty" };
 
-      const erc721Logs = [];
+      let erc721Logs: any = [];
       const nonErc721Logs = [];
 
       // First pass: Process all transactions and gather ERC721 and non-ERC721 logs
@@ -329,6 +329,25 @@ export class Transaction {
             nonErc721Logs.push({ log, transaction });
           }
         }
+
+        // 판매에 해당하는 전송 로그를 필터링합니다.
+        erc721Logs = erc721Logs.filter((log: any) => {
+          if (log.decodedData?.action !== "Transfer") {
+            return true;
+          }
+
+          // 이 전송 로그에 해당하는 판매 로그가 있는지 확인합니다
+          const matchingSaleLog = erc721Logs.find(
+            (saleLog: any) =>
+              saleLog.decodedData?.contract === log.decodedData?.contract &&
+              saleLog.decodedData?.tokenId === log.decodedData?.tokenId &&
+              saleLog.decodedData?.from === log.decodedData?.from &&
+              saleLog.decodedData?.to === log.decodedData?.to
+          );
+
+          // 해당하는 판매 로그가 없는 경우에만 로그를 유지합니다
+          return matchingSaleLog === undefined;
+        });
       }
 
       // Second pass: Process all ERC721 logs
