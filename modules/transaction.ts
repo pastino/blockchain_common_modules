@@ -337,13 +337,15 @@ export class Transaction {
           }
 
           // 이 전송 로그에 해당하는 판매 로그가 있는지 확인합니다
-          const matchingSaleLog = erc721Logs.find(
-            (saleLog: any) =>
-              saleLog.decodedData?.contract === log.decodedData?.contract &&
-              saleLog.decodedData?.tokenId === log.decodedData?.tokenId &&
-              saleLog.decodedData?.from === log.decodedData?.from &&
-              saleLog.decodedData?.to === log.decodedData?.to
-          );
+          const matchingSaleLog = erc721Logs
+            .filter((log: any) => log.decodedData?.action !== "Sale")
+            .find(
+              (saleLog: any) =>
+                saleLog.decodedData?.contract === log.decodedData?.contract &&
+                saleLog.decodedData?.tokenId === log.decodedData?.tokenId &&
+                saleLog.decodedData?.from === log.decodedData?.from &&
+                saleLog.decodedData?.to === log.decodedData?.to
+            );
 
           // 해당하는 판매 로그가 없는 경우에만 로그를 유지합니다
           return matchingSaleLog === undefined;
