@@ -259,23 +259,26 @@ export class NFT {
       },
     });
 
+    if (nft) {
+      return nft;
+    }
+
     try {
-      if (!nft) {
-        try {
-          nft = await this.createNFTAndAttributes(nftData);
-        } catch (e: any) {
-          if (e.code === "23505") {
-            nft = await getRepository(NFTEntity).findOne({
-              where: {
-                contract: this.contract as any,
-                tokenId: this.tokenId as any,
-              },
-            });
-          } else {
-            throw e;
-          }
+      try {
+        nft = await this.createNFTAndAttributes(nftData);
+      } catch (e: any) {
+        if (e.code === "23505") {
+          nft = await getRepository(NFTEntity).findOne({
+            where: {
+              contract: this.contract as any,
+              tokenId: this.tokenId as any,
+            },
+          });
+        } else {
+          throw e;
         }
       }
+
       if (!nft) {
         throw `Failed to find or save nft`;
       }
@@ -288,6 +291,7 @@ export class NFT {
       await this.queryRunner.release();
       // NFT 이미지 생성 api/
       try {
+        if (nft?.imageRoute) return;
         await this.createImage({
           nftId: nft?.id as number,
           contractAddress: this.contract.address,
@@ -347,6 +351,7 @@ export class NFT {
       await this.queryRunner.release();
       // NFT 이미지 생성 api/
       try {
+        if (nft?.imageRoute) return;
         this.createImage({
           nftId: nft?.id as number,
           contractAddress: this.contract.address,

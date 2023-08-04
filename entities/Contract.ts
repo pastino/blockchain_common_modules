@@ -79,6 +79,12 @@ export class Contract {
   @Column({ nullable: false, default: false })
   isNFTsCreated: boolean;
 
+  @Column({ nullable: true })
+  createdNFTsPageNumber: number;
+
+  @Column({ nullable: true })
+  createdNFTsPageKey: string;
+
   @Column({ nullable: true, type: "text" })
   alchemyCollectionError: string;
 
