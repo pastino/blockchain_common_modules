@@ -166,6 +166,7 @@ export class NFT {
 
   async createNFTAndAttributes(nftData: any) {
     try {
+      console.log("nft", 1);
       const nft = await this.queryRunner.manager.save(NFTEntity, {
         ...nftData,
         isAttributeUpdated: true,
@@ -200,12 +201,14 @@ export class NFT {
         nftData.rawMetadata?.attributes &&
         nftData.rawMetadata?.attributes.length > 0
       ) {
+        console.log("nft", 2);
         await this.saveAttributes(
           nft,
           this.contract,
           nftData.rawMetadata?.attributes,
           this.queryRunner
         );
+        console.log("nft", 3);
       }
       return nft;
     } catch (e) {
@@ -252,6 +255,7 @@ export class NFT {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
 
+    console.log("nft", 0);
     let nft = await this.queryRunner.manager.findOne(NFTEntity, {
       where: {
         contract: this.contract as any,
