@@ -292,7 +292,7 @@ export class NFT {
       // NFT 이미지 생성 api/
       try {
         if (nft?.imageRoute) return;
-        await this.createImage({
+        this.createImage({
           nftId: nft?.id as number,
           contractAddress: this.contract.address,
           imageUrl: nftData.rawMetadata?.image,
