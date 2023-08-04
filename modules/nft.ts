@@ -43,7 +43,6 @@ export class NFT {
     retryCount: number = 10
   ): Promise<AxiosResponse | undefined> {
     try {
-      console.log(contractAddress, tokenId);
       const response = await axios.get(
         `https://api.opensea.io/api/v1/asset/${contractAddress}/${tokenId}`,
         openSeaConfig
@@ -160,7 +159,6 @@ export class NFT {
 
   async createNFTAndAttributes(nftData: any) {
     try {
-      console.log("nft", 1);
       const nft = await getRepository(NFTEntity).save({
         ...nftData,
         isAttributeUpdated: true,
@@ -195,13 +193,11 @@ export class NFT {
         nftData.rawMetadata?.attributes &&
         nftData.rawMetadata?.attributes.length > 0
       ) {
-        console.log("nft", 2);
         await this.saveAttributes(
           nft,
           this.contract,
           nftData.rawMetadata?.attributes
         );
-        console.log("nft", 3);
       }
       return nft;
     } catch (e) {
@@ -245,7 +241,6 @@ export class NFT {
   }
 
   async saveNFTForCollection(nftData: any) {
-    console.log("nft", 0);
     let nft = await getRepository(NFTEntity).findOne({
       where: {
         contract: this.contract as any,
