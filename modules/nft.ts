@@ -194,7 +194,7 @@ export class NFT {
             ? nftData.media?.[0]?.bytes
             : 0,
       });
-
+      console.log(4);
       if (
         nft &&
         nftData.rawMetadata?.attributes &&
@@ -207,6 +207,7 @@ export class NFT {
           this.queryRunner
         );
       }
+      console.log(5);
       return nft;
     } catch (e) {
       throw e;
@@ -252,19 +253,21 @@ export class NFT {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
 
+    console.log(1);
     let nft = await this.queryRunner.manager.findOne(NFTEntity, {
       where: {
         contract: this.contract as any,
         tokenId: this.tokenId as any,
       },
     });
-
+    console.log(2);
     if (nft) {
       return nft;
     }
 
     try {
       try {
+        console.log(3);
         nft = await this.createNFTAndAttributes(nftData);
       } catch (e: any) {
         if (e.code === "23505") {
@@ -278,7 +281,7 @@ export class NFT {
           throw e;
         }
       }
-
+      console.log(6);
       if (!nft) {
         throw `Failed to find or save nft`;
       }
