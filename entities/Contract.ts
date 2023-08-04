@@ -80,7 +80,7 @@ export class Contract {
   isNFTsCreated: boolean;
 
   @Column({ nullable: true })
-  createdNFTsPageNumber: number;
+  createdNFTsPageNumber: string;
 
   @Column({ nullable: true })
   createdNFTsPageKey: string;
