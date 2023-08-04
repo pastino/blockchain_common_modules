@@ -1,4 +1,4 @@
-import { getConnection, getRepository, QueryRunner } from "typeorm";
+import { getRepository } from "typeorm";
 import { Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 import { alchemy } from "../blockEventHandler";
@@ -25,7 +25,6 @@ const limiter = new Bottleneck({
 export class NFT {
   private contract: ContractEntity;
   private tokenId: number | string;
-  private queryRunner: QueryRunner;
 
   constructor({
     contract,
@@ -35,9 +34,6 @@ export class NFT {
     tokenId: number | string;
   }) {
     this.contract = contract;
-    const connection = getConnection();
-    const queryRunner = connection.createQueryRunner();
-    this.queryRunner = queryRunner;
     this.tokenId = tokenId;
   }
 
@@ -93,14 +89,12 @@ export class NFT {
   async saveAttributes(
     nft: NFTEntity,
     contract: ContractEntity,
-    attributesData: any[],
-    queryRunner: QueryRunner
+    attributesData: any[]
   ) {
-    const traitTypeRepo = queryRunner.manager.getRepository(TraitType);
-    const attributeRepo = queryRunner.manager.getRepository(Attribute);
-    const attributeNFTRepo = queryRunner.manager.getRepository(AttributeNFT);
-    const traitTypeContractRepo =
-      queryRunner.manager.getRepository(TraitTypeContract);
+    const traitTypeRepo = getRepository(TraitType);
+    const attributeRepo = getRepository(Attribute);
+    const attributeNFTRepo = getRepository(AttributeNFT);
+    const traitTypeContractRepo = getRepository(TraitTypeContract);
 
     try {
       for (const attributeData of attributesData) {
@@ -167,7 +161,7 @@ export class NFT {
   async createNFTAndAttributes(nftData: any) {
     try {
       console.log("nft", 1);
-      const nft = await this.queryRunner.manager.save(NFTEntity, {
+      const nft = await getRepository(NFTEntity).save({
         ...nftData,
         isAttributeUpdated: true,
         mediaThumbnail: nftData?.media?.[0]?.thumbnail,
@@ -205,8 +199,7 @@ export class NFT {
         await this.saveAttributes(
           nft,
           this.contract,
-          nftData.rawMetadata?.attributes,
-          this.queryRunner
+          nftData.rawMetadata?.attributes
         );
         console.log("nft", 3);
       }
@@ -252,11 +245,8 @@ export class NFT {
   }
 
   async saveNFTForCollection(nftData: any) {
-    await this.queryRunner.connect();
-    await this.queryRunner.startTransaction();
-
     console.log("nft", 0);
-    let nft = await this.queryRunner.manager.findOne(NFTEntity, {
+    let nft = await getRepository(NFTEntity).findOne({
       where: {
         contract: this.contract as any,
         tokenId: this.tokenId as any,
@@ -286,13 +276,10 @@ export class NFT {
       if (!nft) {
         throw `Failed to find or save nft`;
       }
-      await this.queryRunner.commitTransaction();
       return nft;
     } catch (e: any) {
-      await this.queryRunner.rollbackTransaction();
       throw e;
     } finally {
-      await this.queryRunner.release();
       // NFT 이미지 생성 api/
       try {
         if (nft?.imageRoute) return;
@@ -310,11 +297,8 @@ export class NFT {
   }
 
   async saveNFT() {
-    await this.queryRunner.connect();
-    await this.queryRunner.startTransaction();
-
     let nftData: any;
-    let nft = await this.queryRunner.manager.findOne(NFTEntity, {
+    let nft = await getRepository(NFTEntity).findOne({
       where: {
         contract: this.contract as any,
         tokenId: this.tokenId as any,
@@ -346,13 +330,10 @@ export class NFT {
       if (!nft) {
         throw `Failed to find or save nft`;
       }
-      await this.queryRunner.commitTransaction();
       return nft;
     } catch (e: any) {
-      await this.queryRunner.rollbackTransaction();
       throw e;
     } finally {
-      await this.queryRunner.release();
       // NFT 이미지 생성 api/
       try {
         if (nft?.imageRoute) return;
