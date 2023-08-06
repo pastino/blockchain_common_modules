@@ -93,8 +93,8 @@ export class Contract {
   })
   nftProgressStatus: NftProgressStatus;
 
-  @Column({ nullable: true })
-  createdNFTsPageNumber: string;
+  @Column({ nullable: true, default: 0 })
+  createdNFTsPageNumber: number;
 
   @Column({ nullable: true })
   createdNFTsPageKey: string;
