@@ -1,8 +1,12 @@
-import { getConnection, getRepository, QueryRunner } from "typeorm";
+import { getConnection, getRepository, Not, QueryRunner } from "typeorm";
 import { OpenseaCollection } from "../entities/OpenseaCollection";
 import { Message } from "./kakao";
 import { CreateEntityData } from "./manufactureData";
-import { Contract as ContractEntity } from "../entities/Contract";
+import {
+  Contract,
+  Contract as ContractEntity,
+  NftProgressStatus,
+} from "../entities/Contract";
 import axios, { AxiosResponse } from "axios";
 import { alchemy } from "../blockEventHandler";
 import moment from "moment";
@@ -16,7 +20,7 @@ const openSeaConfig: any = {
   },
 };
 
-export class Contract {
+export class ContractManager {
   private address = "";
   private queryRunner: QueryRunner;
 
@@ -140,5 +144,45 @@ export class Contract {
     } finally {
       await this.queryRunner.release();
     }
+  }
+}
+export class ContractService {
+  async findAbortedContracts(limit: number): Promise<Contract[]> {
+    return getRepository(Contract).find({
+      where: {
+        isNFTsCreated: false,
+        nftProgressStatus: NftProgressStatus.ABORTED,
+      },
+      take: limit,
+    });
+  }
+
+  async findNotAbortedContracts(limit: number): Promise<Contract[]> {
+    return getRepository(Contract).find({
+      where: {
+        isNFTsCreated: false,
+        nftProgressStatus: Not(NftProgressStatus.ABORTED), // ABORTED 상태를 제외
+      },
+      take: limit,
+    });
+  }
+
+  async getPriorityAbortedContracts(limit: number): Promise<Contract[]> {
+    const findAbortedContracts = await this.findAbortedContracts(limit);
+    let remainingLimit = limit - findAbortedContracts.length;
+    if (remainingLimit > 0) {
+      let findNotAbortedContracts = await this.findNotAbortedContracts(
+        remainingLimit
+      );
+      return [...findAbortedContracts, ...findNotAbortedContracts];
+    }
+    return findAbortedContracts;
+  }
+
+  async updateStatus(contract: Contract, status: NftProgressStatus) {
+    return getRepository(Contract).update(
+      { id: contract.id },
+      { nftProgressStatus: status }
+    );
   }
 }

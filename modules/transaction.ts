@@ -9,7 +9,7 @@ import { Message } from "./kakao";
 import moment from "moment";
 import { getIsERC721Event, SIGNATURE_LIST } from "../ABI";
 import { getRepository } from "typeorm";
-import { Contract } from "./contract";
+import { ContractManager } from "./contract";
 import { NFT } from "./nft";
 import { Transaction as TransactionEntity } from "../entities/Transaction";
 import { Log as LogEntity } from "../entities/Log";
@@ -175,7 +175,7 @@ export class Transaction {
     nftData?: NFTEntity;
   }> {
     try {
-      const contract = new Contract({
+      const contract = new ContractManager({
         address: contractAddress,
       });
       const contractData = await contract.saveContract();
