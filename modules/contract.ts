@@ -1,4 +1,11 @@
-import { getConnection, getRepository, Not, QueryRunner } from "typeorm";
+import {
+  FindOperator,
+  getConnection,
+  getRepository,
+  In,
+  Not,
+  QueryRunner,
+} from "typeorm";
 import { OpenseaCollection } from "../entities/OpenseaCollection";
 import { Message } from "./kakao";
 import { CreateEntityData } from "./manufactureData";
@@ -19,6 +26,12 @@ const openSeaConfig: any = {
     "X-API-KEY": process.env.OPENSEA_API_KEY,
   },
 };
+
+interface ContractCondition {
+  isNFTsCreated: boolean;
+  nftProgressStatus: any;
+  id?: FindOperator<number>;
+}
 
 export class ContractManager {
   private address = "";
@@ -147,32 +160,57 @@ export class ContractManager {
   }
 }
 export class ContractService {
-  async findAbortedContracts(limit: number): Promise<Contract[]> {
+  async findAbortedContracts(
+    limit: number,
+    excludeIds?: number[]
+  ): Promise<Contract[]> {
+    let whereCondition: ContractCondition = {
+      isNFTsCreated: false,
+      nftProgressStatus: NftProgressStatus.ABORTED,
+    };
+
+    if (excludeIds && excludeIds.length) {
+      whereCondition["id"] = Not(In(excludeIds));
+    }
+
     return getRepository(Contract).find({
-      where: {
-        isNFTsCreated: false,
-        nftProgressStatus: NftProgressStatus.ABORTED,
-      },
+      where: whereCondition,
       take: limit,
     });
   }
 
-  async findNotAbortedContracts(limit: number): Promise<Contract[]> {
+  async findNotAbortedContracts(
+    limit: number,
+    excludeIds?: number[]
+  ): Promise<Contract[]> {
+    let whereCondition: ContractCondition = {
+      isNFTsCreated: false,
+      nftProgressStatus: Not(NftProgressStatus.ABORTED),
+    };
+
+    if (excludeIds && excludeIds.length) {
+      whereCondition["id"] = Not(In(excludeIds));
+    }
+
     return getRepository(Contract).find({
-      where: {
-        isNFTsCreated: false,
-        nftProgressStatus: Not(NftProgressStatus.ABORTED), // ABORTED 상태를 제외
-      },
+      where: whereCondition,
       take: limit,
     });
   }
 
-  async getPriorityAbortedContracts(limit: number): Promise<Contract[]> {
-    const findAbortedContracts = await this.findAbortedContracts(limit);
+  async getPriorityAbortedContracts(
+    limit: number,
+    excludeIds?: number[]
+  ): Promise<Contract[]> {
+    const findAbortedContracts = await this.findAbortedContracts(
+      limit,
+      excludeIds
+    );
     let remainingLimit = limit - findAbortedContracts.length;
     if (remainingLimit > 0) {
       let findNotAbortedContracts = await this.findNotAbortedContracts(
-        remainingLimit
+        remainingLimit,
+        excludeIds
       );
       return [...findAbortedContracts, ...findNotAbortedContracts];
     }
