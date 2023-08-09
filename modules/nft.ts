@@ -98,6 +98,7 @@ export class NFT {
     try {
       for (const attributeData of attributesData) {
         if (
+          !attributeData ||
           !attributeData.trait_type ||
           typeof attributeData.trait_type !== "string" ||
           !attributeData.value ||
@@ -169,14 +170,16 @@ export class NFT {
             : nftData.title,
         contract: this.contract,
         attributesRaw:
-          typeof nftData.tokenUri?.raw === "string" ? nftData.tokenUri.raw : "",
+          typeof nftData.tokenUri?.raw === "string"
+            ? nftData.tokenUri.raw.replace(/\x00/g, "")
+            : "",
         rawMetadataImage:
           typeof nftData.media?.[0]?.raw === "string"
-            ? nftData.media?.[0]?.raw
+            ? nftData.media?.[0]?.raw.replace(/\x00/g, "")
             : "",
         imageRaw:
           typeof nftData.media?.[0]?.raw === "string"
-            ? nftData.media?.[0]?.raw
+            ? nftData.media?.[0]?.raw.replace(/\x00/g, "")
             : "",
         imageFormat:
           typeof nftData.media?.[0]?.format === "string"
@@ -281,7 +284,7 @@ export class NFT {
         this.createImage({
           nftId: nft?.id as number,
           contractAddress: this.contract.address,
-          imageUrl: nftData.rawMetadata?.image,
+          imageUrl: nftData.rawMetadata?.image.replace(/\x00/g, ""),
           tokenId: this.tokenId,
           format: nftData.media?.[0]?.format,
         });
@@ -335,7 +338,7 @@ export class NFT {
         this.createImage({
           nftId: nft?.id as number,
           contractAddress: this.contract.address,
-          imageUrl: nftData.rawMetadata?.image,
+          imageUrl: nftData.rawMetadata?.image.replace(/\x00/g, ""),
           tokenId: this.tokenId,
           format: nftData.media?.[0]?.format,
         });
