@@ -47,14 +47,21 @@ export class ContractManager {
   async handleOpenseaContract(
     contractAddress: string,
     retryCount: number = 10
-  ): Promise<AxiosResponse | undefined> {
+  ): Promise<any> {
     try {
-      const response = await axios.get(
+      const contractDataByAddress = await axios.get(
         `https://api.opensea.io/api/v1/asset_contract/${contractAddress}`,
         openSeaConfig
       );
 
-      return response;
+      await sleep(1);
+
+      const contractDataBySlag = await axios.get(
+        `https://api.opensea.io/api/v1/collection/${contractDataByAddress.data?.collection?.slug}`,
+        openSeaConfig
+      );
+
+      return { contractDataByAddress, contractDataBySlag };
     } catch (e: any) {
       if (e.response && e.response.status !== 404) {
         if (retryCount > 0) {
@@ -102,15 +109,15 @@ export class ContractManager {
             newContract
           );
 
-          const openseaData = await this.handleOpenseaContract(
-            contract.address
-          );
+          const { contractDataByAddress, contractDataBySlag } =
+            await this.handleOpenseaContract(contract.address);
 
           const createEntityData = new CreateEntityData({
             snakeObject: {
-              ...openseaData?.data?.collection,
-              totalSupply: openseaData?.data?.collection?.stats?.total_supply,
-              count: openseaData?.data?.collection?.stats?.count,
+              ...contractDataByAddress?.data?.collection,
+              totalSupply:
+                contractDataBySlag?.data?.collection?.stats?.total_supply,
+              count: contractDataBySlag?.data?.collection?.stats?.count,
             },
             entity: OpenseaCollection,
             filterList: ["id"],
