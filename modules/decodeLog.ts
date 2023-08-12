@@ -38,32 +38,28 @@ export class DecodeLog<T extends Action> {
     this.logs = logs;
   }
 
-  private decode(signature: string) {
-    const signatureData = SALE_HEX_SIGNATURE_LIST.find(
-      (signatureData) => signatureData.hexSignature === signature
-    );
-    if (!signatureData) return;
+  private async decode(signature: string) {
+    // const signatureData = SALE_HEX_SIGNATURE_LIST.find(
+    //   (signatureData) => signatureData.hexSignature === signature
+    // );
+    // if (!signatureData) return;
 
-    const decodedData = signatureData.decode({
-      address: this.address, // Sale에서는 사용 안함, Transfer에서는 Contract address로 사용함
-      topics: this.topics,
-      data: this.data,
-      log: this.log,
-      logs: this.logs,
-    });
+    // const decodedData = await signatureData.decode({
+    //   address: this.address, // Sale에서는 사용 안함, Transfer에서는 Contract address로 사용함
+    //   topics: this.topics,
+    //   data: this.data,
+    //   log: this.log,
+    //   logs: this.logs,
+    //   blockNumber: 1,
+    // });
 
-    if (decodedData?.action === this.action) {
-      return decodedData;
-    }
+    // if (decodedData?.action === this.action) {
+    //   return decodedData;
+    // }
+    return null;
   }
 
-  async convert(): Promise<
-    T extends "Sale"
-      ? SaleInterface
-      : T extends "Transfer"
-      ? TransferInterface
-      : MintInterface
-  > {
+  async convert(): Promise<any> {
     const signature = this.topics[0];
     return this.decode(signature);
   }
