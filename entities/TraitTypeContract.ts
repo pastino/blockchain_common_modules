@@ -18,7 +18,9 @@ export class TraitTypeContract {
   @JoinColumn({ name: "traitTypeId" })
   traitType: TraitType;
 
-  @ManyToOne(() => Contract)
+  @ManyToOne(() => Contract, (contract) => contract.traitTypeContracts, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "contractId" })
   contract: Contract;
 

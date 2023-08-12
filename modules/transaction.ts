@@ -9,7 +9,7 @@ import { Message } from "./kakao";
 import moment from "moment";
 import { getIsERC721Event, SIGNATURE_LIST } from "../ABI";
 import { getRepository } from "typeorm";
-import { Contract } from "./contract";
+import { ContractManager } from "./contract";
 import { NFT } from "./nft";
 import { Transaction as TransactionEntity } from "../entities/Transaction";
 import { Log as LogEntity } from "../entities/Log";
@@ -175,16 +175,14 @@ export class Transaction {
     nftData?: NFTEntity;
   }> {
     try {
-      const contract = new Contract({
+      const contract = new ContractManager({
         address: contractAddress,
       });
       const contractData = await contract.saveContract();
-
       await getRepository(TransactionEntity).update(
         { id: transaction.id },
         { contract: contractData }
       );
-
       let nftData;
 
       if (tokenId) {
@@ -197,6 +195,7 @@ export class Transaction {
 
       return { isSuccess: true, contractData, nftData };
     } catch (e: any) {
+      console.log(contractAddress);
       throw e;
     }
   }
@@ -212,7 +211,7 @@ export class Transaction {
     transaction: TransactionEntity;
     contractData?: ContractEntity;
     nftData?: NFTEntity;
-    decodedLog: any;
+    decodedLog?: any;
   }) {
     try {
       const { topics, ...logWithoutTopics } = log;
@@ -269,76 +268,134 @@ export class Transaction {
 
   public async progressTransaction(): Promise<any> {
     try {
-      const transactionData = await this.getTransaction(this.transactionHash);
-      if (!transactionData)
-        return { isSuccess: false, message: "transactionData is empty" };
-      const transactionReceipt = await this.getTransactionReceipt(
-        this.transactionHash
-      );
+      const transactions = this.blockData.transactions;
+      if (!transactions || transactions.length === 0)
+        return { isSuccess: false, message: "Transactions are empty" };
 
-      const logs = transactionReceipt?.logs;
-      if (!logs || logs.length === 0)
-        return { isSuccess: false, message: "logs is empty" };
-      const { isERC721 } = await this.getDecodedLogs(logs);
-      if (!isERC721)
-        return { isSuccess: false, message: "is not ERC721 transaction" };
-      const timestamp = this.blockData.timestamp;
-      const eventTime = new Date(timestamp * 1000);
-      const timeOption = {
-        timestamp,
-        eventTime,
-      };
+      let erc721Logs: any = [];
+      const nonErc721Logs = [];
 
-      const transaction = await getRepository(TransactionEntity).save({
-        ...transactionData,
-        blockNumber: this.blockNumber,
-        gasUsed: this.hexToStringValue(
-          transactionReceipt?.gasUsed?._hex || "0x0"
-        ),
-        cumulativeGasUsed: this.hexToStringValue(
-          transactionReceipt?.cumulativeGasUsed?._hex || "0x0"
-        ),
-        effectiveGasPrice: this.hexToStringValue(
-          transactionReceipt?.effectiveGasPrice?._hex || "0x0"
-        ),
-        gasPrice: this.hexToStringValue(
-          transactionData?.gasPrice?._hex || "0x0"
-        ),
-        gasLimit: this.hexToStringValue(
-          transactionData?.gasLimit?._hex || "0x0"
-        ),
-        value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
-        ...timeOption,
-      });
+      // First pass: Process all transactions and gather ERC721 and non-ERC721 logs
+      for (let i = 0; i < transactions.length; i++) {
+        const transactionHash = transactions[i];
+        const transactionData = await this.getTransaction(transactionHash);
+        const transactionReceipt = await this.getTransactionReceipt(
+          transactionHash
+        );
 
-      // 트랜잭션 로그 데이터들 저장
-      for (let i = 0; i < logs.length; i++) {
-        const log = logs[i];
-        const data = await getIsERC721Event(log);
-        let contractData;
-        let nftData;
-        if (data.isERC721Event) {
-          const decodedData = data.decodedData;
-          const contractAddress = decodedData?.contract;
-          const result = await this.createContractAndNFT({
-            transaction,
-            tokenId: decodedData?.tokenId,
-            contractAddress,
-          });
-          contractData = result.contractData;
-          nftData = result.nftData;
+        const timestamp = this.blockData.timestamp;
+        const eventTime = new Date(timestamp * 1000);
+        const timeOption = {
+          timestamp,
+          eventTime,
+        };
+
+        const transaction = await getRepository(TransactionEntity).save({
+          ...transactionData,
+          blockNumber: this.blockNumber,
+          gasUsed: this.hexToStringValue(
+            transactionReceipt?.gasUsed?._hex || "0x0"
+          ),
+          cumulativeGasUsed: this.hexToStringValue(
+            transactionReceipt?.cumulativeGasUsed?._hex || "0x0"
+          ),
+          effectiveGasPrice: this.hexToStringValue(
+            transactionReceipt?.effectiveGasPrice?._hex || "0x0"
+          ),
+          gasPrice: this.hexToStringValue(
+            transactionData?.gasPrice?._hex || "0x0"
+          ),
+          gasLimit: this.hexToStringValue(
+            transactionData?.gasLimit?._hex || "0x0"
+          ),
+          value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
+          ...timeOption,
+        });
+
+        const logs = transactionReceipt?.logs;
+
+        if (!logs || logs.length === 0) continue;
+
+        // 트랜잭션 로그 데이터들 필터링
+        for (let j = 0; j < logs.length; j++) {
+          const log = logs[j];
+          const data = await getIsERC721Event(
+            log,
+            logs,
+            this.blockNumber?.blockNumber
+          );
+
+          if (data.isERC721Event) {
+            erc721Logs.push({
+              log,
+              decodedData: data.decodedData,
+              transaction,
+            });
+          } else {
+            nonErc721Logs.push({ log, transaction });
+          }
         }
+
+        // 판매에 해당하는 전송 로그를 필터링합니다.
+        erc721Logs = erc721Logs.filter((log: any) => {
+          if (log.decodedData?.action !== "Transfer") {
+            return true;
+          }
+
+          // 이 전송 로그에 해당하는 판매 로그가 있는지 확인합니다
+          const matchingSaleLog = erc721Logs
+            .filter((log: any) => log.decodedData?.action !== "Sale")
+            .find(
+              (saleLog: any) =>
+                saleLog.decodedData?.contract === log.decodedData?.contract &&
+                saleLog.decodedData?.tokenId === log.decodedData?.tokenId &&
+                saleLog.decodedData?.from === log.decodedData?.from &&
+                saleLog.decodedData?.to === log.decodedData?.to
+            );
+
+          // 해당하는 판매 로그가 없는 경우에만 로그를 유지합니다
+          return matchingSaleLog === undefined;
+        });
+      }
+
+      // Second pass: Process all ERC721 logs
+      for (let i = 0; i < erc721Logs.length; i++) {
+        const { log, decodedData, transaction } = erc721Logs[i];
+        const contractAddress = decodedData?.contract;
+
+        const result = await this.createContractAndNFT({
+          transaction,
+          tokenId: decodedData?.tokenId,
+          contractAddress,
+        });
+        const contractData = result.contractData;
+        const nftData = result.nftData;
+
         await this.createLog({
           log,
           transaction,
           contractData,
           nftData,
-          decodedLog: data.decodedData || null,
+          decodedLog: decodedData || null,
         });
       }
 
+      await getRepository(BlockNumberEntity).update(
+        { id: this.blockNumber.id },
+        { isNFTCompletedUpdate: true }
+      );
+
+      // Third pass: Process all non-ERC721 logs
+      for (let i = 0; i < nonErc721Logs.length; i++) {
+        const { log, transaction } = nonErc721Logs[i];
+
+        await this.createLog({
+          log,
+          transaction,
+        });
+      }
       return { isSuccess: true };
-    } catch (e: any) {
+    } catch (e) {
       throw e;
     }
   }

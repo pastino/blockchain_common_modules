@@ -70,7 +70,14 @@ export class OpenseaCollection {
   @OneToOne(() => Contract, (contract) => contract.openseaCollection, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
   contract: Contract;
+
+  @Column({ nullable: true })
+  totalSupply: number;
+
+  @Column({ nullable: true })
+  count: number;
 
   @Column({ nullable: true, length: 4000 })
   bannerImageUrl: string;

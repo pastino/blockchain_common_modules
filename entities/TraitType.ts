@@ -28,7 +28,9 @@ export class TraitType {
   @OneToMany(
     () => TraitTypeContract,
     (traitTypeContract) => traitTypeContract.traitType,
-    { cascade: false }
+    {
+      onDelete: "CASCADE",
+    }
   )
   traitTypeContracts: TraitTypeContract[];
 

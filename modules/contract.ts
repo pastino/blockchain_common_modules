@@ -1,8 +1,19 @@
-import { getConnection, getRepository, QueryRunner } from "typeorm";
+import {
+  FindOperator,
+  getConnection,
+  getRepository,
+  In,
+  Not,
+  QueryRunner,
+} from "typeorm";
 import { OpenseaCollection } from "../entities/OpenseaCollection";
 import { Message } from "./kakao";
 import { CreateEntityData } from "./manufactureData";
-import { Contract as ContractEntity } from "../entities/Contract";
+import {
+  Contract,
+  Contract as ContractEntity,
+  NftProgressStatus,
+} from "../entities/Contract";
 import axios, { AxiosResponse } from "axios";
 import { alchemy } from "../blockEventHandler";
 import moment from "moment";
@@ -16,7 +27,13 @@ const openSeaConfig: any = {
   },
 };
 
-export class Contract {
+interface ContractCondition {
+  isNFTsCreated: boolean;
+  nftProgressStatus: any;
+  id?: FindOperator<number>;
+}
+
+export class ContractManager {
   private address = "";
   private queryRunner: QueryRunner;
 
@@ -30,14 +47,21 @@ export class Contract {
   async handleOpenseaContract(
     contractAddress: string,
     retryCount: number = 10
-  ): Promise<AxiosResponse | undefined> {
+  ): Promise<any> {
     try {
-      const response = await axios.get(
+      const contractDataByAddress = await axios.get(
         `https://api.opensea.io/api/v1/asset_contract/${contractAddress}`,
         openSeaConfig
       );
 
-      return response;
+      await sleep(1);
+
+      const contractDataBySlag = await axios.get(
+        `https://api.opensea.io/api/v1/collection/${contractDataByAddress.data?.collection?.slug}`,
+        openSeaConfig
+      );
+
+      return { contractDataByAddress, contractDataBySlag };
     } catch (e: any) {
       if (e.response && e.response.status !== 404) {
         if (retryCount > 0) {
@@ -59,11 +83,12 @@ export class Contract {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
     try {
-      let contract = await this.queryRunner.manager.findOne(ContractEntity, {
-        where: {
+      let contract = await this.queryRunner.manager
+        .createQueryBuilder(ContractEntity, "contractEntity")
+        .where("LOWER(contractEntity.address) = LOWER(:address)", {
           address: this.address,
-        },
-      });
+        })
+        .getOne();
 
       if (!contract) {
         const contractMetaData = await alchemy.nft.getContractMetadata(
@@ -76,15 +101,7 @@ export class Contract {
           name:
             contractMetaData.name || contractMetaData.openSea?.collectionName,
         };
-
         delete contractMetaData.openSea;
-
-        if (!contractMetaData.name) {
-          await getRepository(ContractError).save({
-            address: this.address,
-            returnStringData: JSON.stringify(newContract),
-          });
-        }
 
         try {
           contract = await this.queryRunner.manager.save(
@@ -92,16 +109,19 @@ export class Contract {
             newContract
           );
 
-          const openseaData = await this.handleOpenseaContract(
-            contract.address
-          );
+          const { contractDataByAddress, contractDataBySlag } =
+            await this.handleOpenseaContract(contract.address);
 
           const createEntityData = new CreateEntityData({
-            snakeObject: openseaData?.data?.collection,
+            snakeObject: {
+              ...contractDataByAddress?.data?.collection,
+              totalSupply:
+                contractDataBySlag?.data?.collection?.stats?.total_supply,
+              count: contractDataBySlag?.data?.collection?.stats?.count,
+            },
             entity: OpenseaCollection,
             filterList: ["id"],
           });
-
           const openseaCollection = await this.queryRunner.manager.save(
             OpenseaCollection,
             {
@@ -109,7 +129,6 @@ export class Contract {
               contract,
             }
           );
-
           await this.queryRunner.manager.update(
             ContractEntity,
             {
@@ -120,12 +139,15 @@ export class Contract {
             }
           );
         } catch (e: any) {
-          if (e.code === "ER_DUP_ENTRY") {
-            contract = await getRepository(ContractEntity).findOne({
-              where: {
+          if (e.code === "23505") {
+            contract = await getRepository(ContractEntity)
+              .createQueryBuilder("contractEntity")
+              .where("LOWER(contractEntity.address) = LOWER(:address)", {
                 address: this.address,
-              },
-            });
+              })
+              .getOne();
+          } else {
+            throw e;
           }
         }
       }
@@ -136,9 +158,78 @@ export class Contract {
       return contract;
     } catch (e: any) {
       await this.queryRunner.rollbackTransaction();
+      await getRepository(ContractError).save({
+        address: this.address,
+        returnStringData: JSON.stringify(e.message),
+      });
       throw e;
     } finally {
       await this.queryRunner.release();
     }
+  }
+}
+export class ContractService {
+  async findAbortedContracts(
+    limit: number,
+    excludeIds?: number[]
+  ): Promise<Contract[]> {
+    let whereCondition: ContractCondition = {
+      isNFTsCreated: false,
+      nftProgressStatus: NftProgressStatus.ABORTED,
+    };
+
+    if (excludeIds && excludeIds.length) {
+      whereCondition["id"] = Not(In(excludeIds));
+    }
+
+    return getRepository(Contract).find({
+      where: whereCondition,
+      take: limit,
+    });
+  }
+
+  async findNotAbortedContracts(
+    limit: number,
+    excludeIds?: number[]
+  ): Promise<Contract[]> {
+    let whereCondition: ContractCondition = {
+      isNFTsCreated: false,
+      nftProgressStatus: Not(NftProgressStatus.ABORTED),
+    };
+
+    if (excludeIds && excludeIds.length) {
+      whereCondition["id"] = Not(In(excludeIds));
+    }
+
+    return getRepository(Contract).find({
+      where: whereCondition,
+      take: limit,
+    });
+  }
+
+  async getPriorityAbortedContracts(
+    limit: number,
+    excludeIds?: number[]
+  ): Promise<Contract[]> {
+    const findAbortedContracts = await this.findAbortedContracts(
+      limit,
+      excludeIds
+    );
+    let remainingLimit = limit - findAbortedContracts.length;
+    if (remainingLimit > 0) {
+      let findNotAbortedContracts = await this.findNotAbortedContracts(
+        remainingLimit,
+        excludeIds
+      );
+      return [...findAbortedContracts, ...findNotAbortedContracts];
+    }
+    return findAbortedContracts;
+  }
+
+  async updateStatus(contract: Contract, status: NftProgressStatus) {
+    return getRepository(Contract).update(
+      { id: contract.id },
+      { nftProgressStatus: status }
+    );
   }
 }

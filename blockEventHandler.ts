@@ -27,18 +27,14 @@ export async function handleBlockEvent(blockNum: number) {
     const blockNumber = await getRepository(BlockNumber).save({
       blockNumber: blockNum,
     });
-    const transactions = blockData?.transactions;
-    for (let i = 0; i < transactions.length; i++) {
-      const transactionHash = transactions[i];
 
-      const transaction = new Transaction({
-        transactionHash,
-        blockData,
-        blockNumber,
-      });
+    const transaction = new Transaction({
+      transactionHash: "",
+      blockData,
+      blockNumber,
+    });
 
-      await transaction.progressTransaction();
-    }
+    await transaction.progressTransaction();
 
     await getRepository(BlockNumber).update(
       { id: blockNumber.id },

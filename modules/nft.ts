@@ -1,4 +1,4 @@
-import { getConnection, getRepository, QueryRunner } from "typeorm";
+import { getRepository } from "typeorm";
 import { Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 import { alchemy } from "../blockEventHandler";
@@ -9,6 +9,7 @@ import { TraitType } from "../entities/TraitType";
 import { AttributeNFT } from "../entities/AttributeNFT";
 import { TraitTypeContract } from "../entities/TraitTypeContract";
 import { Attribute } from "../entities/Attribute";
+import Bottleneck from "bottleneck";
 
 const openSeaConfig: any = {
   headers: {
@@ -16,10 +17,14 @@ const openSeaConfig: any = {
   },
 };
 
+// 인스턴스 생성
+const limiter = new Bottleneck({
+  minTime: 200, // 작업 사이의 최소 시간 (ms)
+});
+
 export class NFT {
   private contract: ContractEntity;
   private tokenId: number | string;
-  private queryRunner: QueryRunner;
 
   constructor({
     contract,
@@ -29,9 +34,6 @@ export class NFT {
     tokenId: number | string;
   }) {
     this.contract = contract;
-    const connection = getConnection();
-    const queryRunner = connection.createQueryRunner();
-    this.queryRunner = queryRunner;
     this.tokenId = tokenId;
   }
 
@@ -41,7 +43,6 @@ export class NFT {
     retryCount: number = 10
   ): Promise<AxiosResponse | undefined> {
     try {
-      console.log(contractAddress, tokenId);
       const response = await axios.get(
         `https://api.opensea.io/api/v1/asset/${contractAddress}/${tokenId}`,
         openSeaConfig
@@ -87,18 +88,17 @@ export class NFT {
   async saveAttributes(
     nft: NFTEntity,
     contract: ContractEntity,
-    attributesData: any[],
-    queryRunner: QueryRunner
+    attributesData: any[]
   ) {
-    const traitTypeRepo = queryRunner.manager.getRepository(TraitType);
-    const attributeRepo = queryRunner.manager.getRepository(Attribute);
-    const attributeNFTRepo = queryRunner.manager.getRepository(AttributeNFT);
-    const traitTypeContractRepo =
-      queryRunner.manager.getRepository(TraitTypeContract);
+    const traitTypeRepo = getRepository(TraitType);
+    const attributeRepo = getRepository(Attribute);
+    const attributeNFTRepo = getRepository(AttributeNFT);
+    const traitTypeContractRepo = getRepository(TraitTypeContract);
 
     try {
       for (const attributeData of attributesData) {
         if (
+          !attributeData ||
           !attributeData.trait_type ||
           typeof attributeData.trait_type !== "string" ||
           !attributeData.value ||
@@ -158,109 +158,202 @@ export class NFT {
     }
   }
 
-  async saveNFT() {
-    await this.queryRunner.connect();
-    await this.queryRunner.startTransaction();
+  async createNFTAndAttributes(nftData: any) {
+    try {
+      const nft = await getRepository(NFTEntity).save({
+        ...nftData,
+        isAttributeUpdated: true,
+        mediaThumbnail: nftData?.media?.[0]?.thumbnail,
+        title:
+          nftData.title.length > 500
+            ? nftData.title.slice(0, 500)
+            : nftData.title || "",
+        contract: this.contract,
+        attributesRaw:
+          typeof nftData.tokenUri?.raw === "string"
+            ? nftData.tokenUri.raw.replace(/\x00/g, "")
+            : "",
+        rawMetadataImage:
+          typeof nftData.media?.[0]?.raw === "string"
+            ? nftData.media?.[0]?.raw.replace(/\x00/g, "")
+            : "",
+        imageRaw:
+          typeof nftData.media?.[0]?.raw === "string"
+            ? nftData.media?.[0]?.raw.replace(/\x00/g, "")
+            : "",
+        imageFormat:
+          typeof nftData.media?.[0]?.format === "string"
+            ? nftData.media[0].format
+            : "",
+        imageBytes:
+          typeof nftData.media?.[0]?.bytes === "number"
+            ? nftData.media?.[0]?.bytes
+            : 0,
+      });
 
-    let nftData: any;
-    let nft = await this.queryRunner.manager.findOne(NFTEntity, {
+      if (
+        nft &&
+        nftData.rawMetadata?.attributes &&
+        nftData.rawMetadata?.attributes.length > 0
+      ) {
+        await this.saveAttributes(
+          nft,
+          this.contract,
+          nftData.rawMetadata?.attributes
+        );
+      }
+      return nft;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async createImage({
+    nftId,
+    contractAddress,
+    imageUrl,
+    tokenId,
+    format,
+  }: {
+    nftId: number;
+    contractAddress: string;
+    imageUrl: string;
+    tokenId: string | number;
+    format: string;
+  }) {
+    try {
+      // limiter.schedule을 사용하여 요청을 제한
+      await limiter.schedule(() =>
+        axios.post(
+          "http://121.168.75.64/image",
+          {
+            nftId,
+            contractAddress,
+            imageUrl,
+            tokenId,
+            format,
+          },
+          {
+            timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
+          }
+        )
+      );
+    } catch (e) {
+      null;
+    }
+  }
+
+  async saveNFTForCollection(nftData: any) {
+    let nft = await getRepository(NFTEntity).findOne({
       where: {
         contract: this.contract as any,
         tokenId: this.tokenId as any,
       },
     });
 
+    if (nft) {
+      return nft;
+    }
+
     try {
-      if (!nft) {
-        nftData = await alchemy.nft.getNftMetadata(
-          this.contract.address,
-          this.tokenId
-        );
-
-        try {
-          nftData.media?.[0]?.raw;
-
-          nft = await this.queryRunner.manager.save(NFTEntity, {
-            ...nftData,
-            isAttributeUpdated: true,
-            mediaThumbnail: nftData?.media?.[0]?.thumbnail,
-            title:
-              nftData.title.length > 500
-                ? nftData.title.slice(0, 500)
-                : nftData.title,
-            contract: this.contract,
-            attributesRaw:
-              typeof nftData.tokenUri?.raw === "string"
-                ? nftData.tokenUri.raw
-                : "",
-            rawMetadataImage:
-              typeof nftData.media?.[0]?.raw === "string"
-                ? nftData.media?.[0]?.raw
-                : "",
-            imageRaw:
-              typeof nftData.media?.[0]?.raw === "string"
-                ? nftData.media?.[0]?.raw
-                : "",
-            imageFormat:
-              typeof nftData.media?.[0]?.format === "string"
-                ? nftData.media[0].format
-                : "",
-            imageBytes:
-              typeof nftData.media?.[0]?.bytes === "number"
-                ? nftData.media?.[0]?.bytes
-                : 0,
+      try {
+        nft = await this.createNFTAndAttributes(nftData);
+      } catch (e: any) {
+        if (e.code === "23505") {
+          nft = await getRepository(NFTEntity).findOne({
+            where: {
+              contract: this.contract as any,
+              tokenId: this.tokenId as any,
+            },
           });
-
-          if (
-            nft &&
-            nftData.rawMetadata?.attributes &&
-            nftData.rawMetadata?.attributes.length > 0
-          ) {
-            await this.saveAttributes(
-              nft,
-              this.contract,
-              nftData.rawMetadata?.attributes,
-              this.queryRunner
-            );
-          }
-        } catch (e: any) {
-          if (e.code === "ER_DUP_ENTRY") {
-            nft = await getRepository(NFTEntity).findOne({
-              where: {
-                contract: this.contract as any,
-                tokenId: this.tokenId as any,
-              },
-            });
-          } else {
-            throw e;
-          }
+        } else {
+          throw e;
         }
       }
+
       if (!nft) {
         throw `Failed to find or save nft`;
       }
-      await this.queryRunner.commitTransaction();
+
       return nft;
     } catch (e: any) {
-      await this.queryRunner.rollbackTransaction();
       throw e;
     } finally {
-      await this.queryRunner.release();
       // NFT 이미지 생성 api/
       try {
-        axios.post(
-          "http://121.168.75.64/image",
-          {
-            nftId: nft?.id,
-            contractAddress: this.contract.address,
-            imageUrl: nftData.rawMetadata?.image,
-            tokenId: this.tokenId,
-            format: nftData.media?.[0]?.format,
-          },
-          {
-            timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
-          }
-        );
+        if (nft?.imageRoute) return;
+        this.createImage({
+          nftId: nft?.id as number,
+          contractAddress: this.contract.address,
+          imageUrl:
+            typeof nftData.rawMetadata?.image === "string"
+              ? nftData.rawMetadata?.image.replace(/\x00/g, "")
+              : "",
+          tokenId: this.tokenId,
+          format: nftData.media?.[0]?.format,
+        });
+      } catch (e) {
+        null;
+      }
+    }
+  }
+
+  async saveNFT() {
+    let nftData: any;
+    let nft = await getRepository(NFTEntity).findOne({
+      where: {
+        contract: this.contract as any,
+        tokenId: this.tokenId as any,
+      },
+    });
+
+    if (nft) {
+      return nft;
+    }
+
+    try {
+      nftData = await alchemy.nft.getNftMetadata(
+        this.contract.address,
+        this.tokenId
+      );
+
+      try {
+        nft = await this.createNFTAndAttributes(nftData);
+      } catch (e: any) {
+        console.log("에러");
+        if (e.code === "23505") {
+          nft = await getRepository(NFTEntity).findOne({
+            where: {
+              contract: this.contract as any,
+              tokenId: this.tokenId as any,
+            },
+          });
+        } else {
+          throw e;
+        }
+      }
+
+      if (!nft) {
+        throw `Failed to find or save nft`;
+      }
+
+      return nft;
+    } catch (e: any) {
+      throw e;
+    } finally {
+      // NFT 이미지 생성 api/
+      try {
+        if (nft?.imageRoute) return;
+        this.createImage({
+          nftId: nft?.id as number,
+          contractAddress: this.contract.address,
+          imageUrl:
+            typeof nftData.rawMetadata?.image === "string"
+              ? nftData.rawMetadata?.image.replace(/\x00/g, "")
+              : "",
+          tokenId: this.tokenId,
+          format: nftData.media?.[0]?.format,
+        });
       } catch (e) {
         null;
       }

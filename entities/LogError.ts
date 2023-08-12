@@ -22,7 +22,7 @@ export class LogError {
   logId: number;
 
   @Column({ nullable: true, default: false })
-  isCompletedCreate: number;
+  isCompletedCreate: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

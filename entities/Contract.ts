@@ -25,6 +25,13 @@ const ApiProperty = isNestJs
   ? require('@nestjs/swagger').ApiProperty
   : () => {};
 
+export enum NftProgressStatus {
+  NOT_STARTED = 'not_started',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  ABORTED = 'aborted',
+}
+
 // slug 추가
 @Entity({ name: 'contract' })
 @Unique(['address'])
@@ -75,6 +82,25 @@ export class Contract {
 
   @Column({ nullable: true })
   deployedBlockNumber: number;
+
+  @Column({ nullable: false, default: false })
+  isNFTsCreated: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: NftProgressStatus,
+    default: NftProgressStatus.NOT_STARTED,
+  })
+  nftProgressStatus: NftProgressStatus;
+
+  @Column({ nullable: true, default: 0 })
+  createdNFTsPageNumber: number;
+
+  @Column({ nullable: true })
+  createdNFTsPageKey: string;
+
+  @Column({ nullable: true, type: 'text' })
+  alchemyCollectionError: string;
 
   @OneToOne(
     () => OpenseaCollection,
