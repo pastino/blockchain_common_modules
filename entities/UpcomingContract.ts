@@ -5,12 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-} from "typeorm";
-import { UpcomingTwitter } from "./UpcomingTwitter";
-import { UpcomingDiscord } from "./UpcomingDiscord";
-import { TrendUpcomingCollection } from "./TrendUpcomingCollection";
+} from 'typeorm';
+import { UpcomingTwitter } from './UpcomingTwitter';
+import { UpcomingDiscord } from './UpcomingDiscord';
+import { TrendUpcomingCollection } from './TrendUpcomingCollection';
 
-@Entity({ name: "upcomingContract" })
+@Entity({ name: 'upcomingContract' })
 export class UpcomingContract {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,7 +33,7 @@ export class UpcomingContract {
   @Column({ nullable: true })
   profileImageUrl: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: 'text', nullable: true })
   description: string;
 
   @Column({ nullable: true })
@@ -48,21 +48,21 @@ export class UpcomingContract {
   @Column({ nullable: true })
   premintUrl: string;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   preSalePrice: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   publicSalePrice: number;
 
-  @Column({ nullable: true, default: "ERC721" })
+  @Column({ nullable: true, default: 'ERC721' })
   tokenType: string;
 
   @OneToMany(
     () => UpcomingTwitter,
     (upcomingTwitter) => upcomingTwitter.upcomingContract,
     {
-      onDelete: "CASCADE",
-    }
+      onDelete: 'CASCADE',
+    },
   )
   upcomingTwitters: UpcomingTwitter[];
 
@@ -70,8 +70,8 @@ export class UpcomingContract {
     () => TrendUpcomingCollection,
     (trendUpcomingCollection) => trendUpcomingCollection.upcomingContract,
     {
-      onDelete: "CASCADE",
-    }
+      onDelete: 'CASCADE',
+    },
   )
   trendUpcomingCollections: TrendUpcomingCollection[];
 
@@ -79,8 +79,8 @@ export class UpcomingContract {
     () => UpcomingDiscord,
     (UpcomingDiscord) => UpcomingDiscord.upcomingContract,
     {
-      onDelete: "CASCADE",
-    }
+      onDelete: 'CASCADE',
+    },
   )
   upcomingDiscords: UpcomingDiscord[];
 

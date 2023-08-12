@@ -4,9 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-} from "typeorm";
+} from 'typeorm';
 
-@Entity({ name: "contractError" })
+@Entity({ name: 'contractError' })
 export class ContractError {
   @PrimaryGeneratedColumn()
   id: number;
@@ -14,7 +14,7 @@ export class ContractError {
   @Column()
   address: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: 'text', nullable: true })
   returnStringData: string;
 
   @CreateDateColumn()

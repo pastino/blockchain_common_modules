@@ -9,54 +9,54 @@ import {
   OneToMany,
   OneToOne,
   Index,
-} from "typeorm";
-import { Contract } from "./Contract";
-import { NFT } from "./NFT";
-import { Topic } from "./Topic";
-import { Transaction } from "./Transaction";
-import * as dotenv from "dotenv";
-import { logExample } from "../entityExamples";
-import { DecodedLog } from "./DecodedLog";
+} from 'typeorm';
+import { Contract } from './Contract';
+import { NFT } from './NFT';
+import { Topic } from './Topic';
+import { Transaction } from './Transaction';
+import * as dotenv from 'dotenv';
+import { logExample } from '../entityExamples';
+import { DecodedLog } from './DecodedLog';
 
-dotenv.config({ path: __dirname + "/../../../.env.dev" });
-const isNestJs = process.env.APP_TYPE === "nestjs";
+dotenv.config({ path: __dirname + '/../../../.env.dev' });
+const isNestJs = process.env.APP_TYPE === 'nestjs';
 
 const ApiProperty = isNestJs
-  ? require("@nestjs/swagger").ApiProperty
+  ? require('@nestjs/swagger').ApiProperty
   : () => {};
 
-@Entity({ name: "log" })
-@Index("idx_transaction_contract", ["transaction", "contract"])
-@Index("idx_transaction", ["transaction"])
-@Index("idx_contract", ["contract"])
-@Index("idx_address", ["address"])
-@Index("idx_transactionIndex", ["transactionIndex"])
+@Entity({ name: 'log' })
+@Index('idx_transaction_contract', ['transaction', 'contract'])
+@Index('idx_transaction', ['transaction'])
+@Index('idx_contract', ['contract'])
+@Index('idx_address', ['address'])
+@Index('idx_transactionIndex', ['transactionIndex'])
 export class Log {
   @PrimaryGeneratedColumn()
   id: number;
 
   @OneToOne(() => DecodedLog, (decodeLog) => decodeLog.log, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: "decodedLogId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'decodedLogId', referencedColumnName: 'id' })
   decodedLog: DecodedLog;
 
   @ManyToOne(() => Transaction, (transaction) => transaction.logs, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: "transactionId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'transactionId', referencedColumnName: 'id' })
   transaction: Transaction;
 
   @ManyToOne(() => Contract, (contract) => contract.nfts, {
-    onDelete: "SET NULL",
+    onDelete: 'SET NULL',
   })
-  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
   contract: Contract;
 
   @ManyToOne(() => NFT, (nft) => nft.logs, {
-    onDelete: "SET NULL",
+    onDelete: 'SET NULL',
   })
-  @JoinColumn({ name: "nftId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'nftId', referencedColumnName: 'id' })
   nft: NFT;
 
   @Column({ nullable: true })
@@ -71,7 +71,7 @@ export class Log {
   @Column({ nullable: true })
   address: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: 'text', nullable: true })
   data: string;
 
   @Column({ nullable: true })
@@ -81,7 +81,7 @@ export class Log {
   blockHash: string;
 
   @OneToMany(() => Topic, (topic) => topic.log, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   topics: Topic[];
 
@@ -121,81 +121,81 @@ if (isNestJs) {
 
   const propertyDecorators = [
     ApiProperty({
-      name: "id",
+      name: 'id',
       type: Number,
       example: id,
-      description: "Uniqe ID",
+      description: 'Uniqe ID',
     }),
 
     // transaction
     ApiProperty({
-      name: "contract",
-      type: Contract,
+      name: 'contract',
+      type: () => Contract,
       example: contract,
-      description: "Contract",
+      description: 'Contract',
     }),
     ApiProperty({
-      name: "nft",
-      type: NFT,
+      name: 'nft',
+      type: () => NFT,
       example: nft,
-      description: "NFT",
+      description: 'NFT',
     }),
     ApiProperty({
-      name: "transactionIndex",
+      name: 'transactionIndex',
       type: Number,
       example: transactionIndex,
-      description: "트랜잭션 인덱스",
+      description: '트랜잭션 인덱스',
     }),
     ApiProperty({
-      name: "blockNumber",
+      name: 'blockNumber',
       type: Number,
       example: blockNumber,
-      description: "블록 넘버",
+      description: '블록 넘버',
     }),
     ApiProperty({
-      name: "transactionHash",
+      name: 'transactionHash',
       type: String,
       example: transactionHash,
-      description: "트랜잭션 해시",
+      description: '트랜잭션 해시',
     }),
     ApiProperty({
-      name: "address",
+      name: 'address',
       type: String,
       example: address,
-      description: "주소",
+      description: '주소',
     }),
     ApiProperty({
-      name: "data",
+      name: 'data',
       type: String,
       example: data,
-      description: "데이터",
+      description: '데이터',
     }),
     ApiProperty({
-      name: "logIndex",
+      name: 'logIndex',
       type: Number,
       example: logIndex,
-      description: "로그 인덱스",
+      description: '로그 인덱스',
     }),
     ApiProperty({
-      name: "blockHash",
+      name: 'blockHash',
       type: String,
       example: blockHash,
-      description: "블록 해시",
+      description: '블록 해시',
     }),
 
     // topics
 
     ApiProperty({
-      name: "createdAt",
+      name: 'createdAt',
       type: Date,
       example: createdAt,
-      description: "생성된 시간",
+      description: '생성된 시간',
     }),
     ApiProperty({
-      name: "updatedAt",
+      name: 'updatedAt',
       type: Date,
       example: updatedAt,
-      description: "업데이트된 시간",
+      description: '업데이트된 시간',
     }),
   ];
 

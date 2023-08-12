@@ -99,6 +99,7 @@ export var nftExample: any = {
   imageRaw: 'https://mint.fun/api/mintfun/fundrop/token-image/105770.png',
   imageFormat: 'png',
   imageBytes: 483012,
+  imageRoute: '/d07bc5cf1d899c6e89937e1132b8851f.png',
   isAttributeUpdated: true,
   logs: [logExample],
   createAt: new Date(),

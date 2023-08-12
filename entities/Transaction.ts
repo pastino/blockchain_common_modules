@@ -9,24 +9,24 @@ import {
   OneToMany,
   Index,
   AfterLoad,
-} from "typeorm";
-import { BlockNumber } from "./BlockNumber";
-import { Contract } from "./Contract";
-import { Log } from "./Log";
-import { transactionExample } from "../entityExamples";
-import * as dotenv from "dotenv";
-import { DecodedLog } from "./DecodedLog";
+} from 'typeorm';
+import { BlockNumber } from './BlockNumber';
+import { Contract } from './Contract';
+import { Log } from './Log';
+import { transactionExample } from '../entityExamples';
+import * as dotenv from 'dotenv';
+import { DecodedLog } from './DecodedLog';
 
-dotenv.config({ path: __dirname + "/../../../.env.dev" });
-const isNestJs = process.env.APP_TYPE === "nestjs";
+dotenv.config({ path: __dirname + '/../../../.env.dev' });
+const isNestJs = process.env.APP_TYPE === 'nestjs';
 
 const ApiProperty = isNestJs
-  ? require("@nestjs/swagger").ApiProperty
+  ? require('@nestjs/swagger').ApiProperty
   : () => {};
 
-@Entity({ name: "transaction" })
-@Index("idx_transaction_eventTime", ["eventTime"])
-@Index("idx_transaction_timestamp", ["timestamp"])
+@Entity({ name: 'transaction' })
+@Index('idx_transaction_eventTime', ['eventTime'])
+@Index('idx_transaction_timestamp', ['timestamp'])
 export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
@@ -38,7 +38,7 @@ export class Transaction {
   timestamp: number;
 
   @ManyToOne(() => Contract, (contract) => contract.nfts)
-  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
   contract: Contract;
 
   @Column({ nullable: true })
@@ -48,9 +48,9 @@ export class Transaction {
   blockHash: string;
 
   @ManyToOne(() => BlockNumber, (blockNumber) => blockNumber.transactions, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: "blockNumberId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'blockNumberId', referencedColumnName: 'id' })
   blockNumber: BlockNumber;
 
   @Column({ nullable: true })
@@ -86,19 +86,19 @@ export class Transaction {
   @Column({ nullable: true })
   nonce: number;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: 'text', nullable: true })
   data: string;
 
   @Column({ nullable: true })
   chainId: number;
 
   @OneToMany(() => Log, (log) => log.transaction, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   logs: Log[];
 
   @OneToMany(() => DecodedLog, (decodedLog) => decodedLog.transaction, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   decodedLogs: DecodedLog[];
 
@@ -155,52 +155,52 @@ if (isNestJs) {
 
   const propertyDecorators = [
     ApiProperty({
-      name: "id",
+      name: 'id',
       type: Number,
       example: id,
-      description: "Uniqe ID",
+      description: 'Uniqe ID',
     }),
     ApiProperty({
-      name: "hash",
+      name: 'hash',
       type: String,
       example: hash,
-      description: "트랜잭션 해시",
+      description: '트랜잭션 해시',
     }),
     ApiProperty({
-      name: "timestamp",
+      name: 'timestamp',
       type: Number,
       example: timestamp,
-      description: "트랜잭션 발생 시간",
+      description: '트랜잭션 발생 시간',
     }),
     ApiProperty({
-      name: "contract",
-      type: Contract,
+      name: 'contract',
+      type: () => Contract,
       example: contract,
-      description: "Contract",
+      description: 'Contract',
     }),
     ApiProperty({
-      name: "eventTime",
+      name: 'eventTime',
       type: Date,
       example: eventTime,
-      description: "이벤트 발생 시간",
+      description: '이벤트 발생 시간',
     }),
     ApiProperty({
-      name: "blockHash",
+      name: 'blockHash',
       type: String,
       example: blockHash,
-      description: "블록 해시",
+      description: '블록 해시',
     }),
     ApiProperty({
-      name: "transactionIndex",
+      name: 'transactionIndex',
       type: Number,
       example: transactionIndex,
-      description: "트랜잭션 인덱스",
+      description: '트랜잭션 인덱스',
     }),
     ApiProperty({
-      name: "confirmations",
+      name: 'confirmations',
       type: Number,
       example: confirmations,
-      description: "확인 횟수",
+      description: '확인 횟수',
     }),
     // ApiProperty({
     //   name: 'blockNumber',
@@ -209,70 +209,70 @@ if (isNestJs) {
     //   description: '확인 횟수',
     // }),
     ApiProperty({
-      name: "to",
+      name: 'to',
       type: String,
       example: to,
-      description: "받는 주소",
+      description: '받는 주소',
     }),
     ApiProperty({
-      name: "from",
+      name: 'from',
       type: String,
       example: from,
-      description: "보내는 주소",
+      description: '보내는 주소',
     }),
     ApiProperty({
-      name: "gasPrice",
+      name: 'gasPrice',
       type: String,
       example: gasPrice,
-      description: "가스 가격",
+      description: '가스 가격',
     }),
     ApiProperty({
-      name: "gasLimit",
+      name: 'gasLimit',
       type: String,
       example: gasLimit,
-      description: "가스 리밋",
+      description: '가스 리밋',
     }),
     ApiProperty({
-      name: "value",
+      name: 'value',
       type: String,
       example: value,
-      description: "값",
+      description: '값',
     }),
     ApiProperty({
-      name: "nonce",
+      name: 'nonce',
       type: Number,
       example: nonce,
-      description: "nonce",
+      description: 'nonce',
     }),
     ApiProperty({
-      name: "data",
+      name: 'data',
       type: String,
       example: data,
-      description: "data",
+      description: 'data',
     }),
     ApiProperty({
-      name: "chainId",
+      name: 'chainId',
       type: Number,
       example: chainId,
-      description: "chainId",
+      description: 'chainId',
     }),
     ApiProperty({
-      name: "logs",
-      type: [Log],
+      name: 'logs',
+      type: () => [Log],
       example: logs,
-      description: "logs",
+      description: 'logs',
     }),
     ApiProperty({
-      name: "createdAt",
+      name: 'createdAt',
       type: Date,
       example: createdAt,
-      description: "생성된 시간",
+      description: '생성된 시간',
     }),
     ApiProperty({
-      name: "updatedAt",
+      name: 'updatedAt',
       type: Date,
       example: updatedAt,
-      description: "업데이트된 시간",
+      description: '업데이트된 시간',
     }),
   ];
 

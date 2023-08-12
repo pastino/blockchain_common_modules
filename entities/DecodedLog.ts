@@ -196,12 +196,12 @@ if (isNestJs) {
     //   description: '로그 데이터',
     // }),
 
-    // ApiProperty({
-    //   name: 'transaction',
-    //   type: transaction,
-    //   example: transaction,
-    //   description: '트랜잭션 데이터',
-    // }),
+    ApiProperty({
+      name: 'transaction',
+      type: () => Transaction,
+      example: transaction,
+      description: '트랜잭션 데이터',
+    }),
 
     // ApiProperty({
     //   name: 'contract',

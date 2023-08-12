@@ -9,27 +9,27 @@ import {
   OneToOne,
   JoinColumn,
   Index,
-} from "typeorm";
-import { NFT } from "./NFT";
-import { TrendCollection } from "./TrendCollection";
-import { OpenseaCollection } from "./OpenseaCollection";
-import { Log } from "./Log";
-import * as dotenv from "dotenv";
-import { contractExample } from "../entityExamples";
-import { TraitTypeContract } from "./TraitTypeContract";
+} from 'typeorm';
+import { NFT } from './NFT';
+import { TrendCollection } from './TrendCollection';
+import { OpenseaCollection } from './OpenseaCollection';
+import { Log } from './Log';
+import * as dotenv from 'dotenv';
+import { contractExample } from '../entityExamples';
+import { TraitTypeContract } from './TraitTypeContract';
 
-dotenv.config({ path: __dirname + "/../../../.env.dev" });
-const isNestJs = process.env.APP_TYPE === "nestjs";
+dotenv.config({ path: __dirname + '/../../../.env.dev' });
+const isNestJs = process.env.APP_TYPE === 'nestjs';
 
 const ApiProperty = isNestJs
-  ? require("@nestjs/swagger").ApiProperty
+  ? require('@nestjs/swagger').ApiProperty
   : () => {};
 
 // slug 추가
-@Entity({ name: "contract" })
-@Unique(["address"])
-@Index("idx_contract_address", ["address"])
-@Index("idx_contract_openseaCollection", ["openseaCollection"])
+@Entity({ name: 'contract' })
+@Unique(['address'])
+@Index('idx_contract_address', ['address'])
+@Index('idx_contract_openseaCollection', ['openseaCollection'])
 export class Contract {
   @PrimaryGeneratedColumn()
   id: number;
@@ -52,7 +52,7 @@ export class Contract {
   @Column({ nullable: true })
   imageUrl: string;
 
-  @Column({ type: "longtext", nullable: true })
+  @Column({ type: 'text', nullable: true })
   description: string;
 
   @Column({ nullable: true })
@@ -80,19 +80,19 @@ export class Contract {
     () => OpenseaCollection,
     (openseaCollectio) => openseaCollectio.contract,
     {
-      onDelete: "CASCADE",
-    }
+      onDelete: 'CASCADE',
+    },
   )
-  @JoinColumn({ name: "openseaCollectionId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'openseaCollectionId', referencedColumnName: 'id' })
   openseaCollection: OpenseaCollection;
 
   @OneToMany(() => NFT, (nft) => nft.contract, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   nfts: NFT[];
 
   @OneToMany(() => Log, (log) => log.contract, {
-    onDelete: "SET NULL",
+    onDelete: 'SET NULL',
   })
   logs: Log[];
 
@@ -100,8 +100,8 @@ export class Contract {
     () => TrendCollection,
     (trendCollection) => trendCollection.contract,
     {
-      onDelete: "CASCADE",
-    }
+      onDelete: 'CASCADE',
+    },
   )
   trendCollections: TrendCollection[];
 
@@ -109,8 +109,8 @@ export class Contract {
     () => TraitTypeContract,
     (traitTypeContract) => traitTypeContract.contract,
     {
-      onDelete: "CASCADE",
-    }
+      onDelete: 'CASCADE',
+    },
   )
   traitTypeContracts: TraitTypeContract[];
 
@@ -157,100 +157,100 @@ if (isNestJs) {
 
   const propertyDecorators = [
     ApiProperty({
-      name: "id",
+      name: 'id',
       type: Number,
       example: id,
-      description: "Uniqe ID",
+      description: 'Uniqe ID',
     }),
     ApiProperty({
-      name: "openseaCollection",
+      name: 'openseaCollection',
       type: OpenseaCollection,
       example: openseaCollection,
-      description: "오픈시 컬랙션 데이터",
+      description: '오픈시 컬랙션 데이터',
     }),
     ApiProperty({
-      name: "address",
+      name: 'address',
       type: String,
       example: address,
-      description: "Contract Address",
+      description: 'Contract Address',
     }),
     ApiProperty({
-      name: "tokenId",
+      name: 'tokenId',
       type: String,
       example: tokenId,
-      description: "Token ID",
+      description: 'Token ID',
     }),
     ApiProperty({
-      name: "name",
+      name: 'name',
       type: String,
       example: name,
-      description: "Contract Name",
+      description: 'Contract Name',
     }),
     ApiProperty({
-      name: "totalSupply",
+      name: 'totalSupply',
       type: Number,
       example: totalSupply,
-      description: "초기 발행량",
+      description: '초기 발행량',
     }),
     ApiProperty({
-      name: "isSpam",
+      name: 'isSpam',
       type: Boolean,
       example: isSpam,
-      description: "스팸인지",
+      description: '스팸인지',
     }),
     ApiProperty({
-      name: "imageUrl",
+      name: 'imageUrl',
       type: String,
       example: imageUrl,
-      description: "이미지 URL",
+      description: '이미지 URL',
     }),
     ApiProperty({
-      name: "description",
+      name: 'description',
       type: String,
       example: description,
-      description: "설명",
+      description: '설명',
     }),
     ApiProperty({
-      name: "externalUrl",
+      name: 'externalUrl',
       type: String,
       example: externalUrl,
-      description: "외부 URL(홈페이지)",
+      description: '외부 URL(홈페이지)',
     }),
     ApiProperty({
-      name: "twitterUsername",
+      name: 'twitterUsername',
       type: String,
       example: twitterUsername,
-      description: "트위터 유저네임",
+      description: '트위터 유저네임',
     }),
     ApiProperty({
-      name: "discordUrl",
+      name: 'discordUrl',
       type: String,
       example: discordUrl,
-      description: "디스코드 URL",
+      description: '디스코드 URL',
     }),
     ApiProperty({
-      name: "symbol",
+      name: 'symbol',
       type: String,
       example: symbol,
-      description: "컨트랙트 심볼",
+      description: '컨트랙트 심볼',
     }),
     ApiProperty({
-      name: "tokenType",
+      name: 'tokenType',
       type: String,
       example: tokenType,
-      description: "토큰 타입",
+      description: '토큰 타입',
     }),
     ApiProperty({
-      name: "contractDeployer",
+      name: 'contractDeployer',
       type: String,
       example: contractDeployer,
-      description: "컨트랙트 배포자",
+      description: '컨트랙트 배포자',
     }),
     ApiProperty({
-      name: "deployedBlockNumber",
+      name: 'deployedBlockNumber',
       type: Number,
       example: deployedBlockNumber,
-      description: "배포된 블록 넘버",
+      description: '배포된 블록 넘버',
     }),
     // ApiProperty({
     //   name: 'nfts',
@@ -271,16 +271,16 @@ if (isNestJs) {
     //   description: '배포된 블록 넘버',
     // }),
     ApiProperty({
-      name: "createdAt",
+      name: 'createdAt',
       type: Date,
       example: createdAt,
-      description: "생성된 시간",
+      description: '생성된 시간',
     }),
     ApiProperty({
-      name: "updatedAt",
+      name: 'updatedAt',
       type: Date,
       example: updatedAt,
-      description: "업데이트된 시간",
+      description: '업데이트된 시간',
     }),
   ];
 
