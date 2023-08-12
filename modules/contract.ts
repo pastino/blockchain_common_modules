@@ -146,6 +146,8 @@ export class ContractManager {
                 address: this.address,
               })
               .getOne();
+          } else {
+            throw e;
           }
         }
       }

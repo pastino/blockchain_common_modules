@@ -167,7 +167,7 @@ export class NFT {
         title:
           nftData.title.length > 500
             ? nftData.title.slice(0, 500)
-            : nftData.title,
+            : nftData.title || "",
         contract: this.contract,
         attributesRaw:
           typeof nftData.tokenUri?.raw === "string"
@@ -284,7 +284,10 @@ export class NFT {
         this.createImage({
           nftId: nft?.id as number,
           contractAddress: this.contract.address,
-          imageUrl: nftData.rawMetadata?.image.replace(/\x00/g, ""),
+          imageUrl:
+            typeof nftData.rawMetadata?.image === "string"
+              ? nftData.rawMetadata?.image.replace(/\x00/g, "")
+              : "",
           tokenId: this.tokenId,
           format: nftData.media?.[0]?.format,
         });
@@ -338,7 +341,10 @@ export class NFT {
         this.createImage({
           nftId: nft?.id as number,
           contractAddress: this.contract.address,
-          imageUrl: nftData.rawMetadata?.image.replace(/\x00/g, ""),
+          imageUrl:
+            typeof nftData.rawMetadata?.image === "string"
+              ? nftData.rawMetadata?.image.replace(/\x00/g, "")
+              : "",
           tokenId: this.tokenId,
           format: nftData.media?.[0]?.format,
         });
