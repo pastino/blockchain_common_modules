@@ -184,6 +184,7 @@ export class Transaction {
         { contract: contractData }
       );
       let nftData;
+
       if (tokenId) {
         const nft = new NFT({
           contract: contractData,
@@ -191,6 +192,7 @@ export class Transaction {
         });
         nftData = await nft.saveNFT();
       }
+
       return { isSuccess: true, contractData, nftData };
     } catch (e: any) {
       console.log(contractAddress);
@@ -317,7 +319,11 @@ export class Transaction {
         // 트랜잭션 로그 데이터들 필터링
         for (let j = 0; j < logs.length; j++) {
           const log = logs[j];
-          const data = await getIsERC721Event(log, logs);
+          const data = await getIsERC721Event(
+            log,
+            logs,
+            this.blockNumber?.blockNumber
+          );
 
           if (data.isERC721Event) {
             erc721Logs.push({

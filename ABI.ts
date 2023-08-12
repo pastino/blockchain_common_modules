@@ -13,6 +13,8 @@ import {
   unpackTokenIdListingIndexTrader,
   X2Y2_TYPE,
 } from "./utils";
+import { getRepository } from "typeorm";
+import { DecodeError } from "./entities/DecodeError";
 
 const web3 = new Web3();
 
@@ -53,7 +55,11 @@ interface Log {
   data: string;
 }
 
-export function getIsERC721Event(log: Log, logs: Log[]) {
+export async function getIsERC721Event(
+  log: Log,
+  logs: Log[],
+  blockNumber: number
+) {
   const { address, topics, data } = log;
   const hexSignature = topics[0];
   const signature = SALE_HEX_SIGNATURE_LIST.find(
@@ -61,11 +67,13 @@ export function getIsERC721Event(log: Log, logs: Log[]) {
   );
 
   if (signature) {
-    const decodedData = signature.decode({
+    const decodedData = await signature.decode({
       address,
       topics,
       data,
+      log,
       logs,
+      blockNumber,
     });
     if (decodedData) {
       return { isERC721Event: true, decodedData };
@@ -79,18 +87,20 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31",
     action: "Sale",
-    decode: ({
+    decode: async ({
       topics,
       data,
       log,
       logs,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
       log?: any;
       logs: Log[];
-    }): SaleInterface | null | undefined => {
+      blockNumber: number;
+    }): Promise<SaleInterface | null | undefined> => {
       try {
         const decodedData: any = web3.eth.abi.decodeParameters(
           [
@@ -231,12 +241,16 @@ export const SALE_HEX_SIGNATURE_LIST = [
       } catch (e) {
         console.log(
           e,
-          "SALE_HEX_SIGNATURE_LIST error",
-          "0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31",
-          topics,
-          data,
-          log
+          "Log Decode Error",
+          `시그니처 - 0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31`,
+          `blockNumber - ${blockNumber}`
         );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31",
+          data,
+        });
       }
     },
   },
@@ -244,18 +258,20 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64",
     action: "Sale",
-    decode: ({
+    decode: async ({
       topics,
       data,
       log,
       logs,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
       log?: any;
       logs: Log[];
-    }): SaleInterface | undefined => {
+      blockNumber: number;
+    }): Promise<SaleInterface | undefined> => {
       try {
         const hexString: any = data.slice(2).match(/.{1,64}/g);
         const decodedData = hexString.map((chunk: any, index: number) => {
@@ -299,12 +315,16 @@ export const SALE_HEX_SIGNATURE_LIST = [
       } catch (e) {
         console.log(
           e,
-          "SALE_HEX_SIGNATURE_LIST error",
-          "0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64",
-          topics,
-          data,
-          log
+          "Log Decode Error",
+          `시그니처 - 0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64`,
+          `blockNumber - ${blockNumber}`
         );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64",
+          data,
+        });
       }
     },
   },
@@ -312,18 +332,20 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0x0fcf17fac114131b10f37b183c6a60f905911e52802caeeb3e6ea210398b81ab",
     action: "Sale",
-    decode: ({
+    decode: async ({
       topics,
       data,
       log,
       logs,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
       log?: any;
       logs: Log[];
-    }): SaleInterface | undefined => {
+      blockNumber: number;
+    }): Promise<SaleInterface | undefined> => {
       try {
         const BLUR_ABI = {
           anonymous: false,
@@ -392,12 +414,16 @@ export const SALE_HEX_SIGNATURE_LIST = [
       } catch (e) {
         console.log(
           e,
-          "SALE_HEX_SIGNATURE_LIST error",
-          "0x0fcf17fac114131b10f37b183c6a60f905911e52802caeeb3e6ea210398b81ab",
-          topics,
-          data,
-          log
+          "Log Decode Error",
+          `시그니처 - 0x0fcf17fac114131b10f37b183c6a60f905911e52802caeeb3e6ea210398b81ab`,
+          `blockNumber - ${blockNumber}`
         );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0x0fcf17fac114131b10f37b183c6a60f905911e52802caeeb3e6ea210398b81ab",
+          data,
+        });
       }
     },
   },
@@ -405,18 +431,20 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0x7dc5c0699ac8dd5250cbe368a2fc3b4a2daadb120ad07f6cccea29f83482686e",
     action: "Sale",
-    decode: ({
+    decode: async ({
       topics,
       data,
       log,
       logs,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
       log?: any;
       logs: Log[];
-    }): SaleInterface | undefined => {
+      blockNumber: number;
+    }): Promise<SaleInterface | undefined> => {
       try {
         const BLUR_ABI = {
           anonymous: false,
@@ -485,12 +513,16 @@ export const SALE_HEX_SIGNATURE_LIST = [
       } catch (e) {
         console.log(
           e,
-          "SALE_HEX_SIGNATURE_LIST error",
-          "0x7dc5c0699ac8dd5250cbe368a2fc3b4a2daadb120ad07f6cccea29f83482686e",
-          topics,
-          data,
-          log
+          "Log Decode Error",
+          `시그니처 - 0x7dc5c0699ac8dd5250cbe368a2fc3b4a2daadb120ad07f6cccea29f83482686e`,
+          `blockNumber - ${blockNumber}`
         );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0x7dc5c0699ac8dd5250cbe368a2fc3b4a2daadb120ad07f6cccea29f83482686e",
+          data,
+        });
       }
     },
   },
@@ -498,18 +530,20 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0x1d5e12b51dee5e4d34434576c3fb99714a85f57b0fd546ada4b0bddd736d12b2",
     action: "Sale",
-    decode: ({
+    decode: async ({
       topics,
       data,
       log,
       logs,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
       log?: any;
       logs: Log[];
-    }): SaleInterface | undefined => {
+      blockNumber: number;
+    }): Promise<SaleInterface | undefined> => {
       try {
         const BLUR_ABI = {
           anonymous: false,
@@ -572,12 +606,16 @@ export const SALE_HEX_SIGNATURE_LIST = [
       } catch (e) {
         console.log(
           e,
-          "SALE_HEX_SIGNATURE_LIST error",
-          "0x1d5e12b51dee5e4d34434576c3fb99714a85f57b0fd546ada4b0bddd736d12b2",
-          topics,
-          data,
-          log
+          "Log Decode Error",
+          `시그니처 - 0x1d5e12b51dee5e4d34434576c3fb99714a85f57b0fd546ada4b0bddd736d12b2`,
+          `blockNumber - ${blockNumber}`
         );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0x1d5e12b51dee5e4d34434576c3fb99714a85f57b0fd546ada4b0bddd736d12b2",
+          data,
+        });
       }
     },
   },
@@ -586,16 +624,20 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3",
     action: "Sale",
-    decode: ({
+    decode: async ({
       topics,
       data,
+      log,
       logs,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
+      log: any;
       logs: Log[];
-    }): SaleInterface | any => {
+      blockNumber: number;
+    }): Promise<SaleInterface | any> => {
       try {
         const LOOKSRARE_ABI = {
           anonymous: false,
@@ -712,9 +754,17 @@ export const SALE_HEX_SIGNATURE_LIST = [
         };
       } catch (e) {
         console.log(
-          "SALE_HEX_SIGNATURE_LIST error",
-          "0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3"
+          e,
+          "Log Decode Error",
+          `시그니처 - 0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3`,
+          `blockNumber - ${blockNumber}`
         );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3",
+          data,
+        });
       }
     },
   },
@@ -722,16 +772,20 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33",
     action: "Sale",
-    decode: ({
+    decode: async ({
       topics,
       data,
+      log,
       logs,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
+      log: any;
       logs: Log[];
-    }): SaleInterface | undefined => {
+      blockNumber: number;
+    }): Promise<SaleInterface | undefined> => {
       try {
         const hexString: any = data.slice(2).match(/.{1,64}/g);
         const decodedData = hexString.map((chunk: any, index: number) => {
@@ -768,9 +822,17 @@ export const SALE_HEX_SIGNATURE_LIST = [
         };
       } catch (e) {
         console.log(
-          "SALE_HEX_SIGNATURE_LIST error",
-          "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33"
+          e,
+          "Log Decode Error",
+          `시그니처 - 0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33`,
+          `blockNumber - ${blockNumber}`
         );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33",
+          data,
+        });
       }
     },
   },
@@ -778,17 +840,21 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
     action: "Transfer",
-    decode: ({
+    decode: async ({
       address,
       topics,
+      data,
       logs,
+      log,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
-      log?: Log;
+      log: any;
       logs: Log[];
-    }): any => {
+      blockNumber: number;
+    }): Promise<any> => {
       try {
         if (topics.length <= 3) return;
 
@@ -802,9 +868,17 @@ export const SALE_HEX_SIGNATURE_LIST = [
         };
       } catch (e) {
         console.log(
-          "SALE_HEX_SIGNATURE_LIST error",
-          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+          e,
+          "Log Decode Error",
+          `시그니처 - 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef`,
+          `blockNumber - ${blockNumber}`
         );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          data,
+        });
       }
     },
   },
@@ -812,18 +886,21 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62",
     action: "TransferSingle",
-    decode: ({
+    decode: async ({
       address,
       topics,
+      log,
       logs,
       data,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
-      log?: Log;
+      log: any;
       logs: Log[];
-    }): any => {
+      blockNumber: number;
+    }): Promise<any> => {
       try {
         const decodedData: any = web3.eth.abi.decodeParameters(
           ["uint256", "uint256"],
@@ -842,7 +919,18 @@ export const SALE_HEX_SIGNATURE_LIST = [
           to: web3.eth.abi.decodeParameter("address", topics[3]) as any,
         };
       } catch (e) {
-        console.log(e);
+        console.log(
+          e,
+          "Log Decode Error",
+          `시그니처 - 0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62`,
+          `blockNumber - ${blockNumber}`
+        );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62",
+          data,
+        });
       }
     },
   },
@@ -850,17 +938,19 @@ export const SALE_HEX_SIGNATURE_LIST = [
     hexSignature:
       "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
     action: "Mint",
-    decode: ({
+    decode: async ({
       topics,
       address,
       data,
       logs,
+      blockNumber,
     }: {
       address: string;
       topics: string[];
       data: string;
       logs: Log[];
-    }): any => {
+      blockNumber: number;
+    }): Promise<any> => {
       try {
         if (topics.length === 2) return;
 
@@ -899,9 +989,17 @@ export const SALE_HEX_SIGNATURE_LIST = [
         };
       } catch (e) {
         console.log(
-          "SALE_HEX_SIGNATURE_LIST error",
-          "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f"
+          e,
+          "Log Decode Error",
+          `시그니처 - 0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f`,
+          `blockNumber - ${blockNumber}`
         );
+        await getRepository(DecodeError).save({
+          blockNumber,
+          signature:
+            "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
+          data,
+        });
       }
     },
   },

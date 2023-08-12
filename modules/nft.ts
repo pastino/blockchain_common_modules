@@ -274,6 +274,7 @@ export class NFT {
       if (!nft) {
         throw `Failed to find or save nft`;
       }
+
       return nft;
     } catch (e: any) {
       throw e;
@@ -306,31 +307,36 @@ export class NFT {
       },
     });
 
-    try {
-      if (!nft) {
-        nftData = await alchemy.nft.getNftMetadata(
-          this.contract.address,
-          this.tokenId
-        );
+    if (nft) {
+      return nft;
+    }
 
-        try {
-          nft = await this.createNFTAndAttributes(nftData);
-        } catch (e: any) {
-          if (e.code === "23505") {
-            nft = await getRepository(NFTEntity).findOne({
-              where: {
-                contract: this.contract as any,
-                tokenId: this.tokenId as any,
-              },
-            });
-          } else {
-            throw e;
-          }
+    try {
+      nftData = await alchemy.nft.getNftMetadata(
+        this.contract.address,
+        this.tokenId
+      );
+
+      try {
+        nft = await this.createNFTAndAttributes(nftData);
+      } catch (e: any) {
+        console.log("에러");
+        if (e.code === "23505") {
+          nft = await getRepository(NFTEntity).findOne({
+            where: {
+              contract: this.contract as any,
+              tokenId: this.tokenId as any,
+            },
+          });
+        } else {
+          throw e;
         }
       }
+
       if (!nft) {
         throw `Failed to find or save nft`;
       }
+
       return nft;
     } catch (e: any) {
       throw e;
