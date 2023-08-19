@@ -104,7 +104,6 @@ export class Log {
 if (isNestJs) {
   const {
     id,
-    transaction,
     contract,
     nft,
     transactionIndex,
@@ -115,6 +114,8 @@ if (isNestJs) {
     logIndex,
     blockHash,
     topics,
+    transaction,
+    decodedLog,
     createdAt,
     updatedAt,
   } = logExample;
@@ -126,8 +127,6 @@ if (isNestJs) {
       example: id,
       description: 'Uniqe ID',
     }),
-
-    // transaction
     ApiProperty({
       name: 'contract',
       type: () => Contract,
@@ -183,8 +182,24 @@ if (isNestJs) {
       description: '블록 해시',
     }),
 
-    // topics
-
+    ApiProperty({
+      name: 'topics',
+      type: () => [Topic],
+      example: topics,
+      description: '토픽 데이터',
+    }),
+    ApiProperty({
+      name: 'transaction',
+      type: () => [Transaction],
+      example: transaction,
+      description: '트랜잭션 데이터',
+    }),
+    ApiProperty({
+      name: 'decodedLog',
+      type: () => [DecodedLog],
+      example: decodedLog,
+      description: '디코딩된 로그 데이터',
+    }),
     ApiProperty({
       name: 'createdAt',
       type: Date,

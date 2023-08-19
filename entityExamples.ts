@@ -1,6 +1,4 @@
 import * as dotenv from 'dotenv';
-import { OpenseaCollection } from './entities/OpenseaCollection';
-import { TimeRange } from './entities/TrendCollection';
 
 dotenv.config({ path: __dirname + '/../../../.env.dev' });
 const isNestJs = process.env.APP_TYPE === 'nestjs';
@@ -23,24 +21,15 @@ export const contractExample: any = {
   tokenType: 'ERC721',
   contractDeployer: '0xf951ba8107d7bf63733188e64d7e07bd27b46af7',
   deployedBlockNumber: '16751283',
-  // nfts: [
-  //   {
-  //     ...nftExample,
-  //     contract: undefined,
-  //   },
-  // ],
-  // logs: [
-  //   {
-  //     ...logExample,
-  //     contract: undefined,
-  //   },
-  // ],
-  // trendCollections: [
-  //   {
-  //     ...transactionExample,
-  //     contract: undefined,
-  //   },
-  // ],
+  nfts: [nftExample],
+  logs: [logExample],
+  trendCollections: [trandCollectionExample],
+  isNFTsCreated: true,
+  nftProgressStatus: 'in_progress',
+  createdNFTsPageNumber: 1,
+  createdNFTsPageKey: '0x0000000',
+  alchemyCollectionError: 'error',
+  traitTypeContracts: [traitTypeContractExample],
   createAt: new Date(),
   updateAt: new Date(),
 };
@@ -85,6 +74,40 @@ export const contractExample: any = {
 //   updateAt: new Date(),
 // };
 
+export var traitTypeContractExample = {
+  id: 1,
+  traitType: traitTypeExample,
+  contract: contractExample,
+  createAt: new Date(),
+  updateAt: new Date(),
+};
+
+export var traitTypeExample: any = {
+  id: 1,
+
+  traitType: 'Body',
+  traitTypeContracts: traitTypeContractExample,
+  createAt: new Date(),
+  updateAt: new Date(),
+};
+
+export var attributeExample: any = {
+  id: 1,
+  value: 'yellow',
+  traitType: traitTypeExample,
+  attributeNFTs: [attributeNFTExample],
+  createAt: new Date(),
+  updateAt: new Date(),
+};
+
+export var attributeNFTExample: any = {
+  id: 1,
+  attribute: 1,
+  nft: nftExample,
+  createAt: new Date(),
+  updateAt: new Date(),
+};
+
 export var nftExample: any = {
   id: 1,
   contract: isNestJs ? contractExample : {},
@@ -99,16 +122,27 @@ export var nftExample: any = {
   imageRaw: 'https://mint.fun/api/mintfun/fundrop/token-image/105770.png',
   imageFormat: 'png',
   imageBytes: 483012,
-  imageRoute: '/d07bc5cf1d899c6e89937e1132b8851f.png',
+  imageRoute: 'd07bc5cf1d899c6e89937e1132b8851f.png',
+  attributeNFTs: [attributeExample],
+  isImageUploaded: true,
+  imageSaveError: 'Request failed with status code 523',
   isAttributeUpdated: true,
   logs: [logExample],
   createAt: new Date(),
   updateAt: new Date(),
 };
 
+export var topicExample: any = {
+  id: 1,
+  index: 0,
+  log: logExample,
+  topic: '0x000000',
+  createAt: new Date(),
+  updateAt: new Date(),
+};
+
 export var logExample: any = {
   id: 1,
-  // transaction: isNestJs ? Transaction.example() : {},
   contract: isNestJs ? contractExample : {},
   nft: isNestJs ? nftExample : {},
   transactionIndex: 83,
@@ -120,7 +154,9 @@ export var logExample: any = {
   logIndex: 1,
   blockHash:
     '0x9750122e45a4e263d1aa0c85704d182a96f4f9103a3c924b22411b26fac1a8f1',
-  // topics
+  topics: [topicExample],
+  transaction: [transactionExample],
+  decodedLog: [decodedLogExample],
   createAt: new Date(),
   updateAt: new Date(),
 };
@@ -133,7 +169,7 @@ export var transactionExample: any = {
   eventTime: new Date(),
   blockHash:
     '0xe8adada749676a12821729e77ac15b7ebb0d3d48420f60d6345bc078fcf80a80',
-  // blockNumber:
+  blockNumber: blockNumberExample,
   transactionIndex: 88,
   confirmations: 4,
   to: '0x0000000000664ceffed39244a8312bD895470803',
@@ -153,12 +189,13 @@ export var blockNumberExample: any = {
   id: 1,
   blockNumber: 17042542,
   transactions: [transactionExample],
+  isNFTCompletedUpdate: true,
   isCompletedUpdate: true,
   createAt: new Date(),
   updateAt: new Date(),
 };
 
-export const trandCollectionExample: any = {
+export var trandCollectionExample: any = {
   id: 1,
   contract: isNestJs ? contractExample : {},
   floorPrice: 0.945,
@@ -170,7 +207,7 @@ export const trandCollectionExample: any = {
   updateAt: new Date(),
 };
 
-export const decodedLogExample: any = {
+export var decodedLogExample: any = {
   id: 3491589,
   log: logExample,
   transaction: transactionExample,

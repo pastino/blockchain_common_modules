@@ -6,10 +6,10 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-} from "typeorm";
-import { UpcomingContract } from "./UpcomingContract";
+} from 'typeorm';
+import { UpcomingContract } from './UpcomingContract';
 
-@Entity({ name: "upcomingTwitter" })
+@Entity({ name: 'upcomingTwitter' })
 export class UpcomingTwitter {
   @PrimaryGeneratedColumn()
   id: number;
@@ -18,10 +18,10 @@ export class UpcomingTwitter {
     () => UpcomingContract,
     (upcomingContract) => upcomingContract.upcomingTwitters,
     {
-      onDelete: "CASCADE",
-    }
+      onDelete: 'CASCADE',
+    },
   )
-  @JoinColumn({ name: "upcomingContractId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'upcomingContractId', referencedColumnName: 'id' })
   upcomingContract: UpcomingContract;
 
   @Column({ nullable: false })

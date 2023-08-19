@@ -177,6 +177,12 @@ if (isNestJs) {
     nfts,
     logs,
     trendCollections,
+    isNFTsCreated,
+    nftProgressStatus,
+    createdNFTsPageNumber,
+    createdNFTsPageKey,
+    alchemyCollectionError,
+    traitTypeContracts,
     createdAt,
     updatedAt,
   } = contractExample;
@@ -278,24 +284,63 @@ if (isNestJs) {
       example: deployedBlockNumber,
       description: '배포된 블록 넘버',
     }),
-    // ApiProperty({
-    //   name: 'nfts',
-    //   type: [NFT],
-    //   example: deployedBlockNumber,
-    //   description: '배포된 블록 넘버',
-    // }),
-    // ApiProperty({
-    //   name: 'logs',
-    //   type: [Log],
-    //   example: logs,
-    //   description: '배포된 블록 넘버',
-    // }),
-    // ApiProperty({
-    //   name: 'trendCollections',
-    //   type: Number,
-    //   example: trendCollections,
-    //   description: '배포된 블록 넘버',
-    // }),
+
+    ApiProperty({
+      name: 'isNFTsCreated',
+      type: Boolean,
+      example: isNFTsCreated,
+      description: 'NFT 생성 여부',
+    }),
+    ApiProperty({
+      name: 'nftProgressStatus',
+      type: String,
+      example: nftProgressStatus,
+      description: 'NFT 생성 상태',
+    }),
+    ApiProperty({
+      name: 'createdNFTsPageNumber',
+      type: Number,
+      example: createdNFTsPageNumber,
+      description: '생성된 NFT 페이지 넘버',
+    }),
+    ApiProperty({
+      name: 'createdNFTsPageKey',
+      type: String,
+      example: createdNFTsPageKey,
+      description: '생성된 NFT 페이지 키',
+    }),
+    ApiProperty({
+      name: 'alchemyCollectionError',
+      type: String,
+      example: alchemyCollectionError,
+      description: 'Alchemy 컬렉션 에러',
+    }),
+    ApiProperty({
+      name: 'traitTypeContracts',
+      type: () => [TraitTypeContract],
+      example: traitTypeContracts,
+      description: '트레이트 타입 컨트랙트 데이터',
+    }),
+    ApiProperty({
+      name: 'nfts',
+      type: () => [NFT],
+      example: deployedBlockNumber,
+      description: 'NFT 데이터',
+    }),
+    ApiProperty({
+      name: 'logs',
+      type: () => [Log],
+      example: logs,
+      description: 'Log 데이터',
+    }),
+
+    ApiProperty({
+      name: 'trendCollections',
+      type: () => [TrendCollection],
+      example: trendCollections,
+      description: '트렌드 컬렉션 데이터',
+    }),
+
     ApiProperty({
       name: 'createdAt',
       type: Date,

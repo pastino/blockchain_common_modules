@@ -110,12 +110,15 @@ if (isNestJs) {
     description,
     mediaThumbnail,
     rawMetadataImage,
-    logs,
     attributesRaw,
     imageRaw,
     imageFormat,
     imageBytes,
+    logs,
+    attributeNFTs,
     imageRoute,
+    isImageUploaded,
+    imageSaveError,
     isAttributeUpdated,
     createdAt,
     updatedAt,
@@ -171,42 +174,48 @@ if (isNestJs) {
       example: rawMetadataImage,
       description: '메타데이터 이미지',
     }),
-
     ApiProperty({
       name: 'attributesRaw',
       type: String,
       example: attributesRaw,
       description: '특성 데이터',
     }),
-
     ApiProperty({
       name: 'imageRaw',
       type: String,
       example: imageRaw,
       description: '이미지 데이터',
     }),
-
     ApiProperty({
       name: 'imageFormat',
       type: String,
       example: imageFormat,
       description: '이미지 포맷',
     }),
-
     ApiProperty({
       name: 'imageBytes',
       type: Number,
       example: imageBytes,
       description: '이미지 용량',
     }),
-
     ApiProperty({
       name: 'imageRoute',
       type: String,
       example: imageRoute,
       description: '이미지 저장 경로',
     }),
-
+    ApiProperty({
+      name: 'isImageUploaded',
+      type: Boolean,
+      example: isImageUploaded,
+      description: '이미지 저장 여부',
+    }),
+    ApiProperty({
+      name: 'imageSaveError',
+      type: String,
+      example: imageSaveError,
+      description: '이미지 저장 시 발생한 에러 정보',
+    }),
     ApiProperty({
       name: 'isAttributeUpdated',
       type: Boolean,
@@ -214,12 +223,19 @@ if (isNestJs) {
       description: '특성 업데이트 여부',
     }),
 
-    // ApiProperty({
-    //   name: 'logs',
-    //   type: Log,
-    //   example: logs,
-    //   description: '메타데이터 이미지',
-    // }),
+    ApiProperty({
+      name: 'logs',
+      type: () => [Log],
+      example: logs,
+      description: '메타데이터 이미지',
+    }),
+    ApiProperty({
+      name: 'attributeNFTs',
+      type: () => [AttributeNFT],
+      example: attributeNFTs,
+      description: '메타데이터 이미지',
+    }),
+
     ApiProperty({
       name: 'createdAt',
       type: Date,

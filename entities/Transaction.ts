@@ -173,6 +173,12 @@ if (isNestJs) {
       description: '트랜잭션 발생 시간',
     }),
     ApiProperty({
+      name: 'blockNumber',
+      type: () => BlockNumber,
+      example: blockNumber,
+      description: '블록넘버',
+    }),
+    ApiProperty({
       name: 'contract',
       type: () => Contract,
       example: contract,
@@ -202,12 +208,6 @@ if (isNestJs) {
       example: confirmations,
       description: '확인 횟수',
     }),
-    // ApiProperty({
-    //   name: 'blockNumber',
-    //   type: Number,
-    //   example: blockNumber,
-    //   description: '확인 횟수',
-    // }),
     ApiProperty({
       name: 'to',
       type: String,
