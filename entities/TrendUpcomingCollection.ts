@@ -34,6 +34,9 @@ export class TrendUpcomingCollection {
   @Column({ nullable: true })
   twitterFollowerCount: number;
 
+  @Column({ nullable: true })
+  twitterBeforeFollowerCount: number;
+
   @Column({ nullable: true, type: "float" })
   twitterDeviation: number;
 
@@ -42,6 +45,9 @@ export class TrendUpcomingCollection {
 
   @Column({ nullable: true })
   discordJoinCount: number;
+
+  @Column({ nullable: true })
+  discordBeforeJoinCount: number;
 
   @Column({ nullable: true, type: "float" })
   discordDeviation: number;
