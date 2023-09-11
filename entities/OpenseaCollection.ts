@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Contract } from './Contract';
 import * as dotenv from 'dotenv';
+import { contractExample } from '../entityExamples';
 
 dotenv.config({ path: __dirname + '/../../../.env.dev' });
 const isNestJs = process.env.APP_TYPE === 'nestjs';
@@ -17,50 +18,35 @@ const ApiProperty = isNestJs
   ? require('@nestjs/swagger').ApiProperty
   : () => {};
 
-export const contractExample: any = {
-  id: 1,
+export var openseaCollectionExample: any = {
+  id: 9192,
+  contract: contractExample,
+  totalSupply: 10000,
+  count: 10000,
   bannerImageUrl:
-    'https://i.seadn.io/gcs/files/5e4f9377fd635e426326d74215f344a9.jpg?w=500&auto=format',
+    'https://i.seadn.io/gcs/files/602bb22216c2c2ffac0f45f14991a025.png?w=500&auto=format',
   createdDate: new Date(),
   description:
-    '2222 Bullies are a small but mighty community! If you are a holder and want to get into a group chat.',
-  discordUrl: 'https://discord.gg/dedao',
-  externalUrl: 'https://degods.com',
+    'Every 30 Days (E30D) is a month-long exhibition of a single,...',
+  floorPrice: 0.1,
+  discordUrl: 'https://discord.gg/3qjUuqX',
+  externalUrl: 'https://www.every30days.com/',
   imageUrl:
-    'https://i.seadn.io/gae/5742ExtD_kaqBxjWdwFudDd30s7hGUki5Lod2vFpBeBvKvT00BcZQbZvcxKnqH8jcC2yWJGN267eMdp3jsdccPqOXyV_G--pFfosBw?w=500&auto=format',
-  largeImageUrl: '',
-  mediumUsername: '',
-  name: 'Influence Asteroids',
-  shortDescription: '',
-  slug: 'influenceth-asteroids',
-  telegramUrl: '',
-  twitterUsername: 'influenceth',
-  instagramUsername: '',
-  wikiUrl: '',
-  createAt: new Date(),
-  updateAt: new Date(),
+    'https://i.seadn.io/gcs/files/602bb22216c2c2ffac0f45f14991a025.png?w=500&auto=format',
+  largeImageUrl:
+    'https://i.seadn.io/gcs/files/602bb22216c2c2ffac0f45f14991a025.png?w=500&auto=format',
+  mediumUsername: 'every30days',
+  name: 'Every 30 Days',
+  shortDescription:
+    'Every 30 Days (E30D) is a month-long exhibition of a single,...',
+  slug: 'every30days',
+  telegramUrl: 'https://t.me/every30days',
+  twitterUsername: 'every30days',
+  instagramUsername: 'every30days',
+  wikiUrl: 'https://wiki.opensea.io/collection-wiki/every-30-days',
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
-
-const {
-  id,
-  bannerImageUrl,
-  createdDate,
-  description,
-  discordUrl,
-  externalUrl,
-  imageUrl,
-  largeImageUrl,
-  mediumUsername,
-  name,
-  shortDescription,
-  slug,
-  telegramUrl,
-  twitterUsername,
-  instagramUsername,
-  wikiUrl,
-  createdAt,
-  updatedAt,
-} = contractExample;
 
 @Entity({ name: 'openseaCollection' })
 export class OpenseaCollection {
@@ -135,13 +121,34 @@ export class OpenseaCollection {
   static example(): OpenseaCollection {
     const instance: any = new OpenseaCollection();
 
-    for (let key in contractExample) {
-      instance[key] = contractExample[key];
+    for (let key in openseaCollectionExample) {
+      instance[key] = openseaCollectionExample[key];
     }
 
     return instance;
   }
 }
+
+const {
+  id,
+  bannerImageUrl,
+  createdDate,
+  description,
+  discordUrl,
+  externalUrl,
+  imageUrl,
+  largeImageUrl,
+  mediumUsername,
+  name,
+  shortDescription,
+  slug,
+  telegramUrl,
+  twitterUsername,
+  instagramUsername,
+  wikiUrl,
+  createdAt,
+  updatedAt,
+} = openseaCollectionExample;
 
 if (isNestJs) {
   const propertyDecorators = [
