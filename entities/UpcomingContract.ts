@@ -25,7 +25,7 @@ export enum TimeRange {
   FOURTEEN_HOURS = '14D',
 }
 
-export const upcomingCollectionExample: any = {
+export const upcomingContractExample: any = {
   id: 1,
   publishDate: new Date(),
   name: 'YogaPetz',
@@ -72,7 +72,7 @@ const {
   upcomingDiscords,
   createdAt,
   updatedAt,
-} = upcomingCollectionExample;
+} = upcomingContractExample;
 
 @Entity({ name: 'upcomingContract' })
 export class UpcomingContract {
@@ -152,16 +152,6 @@ export class UpcomingContract {
   createdAt: Date;
   @UpdateDateColumn()
   updatedAt: Date;
-
-  static example(): UpcomingContract {
-    const instance: any = new UpcomingContract();
-
-    for (let key in upcomingCollectionExample) {
-      instance[key] = upcomingCollectionExample[key];
-    }
-
-    return instance;
-  }
 }
 
 if (isNestJs) {
