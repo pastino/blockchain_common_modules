@@ -159,10 +159,12 @@ export class NFT {
         ...nftData,
         isAttributeUpdated: true,
         mediaThumbnail: nftData?.media?.[0]?.thumbnail,
+        // .replace(/\x00/g, "")
         title:
           nftData.title.length > 500
-            ? nftData.title.slice(0, 500)
-            : nftData.title || "",
+            ? nftData.title.slice(0, 500).replace(/\x00/g, "")
+            : nftData.title.replace(/\x00/g, "") || "",
+        description: nftData.description.replace(/\x00/g, "") || "",
         contract: this.contract,
         attributesRaw:
           typeof nftData.tokenUri?.raw === "string"
