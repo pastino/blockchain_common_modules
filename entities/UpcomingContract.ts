@@ -5,45 +5,45 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-} from 'typeorm';
-import { UpcomingTwitter } from './UpcomingTwitter';
-import { UpcomingDiscord } from './UpcomingDiscord';
-import { TrendUpcomingCollection } from './TrendUpcomingCollection';
-import * as dotenv from 'dotenv';
+} from "typeorm";
+import { UpcomingTwitter } from "./UpcomingTwitter";
+import { UpcomingDiscord } from "./UpcomingDiscord";
+import { TrendUpcomingCollection } from "./TrendUpcomingCollection";
+import * as dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
 export enum TimeRange {
-  ONE_DAYS = '1D',
-  THREE_HOURS = '3D',
-  SEVEN_HOURS = '7D',
-  FOURTEEN_HOURS = '14D',
+  ONE_DAYS = "1D",
+  THREE_HOURS = "3D",
+  SEVEN_HOURS = "7D",
+  FOURTEEN_HOURS = "14D",
 }
 
 export const upcomingContractExample: any = {
   id: 1,
   publishDate: new Date(),
-  name: 'YogaPetz',
-  category: '',
+  name: "YogaPetz",
+  category: "",
   totalSupply: 10000,
   bannerImageUrl:
-    'https://nft-upcoming.s3.ap-northeast-2.amazonaws.com/banner/760f71d25c812ca70b964b9baf6b0e05.png',
+    "https://nft-upcoming.s3.ap-northeast-2.amazonaws.com/banner/760f71d25c812ca70b964b9baf6b0e05.png",
   profileImageUrl:
-    'https://nft-upcoming.s3.ap-northeast-2.amazonaws.com/profile/760f71d25c812ca70b964b9baf6b0e05.png',
+    "https://nft-upcoming.s3.ap-northeast-2.amazonaws.com/profile/760f71d25c812ca70b964b9baf6b0e05.png",
   description:
-    'YogaPetz is a collection of 10,000 NFTs that represents balanced life, true self and mindfulness. Every day this world tells us that we’re not enough but it’s an illusion, because you are already perfect. So despite what this world made you believe, just be yourself and join YogaPetz journey to discover what had been within us all along, because we are seeking the same too.',
-  externalUrl: 'https://yogapetz.com/',
-  twitterUsername: 'Yogapetz',
-  discordUrl: 'https://discord.gg/yogapetz',
-  premintUrl: 'https://app.mintify.xyz/collection/yogapetz/',
+    "YogaPetz is a collection of 10,000 NFTs that represents balanced life, true self and mindfulness. Every day this world tells us that we’re not enough but it’s an illusion, because you are already perfect. So despite what this world made you believe, just be yourself and join YogaPetz journey to discover what had been within us all along, because we are seeking the same too.",
+  externalUrl: "https://yogapetz.com/",
+  twitterUsername: "Yogapetz",
+  discordUrl: "https://discord.gg/yogapetz",
+  premintUrl: "https://app.mintify.xyz/collection/yogapetz/",
   preSalePrice: 0,
   publicSalePrice: 0,
-  tokenType: 'ERC721',
+  tokenType: "ERC721",
   upcomingTwitters: [],
   trendUpcomingCollections: [],
   upcomingDiscords: [],
@@ -74,7 +74,7 @@ const {
   updatedAt,
 } = upcomingContractExample;
 
-@Entity({ name: 'upcomingContract' })
+@Entity({ name: "upcomingContract" })
 export class UpcomingContract {
   @PrimaryGeneratedColumn()
   id: number;
@@ -88,7 +88,7 @@ export class UpcomingContract {
   @Column({ nullable: true })
   category: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: "bigint" })
   totalSupply: number;
 
   @Column({ nullable: true })
@@ -97,7 +97,7 @@ export class UpcomingContract {
   @Column({ nullable: true })
   profileImageUrl: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
   @Column({ nullable: true })
@@ -112,21 +112,24 @@ export class UpcomingContract {
   @Column({ nullable: true })
   premintUrl: string;
 
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true, type: "float" })
   preSalePrice: number;
 
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true, type: "float" })
   publicSalePrice: number;
 
-  @Column({ nullable: true, default: 'ERC721' })
+  @Column({ nullable: true })
+  priceUnit: string;
+
+  @Column({ nullable: true, default: "ERC721" })
   tokenType: string;
 
   @OneToMany(
     () => UpcomingTwitter,
     (upcomingTwitter) => upcomingTwitter.upcomingContract,
     {
-      onDelete: 'CASCADE',
-    },
+      onDelete: "CASCADE",
+    }
   )
   upcomingTwitters: UpcomingTwitter[];
 
@@ -134,8 +137,8 @@ export class UpcomingContract {
     () => TrendUpcomingCollection,
     (trendUpcomingCollection) => trendUpcomingCollection.upcomingContract,
     {
-      onDelete: 'CASCADE',
-    },
+      onDelete: "CASCADE",
+    }
   )
   trendUpcomingCollections: TrendUpcomingCollection[];
 
@@ -143,8 +146,8 @@ export class UpcomingContract {
     () => UpcomingDiscord,
     (UpcomingDiscord) => UpcomingDiscord.upcomingContract,
     {
-      onDelete: 'CASCADE',
-    },
+      onDelete: "CASCADE",
+    }
   )
   upcomingDiscords: UpcomingDiscord[];
 
@@ -157,95 +160,95 @@ export class UpcomingContract {
 if (isNestJs) {
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
     ApiProperty({
-      name: 'publishDate',
+      name: "publishDate",
       type: Date,
       example: publishDate,
-      description: '출시일자',
+      description: "출시일자",
     }),
     ApiProperty({
-      name: 'name',
+      name: "name",
       type: String,
       example: name,
-      description: '컬렉션 이름',
+      description: "컬렉션 이름",
     }),
     ApiProperty({
-      name: 'category',
+      name: "category",
       type: String,
       example: category,
-      description: '카테고리',
+      description: "카테고리",
     }),
     ApiProperty({
-      name: 'totalSupply',
+      name: "totalSupply",
       type: Number,
       example: totalSupply,
-      description: '총 발행량',
+      description: "총 발행량",
     }),
     ApiProperty({
-      name: 'bannerImageUrl',
+      name: "bannerImageUrl",
       type: String,
       example: bannerImageUrl,
-      description: '배너 이미지 URL',
+      description: "배너 이미지 URL",
     }),
     ApiProperty({
-      name: 'profileImageUrl',
+      name: "profileImageUrl",
       type: String,
       example: profileImageUrl,
-      description: '프로파일 이미지 URL',
+      description: "프로파일 이미지 URL",
     }),
     ApiProperty({
-      name: 'description',
+      name: "description",
       type: String,
       example: description,
-      description: '설명',
+      description: "설명",
     }),
     ApiProperty({
-      name: 'externalUrl',
+      name: "externalUrl",
       type: String,
       example: externalUrl,
-      description: '홈페이지',
+      description: "홈페이지",
     }),
 
     ApiProperty({
-      name: 'twitterUsername',
+      name: "twitterUsername",
       type: String,
       example: twitterUsername,
-      description: '설명',
+      description: "설명",
     }),
     ApiProperty({
-      name: 'discordUrl',
+      name: "discordUrl",
       type: String,
       example: discordUrl,
-      description: '홈페이지',
+      description: "홈페이지",
     }),
     ApiProperty({
-      name: 'premintUrl',
+      name: "premintUrl",
       type: String,
       example: premintUrl,
-      description: '사전 민팅 URL',
+      description: "사전 민팅 URL",
     }),
     ApiProperty({
-      name: 'preSalePrice',
+      name: "preSalePrice",
       type: Number,
       example: preSalePrice,
-      description: '사전 판매 가격',
+      description: "사전 판매 가격",
     }),
     ApiProperty({
-      name: 'publicSalePrice',
+      name: "publicSalePrice",
       type: Number,
       example: publicSalePrice,
-      description: '공개 판매 가격',
+      description: "공개 판매 가격",
     }),
     ApiProperty({
-      name: 'tokenType',
+      name: "tokenType",
       type: String,
       example: tokenType,
-      description: '토큰 타입',
+      description: "토큰 타입",
     }),
 
     // ApiProperty({
@@ -268,16 +271,16 @@ if (isNestJs) {
     // }),
 
     ApiProperty({
-      name: 'createdAt',
+      name: "createdAt",
       type: Date,
       example: createdAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updatedAt',
+      name: "updatedAt",
       type: Date,
       example: updatedAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 
