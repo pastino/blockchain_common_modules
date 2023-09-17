@@ -159,7 +159,6 @@ export class NFT {
         ...nftData,
         isAttributeUpdated: true,
         mediaThumbnail: nftData?.media?.[0]?.thumbnail,
-        // .replace(/\x00/g, "")
         title:
           nftData.title.length > 500
             ? nftData.title.slice(0, 500).replace(/\x00/g, "")
