@@ -22,31 +22,37 @@ export async function handleBlockEvent(blockNum: number) {
       },
     });
 
+    console.log(1);
     if (existingBlock) return { isSuccess: false, message: "이미 처리된 블록" };
     const blockData = await alchemy.core.getBlock(blockNum);
     const blockNumber = await getRepository(BlockNumber).save({
       blockNumber: blockNum,
     });
 
+    console.log(2);
     const transaction = new Transaction({
       transactionHash: "",
       blockData,
       blockNumber,
     });
 
+    console.log(3);
     await transaction.progressTransaction();
 
+    console.log(4);
     await getRepository(BlockNumber).update(
       { id: blockNumber.id },
       { isCompletedUpdate: true }
     );
 
+    console.log(5);
     const logErrorList = await getRepository(LogError).find({
       where: {
         blockNumber: blockNum,
       },
     });
 
+    console.log(6);
     if (logErrorList.length > 0) {
       for (let i = 0; i < logErrorList.length; i++) {
         const logError = logErrorList[i];
