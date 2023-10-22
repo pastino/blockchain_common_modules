@@ -211,18 +211,14 @@ export const getContractDetails = async (
   try {
     await ERC721Contract.methods.ownerOf(tokenId).call();
     contractDetails.tokenType = "ERC721";
-  } catch (error) {
-    console.log("This contract might not be an ERC-721 token");
-  }
+  } catch (error) {}
   if (!contractDetails.tokenType) {
     try {
       await ERC1155Contract.methods
         .balanceOf("0xD37E2eA8373b17E2e3f8825E5a83aeD319ddF52d", tokenId)
         .call();
       contractDetails.tokenType = "ERC1155";
-    } catch (error) {
-      console.log("This contract might not be an ERC-1155 token");
-    }
+    } catch (error) {}
   }
   return contractDetails;
 };
