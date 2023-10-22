@@ -1,9 +1,9 @@
 import { getRepository } from "typeorm";
-import { Contract as ContractEntity } from "../entities/Contract";
+import { Contract, Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 import { alchemy } from "../blockEventHandler";
 import axios, { AxiosResponse } from "axios";
-import { sleep } from "../utils";
+import { getNFTDetails, sleep } from "../utils";
 import crypto from "crypto";
 import { TraitType } from "../entities/TraitType";
 import { AttributeNFT } from "../entities/AttributeNFT";
@@ -155,48 +155,29 @@ export class NFT {
 
   async createNFTAndAttributes(nftData: any) {
     try {
+      const sanitizeText = (text: string) => (text || "").replace(/\x00/g, "");
+      const truncateTitle = (title: string) =>
+        title.length > 500 ? title.slice(0, 500) : title;
+
       const nft = await getRepository(NFTEntity).save({
         ...nftData,
         isAttributeUpdated: true,
-        mediaThumbnail: nftData?.media?.[0]?.thumbnail,
-        title:
-          nftData.title.length > 500
-            ? nftData.title.slice(0, 500).replace(/\x00/g, "")
-            : nftData.title.replace(/\x00/g, "") || "",
-        description: nftData.description.replace(/\x00/g, "") || "",
+        title: sanitizeText(truncateTitle(nftData.title || "")),
+        description: sanitizeText(nftData.description || ""),
         contract: this.contract,
-        attributesRaw:
-          typeof nftData.tokenUri?.raw === "string"
-            ? nftData.tokenUri.raw.replace(/\x00/g, "")
-            : "",
-        rawMetadataImage:
-          typeof nftData.media?.[0]?.raw === "string"
-            ? nftData.media?.[0]?.raw.replace(/\x00/g, "")
-            : "",
-        imageRaw:
-          typeof nftData.media?.[0]?.raw === "string"
-            ? nftData.media?.[0]?.raw.replace(/\x00/g, "")
-            : "",
-        imageFormat:
-          typeof nftData.media?.[0]?.format === "string"
-            ? nftData.media[0].format
-            : "",
-        imageBytes:
-          typeof nftData.media?.[0]?.bytes === "number"
-            ? nftData.media?.[0]?.bytes
-            : 0,
+        attributesRaw: sanitizeText(nftData.attributesRaw || ""),
+        imageRaw: sanitizeText(nftData.imageUri || ""),
       });
 
-      if (
-        nft &&
-        nftData.rawMetadata?.attributes &&
-        nftData.rawMetadata?.attributes.length > 0
-      ) {
-        await this.saveAttributes(
-          nft,
-          this.contract,
-          nftData.rawMetadata?.attributes
+      if (!this.contract.description) {
+        await getRepository(Contract).update(
+          { id: this.contract.id },
+          { description: sanitizeText(nftData.description || "") }
         );
+      }
+
+      if (nft && nftData.attribute && nftData.attribute.length > 0) {
+        await this.saveAttributes(nft, this.contract, nftData.attribute);
       }
       return nft;
     } catch (e) {
@@ -305,10 +286,11 @@ export class NFT {
     }
 
     try {
-      nftData = await alchemy.nft.getNftMetadata(
-        this.contract.address,
-        this.tokenId
-      );
+      // nftData = await alchemy.nft.getNftMetadata(
+      //   this.contract.address,
+      //   this.tokenId
+      // );
+      nftData = await getNFTDetails(this.contract.address, this.tokenId);
 
       try {
         nft = await this.createNFTAndAttributes(nftData);

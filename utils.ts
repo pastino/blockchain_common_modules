@@ -1,5 +1,5 @@
-import Web3 from "web3";
-const web3 = new Web3();
+import { ERC_1155_ABI, ERC_20_ABI, ERC_721_ABI } from "./ABI";
+import web3 from "./web3";
 
 export const sleep = (sec: number) => {
   return new Promise((resolve) => setTimeout(resolve, sec * 1000));
@@ -174,4 +174,148 @@ export const findTargetLogFromTo = (tokenId: string, logs: any[]) => {
   ) as any;
 
   return { from, to };
+};
+
+export const getContractDetails = async (
+  address: string,
+  tokenId: number | string
+) => {
+  const ERC20Contract = new web3.eth.Contract(ERC_20_ABI, address);
+  const ERC721Contract = new web3.eth.Contract(ERC_721_ABI, address);
+  const ERC1155Contract = new web3.eth.Contract(ERC_1155_ABI, address);
+
+  let contractDetails = {
+    address: address,
+    name: null,
+    symbol: null,
+    totalSupply: null,
+    tokenType: null as string | null,
+    description: null, // 추후 description 처리를 위해 추가하였습니다.
+  };
+
+  try {
+    const name = await ERC20Contract.methods.name().call();
+    contractDetails.name = name;
+  } catch (e) {}
+
+  try {
+    const symbol = await ERC20Contract.methods.symbol().call();
+    contractDetails.symbol = symbol;
+  } catch (e) {}
+
+  try {
+    const totalSupply = await ERC20Contract.methods.totalSupply().call();
+    contractDetails.totalSupply = totalSupply;
+  } catch (e) {}
+
+  try {
+    await ERC721Contract.methods.ownerOf(tokenId).call();
+    contractDetails.tokenType = "ERC721";
+  } catch (error) {
+    console.log("This contract might not be an ERC-721 token");
+  }
+  if (!contractDetails.tokenType) {
+    try {
+      await ERC1155Contract.methods
+        .balanceOf("0xD37E2eA8373b17E2e3f8825E5a83aeD319ddF52d", tokenId)
+        .call();
+      contractDetails.tokenType = "ERC1155";
+    } catch (error) {
+      console.log("This contract might not be an ERC-1155 token");
+    }
+  }
+  return contractDetails;
+};
+
+function decodeBase64Json(uri: string) {
+  const base64Encoded = uri.split(",")[1];
+  const jsonString = Buffer.from(base64Encoded, "base64").toString("utf-8"); // Base64 디코딩
+  return JSON.parse(jsonString); // JSON 파싱
+}
+
+export const getNFTDetails = async (
+  address: string,
+  tokenId: number | string
+) => {
+  const ERC721Contract = new web3.eth.Contract(ERC_721_ABI, address);
+  const ERC1155Contract = new web3.eth.Contract(ERC_1155_ABI, address);
+  let nftDetails = {
+    tokenId,
+    title: null as string | null,
+    description: null,
+    imageUri: null,
+    attribute: null,
+    tokenType: null as string | null,
+    attributesRaw: null,
+  };
+  try {
+    await ERC721Contract.methods.ownerOf(tokenId).call();
+    nftDetails.tokenType = "ERC721";
+  } catch (error) {
+    console.log("This contract might not be an ERC-721 token");
+  }
+  if (!nftDetails.tokenType) {
+    try {
+      await ERC1155Contract.methods
+        .balanceOf("0xD37E2eA8373b17E2e3f8825E5a83aeD319ddF52d", tokenId)
+        .call();
+      nftDetails.tokenType = "ERC1155";
+    } catch (error) {
+      console.log("This contract might not be an ERC-1155 token");
+    }
+  }
+  if (nftDetails.tokenType === "ERC1155") {
+    try {
+      const pattern = await ERC1155Contract.methods.uri(tokenId).call();
+      let uri = pattern.replace("{id}", tokenId.toString());
+      if (uri.startsWith("ipfs://")) {
+        uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+      }
+      if (uri.startsWith("data:application/json;base64,")) {
+        const metadata = decodeBase64Json(uri);
+        nftDetails.title = String(metadata.name);
+        nftDetails.description = metadata.description;
+        nftDetails.imageUri = metadata.image;
+        nftDetails.attribute = metadata.attributes;
+        nftDetails.attributesRaw = uri;
+      } else {
+        const metadata = await fetch(uri).then((response) => response.json());
+        nftDetails.title = String(metadata.name);
+        nftDetails.description = metadata.description;
+        nftDetails.imageUri = metadata.image;
+        nftDetails.attribute = metadata.attributes; // Assuming the metadata contains an "attributes" field
+        nftDetails.attributesRaw = uri;
+      }
+    } catch (error) {
+      console.log("Error fetching ERC1155 token details:", error);
+    }
+  } else if (nftDetails.tokenType === "ERC721") {
+    try {
+      let uri = await ERC721Contract.methods.tokenURI(tokenId).call();
+      if (uri.startsWith("ipfs://")) {
+        uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+      }
+
+      if (uri.startsWith("data:application/json;base64,")) {
+        const metadata = decodeBase64Json(uri);
+        nftDetails.title = String(metadata.name);
+        nftDetails.description = metadata.description;
+        nftDetails.imageUri = metadata.image;
+        nftDetails.attribute = metadata.attributes;
+        nftDetails.attributesRaw = uri;
+      } else {
+        const metadata = await fetch(uri).then((response) => response.json());
+        nftDetails.title = String(metadata.name);
+        nftDetails.description = metadata.description;
+        nftDetails.imageUri = metadata.image;
+        nftDetails.attribute = metadata.attributes; // Assuming the metadata contains an "attributes" field
+      }
+
+      nftDetails.attributesRaw = uri;
+    } catch (error) {
+      console.log("Error fetching ERC721 token details:", error);
+    }
+  }
+
+  return nftDetails;
 };
