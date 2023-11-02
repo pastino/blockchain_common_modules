@@ -30,11 +30,6 @@ const ApiProperty = isNestJs
   'contractAddress',
   'timestamp',
 ])
-@Index('idx_decodedlog_contractAddress', ['contractAddress'])
-@Index('idx_decodedlog_transaction', ['transaction'])
-@Index('idx_decodedlog_action', ['action'])
-@Index('idx_decodedlog_timestamp', ['timestamp'])
-@Index('idx_decodedlog_contract', ['contract'])
 export class DecodedLog {
   @PrimaryGeneratedColumn()
   id: number;

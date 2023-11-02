@@ -7,24 +7,24 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
-} from "typeorm";
-import { Contract } from "./Contract";
-import * as dotenv from "dotenv";
-import { contractExample } from "../entityExamples";
+} from 'typeorm';
+import { Contract } from './Contract';
+import * as dotenv from 'dotenv';
+import { contractExample } from '../entityExamples';
 
-dotenv.config({ path: __dirname + "/../../../.env.dev" });
-const isNestJs = process.env.APP_TYPE === "nestjs";
+dotenv.config({ path: __dirname + '/../../../.env.dev' });
+const isNestJs = process.env.APP_TYPE === 'nestjs';
 
 const ApiProperty = isNestJs
-  ? require("@nestjs/swagger").ApiProperty
+  ? require('@nestjs/swagger').ApiProperty
   : () => {};
 
 export enum TimeRange {
-  ONE_HOUR = "1H",
-  SIX_HOURS = "6H",
-  TWELVE_HOURS = "12H",
-  TWENTY_FOUR_HOURS = "24H",
-  SEVEN_DAYS = "7D",
+  ONE_HOUR = '1H',
+  SIX_HOURS = '6H',
+  TWELVE_HOURS = '12H',
+  TWENTY_FOUR_HOURS = '24H',
+  SEVEN_DAYS = '7D',
 }
 
 export const trandCollectionExample: any = {
@@ -65,52 +65,51 @@ const {
   updatedAt,
 } = trandCollectionExample;
 
-@Entity({ name: "trendCollection" })
-@Index("idx_trend_time_static", ["timeRange", "staticCreateAt"])
+@Entity({ name: 'trendCollection' })
 export class TrendCollection {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(() => Contract, (contract) => contract.trendCollections, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
   contract: Contract;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   floorPrice: number;
 
-  @Column({ type: "enum", enum: TimeRange })
+  @Column({ type: 'enum', enum: TimeRange })
   timeRange: TimeRange;
 
   @Column({ nullable: true })
   sales: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   salesDeviation: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   salesDeviationPercent: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   volume: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   volumeDeviation: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   volumeDeviationPercent: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   averageValue: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   priceDeviation: number;
 
-  @Column({ nullable: true, type: "float" })
+  @Column({ nullable: true, type: 'float' })
   priceDeviationPercent: number;
 
-  @Column({ type: Date, default: () => "CURRENT_TIMESTAMP" })
+  @Column({ type: Date, default: () => 'CURRENT_TIMESTAMP' })
   staticCreateAt: Date;
 
   @CreateDateColumn()
@@ -132,103 +131,103 @@ export class TrendCollection {
 if (isNestJs) {
   const propertyDecorators = [
     ApiProperty({
-      name: "id",
+      name: 'id',
       type: Number,
       example: id,
-      description: "Uniqe ID",
+      description: 'Uniqe ID',
     }),
     ApiProperty({
-      name: "contract",
+      name: 'contract',
       type: () => Contract,
       example: contract,
-      description: "Contract",
+      description: 'Contract',
     }),
     ApiProperty({
-      name: "floorPrice",
+      name: 'floorPrice',
       type: Number,
       example: floorPrice,
-      description: "오픈시 바닥가격",
+      description: '오픈시 바닥가격',
     }),
     ApiProperty({
-      name: "volume",
+      name: 'volume',
       type: Number,
       example: volume,
-      description: "Volume (거래량)",
+      description: 'Volume (거래량)',
     }),
     ApiProperty({
-      name: "volumeDeviation",
+      name: 'volumeDeviation',
       type: Number,
       example: volumeDeviation,
-      description: "볼륨차이",
+      description: '볼륨차이',
     }),
     ApiProperty({
-      name: "volumeDeviationPercent",
+      name: 'volumeDeviationPercent',
       type: Number,
       example: volumeDeviationPercent,
-      description: "볼륨차이 퍼센트",
+      description: '볼륨차이 퍼센트',
     }),
 
     ApiProperty({
-      name: "timeRange",
+      name: 'timeRange',
       type: TimeRange,
       enum: TimeRange,
       example: timeRange,
-      description: "시간대 - 현재시간으로부터 몇시간 전",
+      description: '시간대 - 현재시간으로부터 몇시간 전',
     }),
     ApiProperty({
-      name: "sales",
+      name: 'sales',
       type: Number,
       example: sales,
-      description: "거래갯수",
+      description: '거래갯수',
     }),
     ApiProperty({
-      name: "salesDeviation",
+      name: 'salesDeviation',
       type: Number,
       example: salesDeviation,
-      description: "판매차이",
+      description: '판매차이',
     }),
     ApiProperty({
-      name: "salesDeviationPercent",
+      name: 'salesDeviationPercent',
       type: Number,
       example: salesDeviationPercent,
-      description: "판매차이 퍼센트",
+      description: '판매차이 퍼센트',
     }),
 
     ApiProperty({
-      name: "averageValue",
+      name: 'averageValue',
       type: Number,
       example: averageValue,
-      description: "평균가격",
+      description: '평균가격',
     }),
     ApiProperty({
-      name: "priceDeviation",
+      name: 'priceDeviation',
       type: Number,
       example: priceDeviation,
-      description: "가격차이",
+      description: '가격차이',
     }),
     ApiProperty({
-      name: "priceDeviationPercent",
+      name: 'priceDeviationPercent',
       type: Number,
       example: priceDeviationPercent,
-      description: "가격차이 퍼센트",
+      description: '가격차이 퍼센트',
     }),
     ApiProperty({
-      name: "staticCreateAt",
+      name: 'staticCreateAt',
       type: Date,
       example: staticCreateAt,
-      description: "생성 기준 시간",
+      description: '생성 기준 시간',
     }),
     ApiProperty({
-      name: "createdAt",
+      name: 'createdAt',
       type: Date,
       example: createdAt,
-      description: "생성된 시간",
+      description: '생성된 시간',
     }),
     ApiProperty({
-      name: "updatedAt",
+      name: 'updatedAt',
       type: Date,
       example: updatedAt,
-      description: "업데이트된 시간",
+      description: '업데이트된 시간',
     }),
   ];
 

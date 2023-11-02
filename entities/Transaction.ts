@@ -25,8 +25,6 @@ const ApiProperty = isNestJs
   : () => {};
 
 @Entity({ name: 'transaction' })
-@Index('idx_transaction_eventTime', ['eventTime'])
-@Index('idx_transaction_timestamp', ['timestamp'])
 export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
