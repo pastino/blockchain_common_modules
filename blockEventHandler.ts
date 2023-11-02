@@ -5,6 +5,7 @@ import { Message } from "./modules/kakao";
 import { Transaction } from "./modules/transaction";
 import moment from "moment";
 import { LogError } from "./entities/LogError";
+import web3 from "./web3";
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
@@ -23,13 +24,13 @@ export async function handleBlockEvent(blockNum: number) {
     });
 
     if (existingBlock) return { isSuccess: false, message: "이미 처리된 블록" };
-    const blockData = await alchemy.core.getBlock(blockNum);
+    // const blockData = await alchemy.core.getBlock(blockNum);
+    const blockData = await web3.eth.getBlock(blockNum);
     const blockNumber = await getRepository(BlockNumber).save({
       blockNumber: blockNum,
     });
 
     const transaction = new Transaction({
-      transactionHash: "",
       blockData,
       blockNumber,
     });

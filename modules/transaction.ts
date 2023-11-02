@@ -19,6 +19,7 @@ import { BlockNumber as BlockNumberEntity } from "../entities/BlockNumber";
 import { Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 import { DecodedLog } from "../entities/DecodedLog";
+import web3 from "../web3";
 
 const kakaoMessage = new Message();
 
@@ -40,15 +41,12 @@ export class Transaction {
   private blockNumber: BlockNumberEntity;
 
   constructor({
-    transactionHash,
     blockData,
     blockNumber,
   }: {
-    transactionHash: string;
     blockData: Block;
     blockNumber: BlockNumberEntity;
   }) {
-    this.transactionHash = transactionHash;
     this.blockData = blockData;
     this.blockNumber = blockNumber;
   }
@@ -58,9 +56,10 @@ export class Transaction {
     retryCount: number = 10
   ): Promise<TransactionReceipt | null> {
     try {
-      const response = await alchemy.core.getTransactionReceipt(
-        transactionHash
-      );
+      // const response = await alchemy.core.getTransactionReceipt(
+      //   transactionHash
+      // );
+      const response = await web3.eth.getTransactionReceipt(transactionHash);
       return response;
     } catch (e: any) {
       if (retryCount > 0) {
@@ -80,9 +79,12 @@ export class Transaction {
   private async getTransaction(
     transactionHash: string,
     retryCount: number = 10
-  ): Promise<TransactionResponse | null> {
+  ): Promise<any> {
     try {
-      const response = await alchemy.core.getTransaction(transactionHash);
+      // const response = await alchemy.core.getTransaction(transactionHash);
+      const response = await web3.eth.getTransaction(transactionHash);
+      // confirmations 없음
+      // gasLimit 없음
       return response;
     } catch (e: any) {
       if (retryCount > 0) {
@@ -178,11 +180,14 @@ export class Transaction {
       const contract = new ContractManager({
         address: contractAddress,
       });
-      const contractData = await contract.saveContract();
+
+      const contractData = await contract.saveContract(tokenId);
+
       await getRepository(TransactionEntity).update(
         { id: transaction.id },
         { contract: contractData }
       );
+
       let nftData;
 
       if (tokenId) {
@@ -207,7 +212,7 @@ export class Transaction {
     nftData,
     decodedLog,
   }: {
-    log: Log;
+    log: any;
     transaction: TransactionEntity;
     contractData?: ContractEntity;
     nftData?: NFTEntity;
@@ -215,7 +220,7 @@ export class Transaction {
   }) {
     try {
       const { topics, ...logWithoutTopics } = log;
-
+      delete logWithoutTopics?.id;
       const logInputData: any = {};
 
       if (contractData) {
@@ -269,8 +274,13 @@ export class Transaction {
   public async progressTransaction(): Promise<any> {
     try {
       const transactions = this.blockData.transactions;
-      if (!transactions || transactions.length === 0)
+      if (!transactions || transactions.length === 0) {
+        await getRepository(BlockNumberEntity).update(
+          { id: this.blockNumber.id },
+          { isNFTCompletedUpdate: true }
+        );
         return { isSuccess: false, message: "Transactions are empty" };
+      }
 
       let erc721Logs: any = [];
       const nonErc721Logs = [];
@@ -279,6 +289,7 @@ export class Transaction {
       for (let i = 0; i < transactions.length; i++) {
         const transactionHash = transactions[i];
         const transactionData = await this.getTransaction(transactionHash);
+
         const transactionReceipt = await this.getTransactionReceipt(
           transactionHash
         );
@@ -292,23 +303,16 @@ export class Transaction {
 
         const transaction = await getRepository(TransactionEntity).save({
           ...transactionData,
+          confirmations: 0,
+          data: transactionData.input,
           blockNumber: this.blockNumber,
-          gasUsed: this.hexToStringValue(
-            transactionReceipt?.gasUsed?._hex || "0x0"
-          ),
-          cumulativeGasUsed: this.hexToStringValue(
-            transactionReceipt?.cumulativeGasUsed?._hex || "0x0"
-          ),
-          effectiveGasPrice: this.hexToStringValue(
-            transactionReceipt?.effectiveGasPrice?._hex || "0x0"
-          ),
-          gasPrice: this.hexToStringValue(
-            transactionData?.gasPrice?._hex || "0x0"
-          ),
-          gasLimit: this.hexToStringValue(
-            transactionData?.gasLimit?._hex || "0x0"
-          ),
-          value: this.hexToStringValue(transactionData?.value?._hex || "0x0"),
+          gasUsed: transactionReceipt?.gasUsed,
+          cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
+          effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
+          gasPrice: transactionData?.gasPrice,
+          gasLimit: transactionData?.gas,
+          value: transactionData?.value,
+          chainId: parseInt(transactionData.chainId, 16) || null,
           ...timeOption,
         });
 
@@ -362,7 +366,6 @@ export class Transaction {
       for (let i = 0; i < erc721Logs.length; i++) {
         const { log, decodedData, transaction } = erc721Logs[i];
         const contractAddress = decodedData?.contract;
-
         const result = await this.createContractAndNFT({
           transaction,
           tokenId: decodedData?.tokenId,
@@ -370,7 +373,6 @@ export class Transaction {
         });
         const contractData = result.contractData;
         const nftData = result.nftData;
-
         await this.createLog({
           log,
           transaction,
@@ -379,7 +381,6 @@ export class Transaction {
           decodedLog: decodedData || null,
         });
       }
-
       await getRepository(BlockNumberEntity).update(
         { id: this.blockNumber.id },
         { isNFTCompletedUpdate: true }

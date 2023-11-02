@@ -17,7 +17,7 @@ import {
 import axios, { AxiosResponse } from "axios";
 import { alchemy } from "../blockEventHandler";
 import moment from "moment";
-import { sleep } from "../utils";
+import { getContractDetails, sleep } from "../utils";
 import { ContractError } from "../entities/ContractError";
 
 const kakaoMessage = new Message();
@@ -79,7 +79,7 @@ export class ContractManager {
     }
   }
 
-  async saveContract(): Promise<ContractEntity> {
+  async saveContract(tokenId: number | string): Promise<ContractEntity> {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
     try {
@@ -91,23 +91,27 @@ export class ContractManager {
         .getOne();
 
       if (!contract) {
-        const contractMetaData = await alchemy.nft.getContractMetadata(
-          this.address
+        // const contractMetaData = await alchemy.nft.getContractMetadata(
+        //   this.address
+        // );
+
+        const contractMetaData = await getContractDetails(
+          this.address,
+          tokenId
         );
 
         const newContract = {
           ...contractMetaData,
-          ...(contractMetaData.openSea || {}),
-          name:
-            contractMetaData.name || contractMetaData.openSea?.collectionName,
+          name: contractMetaData.name,
         };
-        delete contractMetaData.openSea;
 
         try {
           contract = await this.queryRunner.manager.save(
             ContractEntity,
-            newContract
+            newContract as any
           );
+
+          if (!contract) throw new Error("Failed to save contract");
 
           const { contractDataByAddress, contractDataBySlag } =
             await this.handleOpenseaContract(contract.address);
