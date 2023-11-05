@@ -5,6 +5,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from "typeorm";
 import { nftExample } from "../entityExamples";
 import * as dotenv from "dotenv";
@@ -19,6 +20,8 @@ const ApiProperty = isNestJs
   : () => {};
 
 @Entity({ name: "attributeNFT" })
+@Index("idx_attributeNFT_nft", ["nft"])
+@Index("idx_attributeNFT_attribute", ["attribute"])
 export class AttributeNFT {
   @PrimaryGeneratedColumn()
   id: number;

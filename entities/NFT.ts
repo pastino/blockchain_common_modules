@@ -8,28 +8,29 @@ import {
   JoinColumn,
   OneToMany,
   Unique,
-} from 'typeorm';
-import { Contract } from './Contract';
-import { Log } from './Log';
-import { nftExample } from '../entityExamples';
-import * as dotenv from 'dotenv';
-import { AttributeNFT } from './AttributeNFT';
+  Index,
+} from "typeorm";
+import { Contract } from "./Contract";
+import { Log } from "./Log";
+import { nftExample } from "../entityExamples";
+import * as dotenv from "dotenv";
+import { AttributeNFT } from "./AttributeNFT";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
-@Entity({ name: 'nft' })
-@Unique('uniqueIndex', ['contract', 'tokenId'])
+@Entity({ name: "nft" })
+@Unique("uniqueIndex", ["contract", "tokenId"])
 export class NFT {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(() => Contract, (contract) => contract.nfts)
-  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
 
   @Column({ nullable: true })
@@ -41,19 +42,13 @@ export class NFT {
   @Column({ nullable: true, length: 1000 })
   title: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
-  @Column({ nullable: true })
-  mediaThumbnail: string;
-
-  @Column({ nullable: true, type: 'text' })
-  rawMetadataImage: string;
-
-  @Column({ nullable: true, type: 'text' })
+  @Column({ nullable: true, type: "text" })
   attributesRaw: string;
 
-  @Column({ nullable: true, type: 'text' })
+  @Column({ nullable: true, type: "text" })
   imageRaw: string;
 
   @Column({ nullable: true })
@@ -63,12 +58,12 @@ export class NFT {
   imageBytes: number;
 
   @OneToMany(() => Log, (log) => log.nft, {
-    onDelete: 'SET NULL',
+    onDelete: "RESTRICT",
   })
   logs: Log[];
 
   @OneToMany(() => AttributeNFT, (attributeNFT) => attributeNFT.nft, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
   attributeNFTs: AttributeNFT[];
 
@@ -81,7 +76,7 @@ export class NFT {
   @Column({ nullable: true, default: null })
   isImageUploaded: boolean;
 
-  @Column({ type: 'text', nullable: true, default: null })
+  @Column({ type: "text", nullable: true, default: null })
   imageSaveError: string;
 
   @CreateDateColumn()
@@ -126,127 +121,127 @@ if (isNestJs) {
 
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
 
     ApiProperty({
-      name: 'contract',
+      name: "contract",
       type: () => Contract,
       example: contract,
-      description: 'Contract',
+      description: "Contract",
     }),
     ApiProperty({
-      name: 'tokenId',
+      name: "tokenId",
       type: String,
       example: tokenId,
-      description: '토큰 ID',
+      description: "토큰 ID",
     }),
     ApiProperty({
-      name: 'tokenType',
+      name: "tokenType",
       type: String,
       example: tokenType,
-      description: '토큰 타입',
+      description: "토큰 타입",
     }),
     ApiProperty({
-      name: 'title',
+      name: "title",
       type: String,
       example: title,
-      description: '제목',
+      description: "제목",
     }),
     ApiProperty({
-      name: 'description',
+      name: "description",
       type: String,
       example: description,
-      description: '설명',
+      description: "설명",
     }),
     ApiProperty({
-      name: 'mediaThumbnail',
+      name: "mediaThumbnail",
       type: String,
       example: mediaThumbnail,
-      description: '미디어 썸네일',
+      description: "미디어 썸네일",
     }),
     ApiProperty({
-      name: 'rawMetadataImage',
+      name: "rawMetadataImage",
       type: String,
       example: rawMetadataImage,
-      description: '메타데이터 이미지',
+      description: "메타데이터 이미지",
     }),
     ApiProperty({
-      name: 'attributesRaw',
+      name: "attributesRaw",
       type: String,
       example: attributesRaw,
-      description: '특성 데이터',
+      description: "특성 데이터",
     }),
     ApiProperty({
-      name: 'imageRaw',
+      name: "imageRaw",
       type: String,
       example: imageRaw,
-      description: '이미지 데이터',
+      description: "이미지 데이터",
     }),
     ApiProperty({
-      name: 'imageFormat',
+      name: "imageFormat",
       type: String,
       example: imageFormat,
-      description: '이미지 포맷',
+      description: "이미지 포맷",
     }),
     ApiProperty({
-      name: 'imageBytes',
+      name: "imageBytes",
       type: Number,
       example: imageBytes,
-      description: '이미지 용량',
+      description: "이미지 용량",
     }),
     ApiProperty({
-      name: 'imageRoute',
+      name: "imageRoute",
       type: String,
       example: imageRoute,
-      description: '이미지 저장 경로',
+      description: "이미지 저장 경로",
     }),
     ApiProperty({
-      name: 'isImageUploaded',
+      name: "isImageUploaded",
       type: Boolean,
       example: isImageUploaded,
-      description: '이미지 저장 여부',
+      description: "이미지 저장 여부",
     }),
     ApiProperty({
-      name: 'imageSaveError',
+      name: "imageSaveError",
       type: String,
       example: imageSaveError,
-      description: '이미지 저장 시 발생한 에러 정보',
+      description: "이미지 저장 시 발생한 에러 정보",
     }),
     ApiProperty({
-      name: 'isAttributeUpdated',
+      name: "isAttributeUpdated",
       type: Boolean,
       example: isAttributeUpdated,
-      description: '특성 업데이트 여부',
+      description: "특성 업데이트 여부",
     }),
 
     ApiProperty({
-      name: 'logs',
+      name: "logs",
       type: () => [Log],
       example: logs,
-      description: '메타데이터 이미지',
+      description: "메타데이터 이미지",
     }),
     ApiProperty({
-      name: 'attributeNFTs',
+      name: "attributeNFTs",
       type: () => [AttributeNFT],
       example: attributeNFTs,
-      description: '메타데이터 이미지',
+      description: "메타데이터 이미지",
     }),
 
     ApiProperty({
-      name: 'createdAt',
+      name: "createdAt",
       type: Date,
       example: createdAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updatedAt',
+      name: "updatedAt",
       type: Date,
       example: updatedAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 

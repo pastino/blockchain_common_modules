@@ -1,10 +1,4 @@
-import {
-  Block,
-  Log,
-  TransactionReceipt,
-  TransactionResponse,
-} from "alchemy-sdk";
-import { alchemy } from "../blockEventHandler";
+import { Block, Log, TransactionReceipt } from "alchemy-sdk";
 import { Message } from "./kakao";
 import moment from "moment";
 import { getIsERC721Event, SIGNATURE_LIST } from "../ABI";
@@ -20,6 +14,7 @@ import { Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 import { DecodedLog } from "../entities/DecodedLog";
 import web3 from "../web3";
+import { ContractError } from "../entities/ContractError";
 
 const kakaoMessage = new Message();
 
@@ -197,10 +192,14 @@ export class Transaction {
         });
         nftData = await nft.saveNFT();
       }
-
       return { isSuccess: true, contractData, nftData };
     } catch (e: any) {
-      console.log(contractAddress);
+      await getRepository(ContractError).save({
+        transactionHash: transaction.hash,
+        blockNumber: this.blockNumber.blockNumber,
+        address: contractAddress,
+        returnStringData: JSON.stringify(e.message),
+      });
       throw e;
     }
   }
@@ -289,7 +288,6 @@ export class Transaction {
       for (let i = 0; i < transactions.length; i++) {
         const transactionHash = transactions[i];
         const transactionData = await this.getTransaction(transactionHash);
-
         const transactionReceipt = await this.getTransactionReceipt(
           transactionHash
         );
@@ -303,7 +301,6 @@ export class Transaction {
 
         const transaction = await getRepository(TransactionEntity).save({
           ...transactionData,
-          confirmations: 0,
           data: transactionData.input,
           blockNumber: this.blockNumber,
           gasUsed: transactionReceipt?.gasUsed,
@@ -326,7 +323,8 @@ export class Transaction {
           const data = await getIsERC721Event(
             log,
             logs,
-            this.blockNumber?.blockNumber
+            this.blockNumber?.blockNumber,
+            transactionHash
           );
 
           if (data.isERC721Event) {

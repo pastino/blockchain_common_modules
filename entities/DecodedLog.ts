@@ -9,53 +9,58 @@ import {
   ManyToOne,
   Index,
   AfterLoad,
-} from 'typeorm';
-import { Action } from '../modules/decodeLog';
-import { Log } from './Log';
-import { Transaction } from './Transaction';
-import { Contract } from './Contract';
-import { NFT } from './NFT';
-import * as dotenv from 'dotenv';
-import { decodedLogExample } from '../entityExamples';
+} from "typeorm";
+import { Action } from "../modules/decodeLog";
+import { Log } from "./Log";
+import { Transaction } from "./Transaction";
+import { Contract } from "./Contract";
+import { NFT } from "./NFT";
+import * as dotenv from "dotenv";
+import { decodedLogExample } from "../entityExamples";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
-@Entity({ name: 'decodedLog' })
-@Index('idx_decodedlog_contractaddress_timestamp', [
-  'contractAddress',
-  'timestamp',
+@Entity({ name: "decodedLog" })
+@Index("idx_decodedlog_contractaddress_timestamp", [
+  "contractAddress",
+  "timestamp",
 ])
+@Index("idx_decodedlog_transaction", ["transaction"])
+@Index("idx_decodedlog_log", ["log"])
+// @Index("idx_decodedlog_contractAddress", ["contractAddress"])
+// @Index("idx_decodedlog_action", ["action"])
+// @Index("idx_decodedlog_timestamp", ["timestamp"])
 export class DecodedLog {
   @PrimaryGeneratedColumn()
   id: number;
 
   @OneToOne(() => Log, (log) => log.decodedLog, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
-  @JoinColumn({ name: 'logId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "logId", referencedColumnName: "id" })
   log: Log;
 
   @ManyToOne(() => Transaction, (transaction) => transaction.logs, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
-  @JoinColumn({ name: 'transactionId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "transactionId", referencedColumnName: "id" })
   transaction: Transaction;
 
   @ManyToOne(() => Contract, (contract) => contract.nfts, {
-    onDelete: 'SET NULL',
+    onDelete: "RESTRICT",
   })
-  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
 
   @ManyToOne(() => NFT, (nft) => nft.logs, {
-    onDelete: 'SET NULL',
+    onDelete: "RESTRICT",
   })
-  @JoinColumn({ name: 'nftId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "nftId", referencedColumnName: "id" })
   nft: NFT;
 
   @Column({ nullable: true })
@@ -73,13 +78,13 @@ export class DecodedLog {
   @Column({ nullable: true })
   to: String;
 
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true, type: "float" })
   ethValue: number;
 
   @Column({ nullable: true })
   unit: String;
 
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true, type: "float" })
   value: number;
 
   @Column({ nullable: true })
@@ -179,193 +184,193 @@ if (isNestJs) {
 
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
     ApiProperty({
-      name: 'log',
+      name: "log",
       type: () => Log,
       example: log,
-      description: '로그 데이터',
+      description: "로그 데이터",
     }),
 
     ApiProperty({
-      name: 'transaction',
+      name: "transaction",
       type: () => Transaction,
       example: transaction,
-      description: '트랜잭션 데이터',
+      description: "트랜잭션 데이터",
     }),
     ApiProperty({
-      name: 'contract',
+      name: "contract",
       type: () => Contract,
       example: contract,
-      description: '컨트랙트 데이터',
+      description: "컨트랙트 데이터",
     }),
     ApiProperty({
-      name: 'nft',
+      name: "nft",
       type: () => NFT,
       example: nft,
-      description: 'NFT 데이터',
+      description: "NFT 데이터",
     }),
 
     ApiProperty({
-      name: 'action',
+      name: "action",
       type: String,
       example: action,
-      description: '액션(Sale | Transfer | Mint)',
+      description: "액션(Sale | Transfer | Mint)",
     }),
 
     ApiProperty({
-      name: 'contractAddress',
+      name: "contractAddress",
       type: String,
       example: contractAddress,
-      description: '컬랙션 주소',
+      description: "컬랙션 주소",
     }),
 
     ApiProperty({
-      name: 'tokenId',
+      name: "tokenId",
       type: String,
       example: tokenId,
-      description: '토큰 아이디',
+      description: "토큰 아이디",
     }),
 
     ApiProperty({
-      name: 'from',
+      name: "from",
       type: String,
       example: from,
-      description: 'From 주소',
+      description: "From 주소",
     }),
 
     ApiProperty({
-      name: 'to',
+      name: "to",
       type: String,
       example: to,
-      description: 'To 주소',
+      description: "To 주소",
     }),
 
     ApiProperty({
-      name: 'ethValue',
+      name: "ethValue",
       type: String,
       example: ethValue,
-      description: '가격(ETH)',
+      description: "가격(ETH)",
     }),
     ApiProperty({
-      name: 'unit',
+      name: "unit",
       type: String,
       example: unit,
-      description: '단위',
+      description: "단위",
     }),
     ApiProperty({
-      name: 'value',
+      name: "value",
       type: String,
       example: value,
-      description: '가격(ETH)',
+      description: "가격(ETH)",
     }),
 
     ApiProperty({
-      name: 'platform',
+      name: "platform",
       type: String,
       example: platform,
-      description: '마켓 플래이스',
+      description: "마켓 플래이스",
     }),
 
     ApiProperty({
-      name: 'quantity',
+      name: "quantity",
       type: Number,
       example: quantity,
-      description: '수량',
+      description: "수량",
     }),
 
     ApiProperty({
-      name: 'minterAddress',
+      name: "minterAddress",
       type: String,
       example: minterAddress,
-      description: 'minterAddress',
+      description: "minterAddress",
     }),
 
     ApiProperty({
-      name: 'stage',
+      name: "stage",
       type: String,
       example: stage,
-      description: 'stage',
+      description: "stage",
     }),
 
     ApiProperty({
-      name: 'mintCount',
+      name: "mintCount",
       type: Number,
       example: mintCount,
-      description: '민팅 갯수',
+      description: "민팅 갯수",
     }),
 
     ApiProperty({
-      name: 'timestamp',
+      name: "timestamp",
       type: Number,
       example: timestamp,
-      description: '이벤트 타임스탬프',
+      description: "이벤트 타임스탬프",
     }),
 
     ApiProperty({
-      name: 'eventTime',
+      name: "eventTime",
       type: Date,
       example: eventTime,
-      description: '이벤트 타임',
+      description: "이벤트 타임",
     }),
 
     ApiProperty({
-      name: 'gasUsed',
+      name: "gasUsed",
       type: String,
       example: gasUsed,
-      description: 'gasUsed',
+      description: "gasUsed",
     }),
     ApiProperty({
-      name: 'cumulativeGasUsed',
+      name: "cumulativeGasUsed",
       type: String,
       example: cumulativeGasUsed,
-      description: 'cumulativeGasUsed',
+      description: "cumulativeGasUsed",
     }),
     ApiProperty({
-      name: 'effectiveGasPrice',
+      name: "effectiveGasPrice",
       type: String,
       example: effectiveGasPrice,
-      description: 'effectiveGasPrice',
+      description: "effectiveGasPrice",
     }),
     ApiProperty({
-      name: 'gasPrice',
+      name: "gasPrice",
       type: String,
       example: gasPrice,
-      description: 'gasPrice',
+      description: "gasPrice",
     }),
     ApiProperty({
-      name: 'gasLimit',
+      name: "gasLimit",
       type: String,
       example: gasLimit,
-      description: 'gasLimit',
+      description: "gasLimit",
     }),
     ApiProperty({
-      name: 'transactionFee',
+      name: "transactionFee",
       type: String,
       example: transactionFee,
-      description: 'transactionFee',
+      description: "transactionFee",
     }),
     ApiProperty({
-      name: 'gasPrice',
+      name: "gasPrice",
       type: String,
       example: gasPrice,
-      description: 'gasPrice',
+      description: "gasPrice",
     }),
     ApiProperty({
-      name: 'createdAt',
+      name: "createdAt",
       type: Date,
       example: createdAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updatedAt',
+      name: "updatedAt",
       type: Date,
       example: updatedAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 

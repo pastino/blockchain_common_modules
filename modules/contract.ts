@@ -14,8 +14,7 @@ import {
   Contract as ContractEntity,
   NftProgressStatus,
 } from "../entities/Contract";
-import axios, { AxiosResponse } from "axios";
-import { alchemy } from "../blockEventHandler";
+import axios from "axios";
 import moment from "moment";
 import { getContractDetails, sleep } from "../utils";
 import { ContractError } from "../entities/ContractError";
@@ -56,10 +55,15 @@ export class ContractManager {
 
       await sleep(1);
 
-      const contractDataBySlag = await axios.get(
-        `https://api.opensea.io/api/v1/collection/${contractDataByAddress.data?.collection?.slug}`,
-        openSeaConfig
-      );
+      let contractDataBySlag;
+      try {
+        contractDataBySlag = await axios.get(
+          `https://api.opensea.io/api/v1/collection/${contractDataByAddress.data?.collection?.slug}`,
+          openSeaConfig
+        );
+      } catch (e) {
+        return { contractDataByAddress, contractDataBySlag: null };
+      }
 
       return { contractDataByAddress, contractDataBySlag };
     } catch (e: any) {
@@ -91,10 +95,6 @@ export class ContractManager {
         .getOne();
 
       if (!contract) {
-        // const contractMetaData = await alchemy.nft.getContractMetadata(
-        //   this.address
-        // );
-
         const contractMetaData = await getContractDetails(
           this.address,
           tokenId
@@ -162,10 +162,7 @@ export class ContractManager {
       return contract;
     } catch (e: any) {
       await this.queryRunner.rollbackTransaction();
-      await getRepository(ContractError).save({
-        address: this.address,
-        returnStringData: JSON.stringify(e.message),
-      });
+
       throw e;
     } finally {
       await this.queryRunner.release();

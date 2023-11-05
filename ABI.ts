@@ -58,7 +58,8 @@ interface Log {
 export async function getIsERC721Event(
   log: Log,
   logs: Log[],
-  blockNumber: number
+  blockNumber: number,
+  transactionHash: string
 ) {
   const { address, topics, data } = log;
   const hexSignature = topics[0];
@@ -74,6 +75,7 @@ export async function getIsERC721Event(
       log,
       logs,
       blockNumber,
+      transactionHash,
     });
     if (decodedData) {
       return { isERC721Event: true, decodedData };
@@ -536,6 +538,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
       log,
       logs,
       blockNumber,
+      transactionHash,
     }: {
       address: string;
       topics: string[];
@@ -543,6 +546,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
       log?: any;
       logs: Log[];
       blockNumber: number;
+      transactionHash: string;
     }): Promise<SaleInterface | undefined> => {
       try {
         const BLUR_ABI = {
@@ -585,6 +589,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
         );
 
         const fromToData = findTargetLogFromTo(String(tokenId), logs);
+
         if (!fromToData) return;
         const { from, to } = fromToData;
 
@@ -630,6 +635,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
       log,
       logs,
       blockNumber,
+      transactionHash,
     }: {
       address: string;
       topics: string[];
@@ -637,6 +643,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
       log: any;
       logs: Log[];
       blockNumber: number;
+      transactionHash: string;
     }): Promise<SaleInterface | any> => {
       try {
         const LOOKSRARE_ABI = {

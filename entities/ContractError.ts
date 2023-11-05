@@ -4,17 +4,23 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-} from 'typeorm';
+} from "typeorm";
 
-@Entity({ name: 'contractError' })
+@Entity({ name: "contractError" })
 export class ContractError {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
+  blockNumber: number;
+
+  @Column()
+  transactionHash: string;
+
+  @Column()
   address: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   returnStringData: string;
 
   @CreateDateColumn()

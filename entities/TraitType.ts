@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Index,
 } from "typeorm";
 import { nftExample } from "../entityExamples";
 import * as dotenv from "dotenv";
