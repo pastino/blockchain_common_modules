@@ -272,7 +272,7 @@ export class Transaction {
 
   public async progressTransaction(): Promise<any> {
     try {
-      const transactions = this.blockData.transactions;
+      const transactions = this.blockData?.transactions;
       if (!transactions || transactions.length === 0) {
         await getRepository(BlockNumberEntity).update(
           { id: this.blockNumber.id },

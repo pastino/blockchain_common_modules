@@ -327,10 +327,11 @@ export class NFT {
           );
           return;
         }
+
         const { isSuccess, message, hashedFileName } = await downloadImage({
           imageUrl:
-            typeof nftData.rawMetadata?.image === "string"
-              ? nftData.rawMetadata?.image.replace(/\x00/g, "")
+            typeof nftData?.imageUri === "string"
+              ? nftData?.imageUri.replace(/\x00/g, "")
               : "",
           contractAddress: this.contract.address,
           tokenId: this.tokenId,

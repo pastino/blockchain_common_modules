@@ -4,6 +4,7 @@ import path from "path";
 import sharp from "sharp";
 import ffmpeg from "fluent-ffmpeg";
 import crypto from "crypto";
+// import { fileTypeFromFile } from "file-type";
 
 const axiosInstance = axios.create();
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
@@ -63,12 +64,9 @@ export const downloadImage = async ({
 
     const dataUrlPattern = /^data:image\/([a-zA-Z0-9]+);base64,/;
     const matchResult = imageUrl.match(dataUrlPattern);
-
     if (matchResult && matchResult[1]) {
       const mimeType = matchResult[1];
-
       const base64Data = imageUrl.replace(dataUrlPattern, "");
-
       // 길이 체크
       if (Buffer.from(base64Data, "base64").length > MAX_SIZE_IN_BYTES) {
         console.error(`${mimeType.toUpperCase()} 이미지 데이터가 너무 큽니다.`);
@@ -95,7 +93,6 @@ export const downloadImage = async ({
       } else {
         server = imageUrl.split("/")[2];
       }
-
       const {
         isSuccess,
         imageUrl: fetchedImageUrl,
@@ -117,6 +114,8 @@ export const downloadImage = async ({
 
     let baseDirectory = __dirname;
 
+    baseDirectory = path.join(__dirname, "..", "..", contractAddress);
+
     if (IS_PRODUCTION) {
       baseDirectory = path.join(
         __dirname,
@@ -132,20 +131,6 @@ export const downloadImage = async ({
     let format = ext.replace(".", "");
 
     if (!format) {
-      (async () => {
-        const { fileTypeFromFile } = await (eval(
-          'import("file-type")'
-        ) as Promise<typeof import("file-type")>);
-
-        await fileTypeFromFile(imageUrl).then((fileType) => {
-          if (fileType) {
-            format = fileType.ext;
-          }
-        });
-      })();
-    }
-
-    if (!format) {
       format = "png";
     }
 
@@ -159,7 +144,6 @@ export const downloadImage = async ({
     }
 
     const thumbnailPath = path.join(baseDirectory, "thumbnail");
-
     // No special case for mp4 anymore
     if (!fs.existsSync(thumbnailPath)) {
       fs.mkdirSync(thumbnailPath, { recursive: true });

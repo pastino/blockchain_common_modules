@@ -25,6 +25,7 @@ const ApiProperty = isNestJs
 
 @Entity({ name: "nft" })
 @Unique("uniqueIndex", ["contract", "tokenId"])
+@Index("idx_nft_contract", ["contract"])
 export class NFT {
   @PrimaryGeneratedColumn()
   id: number;

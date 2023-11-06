@@ -36,7 +36,6 @@ export enum NftProgressStatus {
 @Entity({ name: "contract" })
 @Unique(["address"])
 @Index("idx_contract_openseaCollection", ["openseaCollection"])
-// @Index("idx_contract_address", ["address"])
 export class Contract {
   @PrimaryGeneratedColumn()
   id: number;
@@ -92,9 +91,6 @@ export class Contract {
 
   @Column({ nullable: true })
   createdNFTsPageKey: string;
-
-  // @Column({ nullable: true, type: "text" })
-  // alchemyCollectionError: string;
 
   @OneToOne(
     () => OpenseaCollection,
