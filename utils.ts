@@ -1,5 +1,5 @@
 import { ERC_1155_ABI, ERC_20_ABI, ERC_721_ABI } from "./ABI";
-import cunnectedWeb3 from "./web3";
+import { web3 as cunnectedWeb3 } from "./web3";
 import { Contract } from "web3-eth-contract";
 
 import Web3 from "web3";

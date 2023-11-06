@@ -5,7 +5,7 @@ import { Message } from "./modules/kakao";
 import { Transaction } from "./modules/transaction";
 import moment from "moment";
 import { LogError } from "./entities/LogError";
-import web3 from "./web3";
+import { web3 } from "./web3";
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,

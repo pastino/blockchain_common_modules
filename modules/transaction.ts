@@ -13,7 +13,7 @@ import { BlockNumber as BlockNumberEntity } from "../entities/BlockNumber";
 import { Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 import { DecodedLog } from "../entities/DecodedLog";
-import web3 from "../web3";
+import { web3 } from "../web3";
 import { ContractError } from "../entities/ContractError";
 
 const kakaoMessage = new Message();
