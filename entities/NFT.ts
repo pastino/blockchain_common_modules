@@ -52,12 +52,6 @@ export class NFT {
   @Column({ nullable: true, type: "text" })
   imageRaw: string;
 
-  @Column({ nullable: true })
-  imageFormat: string;
-
-  @Column({ nullable: true })
-  imageBytes: number;
-
   @OneToMany(() => Log, (log) => log.nft, {
     onDelete: "RESTRICT",
   })

@@ -254,23 +254,6 @@ export class NFT {
       return nft;
     } catch (e: any) {
       throw e;
-    } finally {
-      // NFT 이미지 생성 api/
-      try {
-        if (nft?.imageRoute) return;
-        this.createImage({
-          nftId: nft?.id as number,
-          contractAddress: this.contract.address,
-          imageUrl:
-            typeof nftData.rawMetadata?.image === "string"
-              ? nftData.rawMetadata?.image.replace(/\x00/g, "")
-              : "",
-          tokenId: this.tokenId,
-          format: nftData.media?.[0]?.format,
-        });
-      } catch (e) {
-        null;
-      }
     }
   }
 
@@ -345,9 +328,13 @@ export class NFT {
           return;
         }
 
-        nft.imageRoute = hashedFileName;
-        nft.isImageUploaded = true;
-        await getRepository(NFTEntity).update({ id: nft?.id }, nft);
+        await getRepository(NFTEntity).update(
+          { id: nft?.id },
+          {
+            imageRoute: hashedFileName,
+            isImageUploaded: true,
+          }
+        );
         console.log("파일을 다운로드하고 저장했습니다.");
       } catch (e) {
         null;

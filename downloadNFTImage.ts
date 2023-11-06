@@ -204,7 +204,6 @@ export const downloadImage = async ({
     } else {
       fs.writeFileSync(path.join(thumbnailPath, hashedFileName), imageData);
     }
-
     return { isSuccess: true, message: "", hashedFileName };
   } catch (error: any) {
     return { isSuccess: false, message: error.message, hashedFileName: "" };
