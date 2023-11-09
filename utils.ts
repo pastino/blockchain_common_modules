@@ -1,6 +1,7 @@
 import { ERC_1155_ABI, ERC_20_ABI, ERC_721_ABI } from "./ABI";
 import { web3 as cunnectedWeb3 } from "./web3";
 import { Contract } from "web3-eth-contract";
+import axios from "axios";
 
 import Web3 from "web3";
 const web3 = new Web3();
@@ -314,8 +315,9 @@ export const getNFTDetails = async (
         }
       } else {
         try {
-          metadata = await fetch(uri).then((response) => response.json());
-        } catch (e) {}
+          const response = await axios.get(uri);
+          metadata = response.data;
+        } catch (error) {}
       }
 
       nftDetails.title = metadata?.name ? String(metadata?.name) : "";
