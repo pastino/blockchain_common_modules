@@ -4,7 +4,6 @@ import path from "path";
 import sharp from "sharp";
 import ffmpeg from "fluent-ffmpeg";
 import crypto from "crypto";
-// import { fileTypeFromFile } from "file-type";
 
 const axiosInstance = axios.create();
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
@@ -119,7 +118,7 @@ export const downloadImage = async ({
         __dirname,
         "..",
         "..",
-        "image-storage",
+        "assets-storage",
         "images",
         contractAddress
       );

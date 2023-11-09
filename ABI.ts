@@ -865,12 +865,19 @@ export const SALE_HEX_SIGNATURE_LIST = [
       try {
         if (topics.length <= 3) return;
 
+        const fromAddress = web3.eth.abi.decodeParameter("address", topics[1]);
+        const actionType =
+          fromAddress.toLowerCase() ===
+          "0x0000000000000000000000000000000000000000"
+            ? "Mint"
+            : "Transfer";
+
         return {
-          action: "Transfer",
+          action: actionType,
           contract: address,
           quantity: 1,
           tokenId: web3.eth.abi.decodeParameter("uint256", topics[3]) as any,
-          from: web3.eth.abi.decodeParameter("address", topics[1]) as any,
+          from: fromAddress,
           to: web3.eth.abi.decodeParameter("address", topics[2]) as any,
         };
       } catch (e) {
@@ -917,12 +924,19 @@ export const SALE_HEX_SIGNATURE_LIST = [
         const tokenId = decodedData?.[0];
         const quantity = decodedData?.[1];
 
+        const fromAddress = web3.eth.abi.decodeParameter("address", topics[2]);
+        const actionType =
+          fromAddress.toLowerCase() ===
+          "0x0000000000000000000000000000000000000000"
+            ? "Mint"
+            : "Transfer";
+
         return {
-          action: "Transfer",
+          action: actionType,
           contract: address,
           tokenId,
           quantity,
-          from: web3.eth.abi.decodeParameter("address", topics[2]) as any,
+          from: fromAddress,
           to: web3.eth.abi.decodeParameter("address", topics[3]) as any,
         };
       } catch (e) {
@@ -941,75 +955,75 @@ export const SALE_HEX_SIGNATURE_LIST = [
       }
     },
   },
-  {
-    hexSignature:
-      "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
-    action: "Mint",
-    decode: async ({
-      topics,
-      address,
-      data,
-      logs,
-      blockNumber,
-    }: {
-      address: string;
-      topics: string[];
-      data: string;
-      logs: Log[];
-      blockNumber: number;
-    }): Promise<any> => {
-      try {
-        if (topics.length === 2) return;
+  // {
+  //   hexSignature:
+  //     "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
+  //   action: "Mint",
+  //   decode: async ({
+  //     topics,
+  //     address,
+  //     data,
+  //     logs,
+  //     blockNumber,
+  //   }: {
+  //     address: string;
+  //     topics: string[];
+  //     data: string;
+  //     logs: Log[];
+  //     blockNumber: number;
+  //   }): Promise<any> => {
+  //     try {
+  //       if (topics.length === 2) return;
 
-        if (topics.length === 4) {
-          return {
-            action: "Mint",
-            contract: address,
-            minterAddress: web3.eth.abi.decodeParameter("address", topics[1]),
-            stage: web3.eth.abi.decodeParameter("uint256", topics[2]),
-            mintCount: web3.eth.abi.decodeParameter("uint256", topics[3]),
-          };
-        }
+  //       if (topics.length === 4) {
+  //         return {
+  //           action: "Mint",
+  //           contract: address,
+  //           minterAddress: web3.eth.abi.decodeParameter("address", topics[1]),
+  //           stage: web3.eth.abi.decodeParameter("uint256", topics[2]),
+  //           mintCount: web3.eth.abi.decodeParameter("uint256", topics[3]),
+  //         };
+  //       }
 
-        const decodedData: any = web3.eth.abi.decodeParameters(
-          ["address", "uint256", "uint256"],
-          data
-        );
+  //       const decodedData: any = web3.eth.abi.decodeParameters(
+  //         ["address", "uint256", "uint256"],
+  //         data
+  //       );
 
-        if (decodedData[2] > 1000000000) {
-          if (typeof decodedData[1] !== "number") return;
-          return {
-            action: "Mint",
-            contract: address,
-            minterAddress: decodedData[0],
-            stage: "",
-            mintCount: decodedData[1],
-          };
-        }
+  //       if (decodedData[2] > 1000000000) {
+  //         if (typeof decodedData[1] !== "number") return;
+  //         return {
+  //           action: "Mint",
+  //           contract: address,
+  //           minterAddress: decodedData[0],
+  //           stage: "",
+  //           mintCount: decodedData[1],
+  //         };
+  //       }
 
-        return {
-          action: "Mint",
-          contract: address,
-          minterAddress: decodedData[0],
-          stage: decodedData[1],
-          mintCount: decodedData[2],
-        };
-      } catch (e) {
-        console.log(
-          e,
-          "Log Decode Error",
-          `시그니처 - 0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f`,
-          `blockNumber - ${blockNumber}`
-        );
-        await getRepository(DecodeError).save({
-          blockNumber,
-          signature:
-            "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
-          data,
-        });
-      }
-    },
-  },
+  //       return {
+  //         action: "Mint",
+  //         contract: address,
+  //         minterAddress: decodedData[0],
+  //         stage: decodedData[1],
+  //         mintCount: decodedData[2],
+  //       };
+  //     } catch (e) {
+  //       console.log(
+  //         e,
+  //         "Log Decode Error",
+  //         `시그니처 - 0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f`,
+  //         `blockNumber - ${blockNumber}`
+  //       );
+  //       await getRepository(DecodeError).save({
+  //         blockNumber,
+  //         signature:
+  //           "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f",
+  //         data,
+  //       });
+  //     }
+  //   },
+  // },
 ];
 
 export const SIGNATURE_LIST = [
