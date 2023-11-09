@@ -2,22 +2,15 @@ import {
   FindOperator,
   getConnection,
   getRepository,
-  In,
-  Not,
   QueryRunner,
 } from "typeorm";
 import { OpenseaCollection } from "../entities/OpenseaCollection";
 import { Message } from "./kakao";
 import { CreateEntityData } from "./manufactureData";
-import {
-  Contract,
-  Contract as ContractEntity,
-  NftProgressStatus,
-} from "../entities/Contract";
+import { Contract as ContractEntity } from "../entities/Contract";
 import axios from "axios";
 import moment from "moment";
 import { getContractDetails, sleep } from "../utils";
-import { ContractError } from "../entities/ContractError";
 
 const kakaoMessage = new Message();
 const openSeaConfig: any = {
@@ -167,70 +160,5 @@ export class ContractManager {
     } finally {
       await this.queryRunner.release();
     }
-  }
-}
-export class ContractService {
-  async findAbortedContracts(
-    limit: number,
-    excludeIds?: number[]
-  ): Promise<Contract[]> {
-    let whereCondition: ContractCondition = {
-      isNFTsCreated: false,
-      nftProgressStatus: NftProgressStatus.ABORTED,
-    };
-
-    if (excludeIds && excludeIds.length) {
-      whereCondition["id"] = Not(In(excludeIds));
-    }
-
-    return getRepository(Contract).find({
-      where: whereCondition,
-      take: limit,
-    });
-  }
-
-  async findNotAbortedContracts(
-    limit: number,
-    excludeIds?: number[]
-  ): Promise<Contract[]> {
-    let whereCondition: ContractCondition = {
-      isNFTsCreated: false,
-      nftProgressStatus: Not(NftProgressStatus.ABORTED),
-    };
-
-    if (excludeIds && excludeIds.length) {
-      whereCondition["id"] = Not(In(excludeIds));
-    }
-
-    return getRepository(Contract).find({
-      where: whereCondition,
-      take: limit,
-    });
-  }
-
-  async getPriorityAbortedContracts(
-    limit: number,
-    excludeIds?: number[]
-  ): Promise<Contract[]> {
-    const findAbortedContracts = await this.findAbortedContracts(
-      limit,
-      excludeIds
-    );
-    let remainingLimit = limit - findAbortedContracts.length;
-    if (remainingLimit > 0) {
-      let findNotAbortedContracts = await this.findNotAbortedContracts(
-        remainingLimit,
-        excludeIds
-      );
-      return [...findAbortedContracts, ...findNotAbortedContracts];
-    }
-    return findAbortedContracts;
-  }
-
-  async updateStatus(contract: Contract, status: NftProgressStatus) {
-    return getRepository(Contract).update(
-      { id: contract.id },
-      { nftProgressStatus: status }
-    );
   }
 }

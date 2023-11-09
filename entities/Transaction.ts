@@ -28,6 +28,7 @@ const ApiProperty = isNestJs
 @Index("idx_transaction_blockNumber", ["blockNumber"])
 @Index("idx_transaction_eventTime", ["eventTime"])
 @Index("idx_transaction_timestamp", ["timestamp"])
+@Index("idx_transaction_contract", ["contract"])
 export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;

@@ -6,16 +6,17 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
-} from 'typeorm';
-import { Contract } from './Contract';
-import * as dotenv from 'dotenv';
-import { contractExample } from '../entityExamples';
+  Index,
+} from "typeorm";
+import { Contract } from "./Contract";
+import * as dotenv from "dotenv";
+import { contractExample } from "../entityExamples";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
 export var openseaCollectionExample: any = {
@@ -24,39 +25,39 @@ export var openseaCollectionExample: any = {
   totalSupply: 10000,
   count: 10000,
   bannerImageUrl:
-    'https://i.seadn.io/gcs/files/602bb22216c2c2ffac0f45f14991a025.png?w=500&auto=format',
+    "https://i.seadn.io/gcs/files/602bb22216c2c2ffac0f45f14991a025.png?w=500&auto=format",
   createdDate: new Date(),
   description:
-    'Every 30 Days (E30D) is a month-long exhibition of a single,...',
+    "Every 30 Days (E30D) is a month-long exhibition of a single,...",
   floorPrice: 0.1,
-  discordUrl: 'https://discord.gg/3qjUuqX',
-  externalUrl: 'https://www.every30days.com/',
+  discordUrl: "https://discord.gg/3qjUuqX",
+  externalUrl: "https://www.every30days.com/",
   imageUrl:
-    'https://i.seadn.io/gcs/files/602bb22216c2c2ffac0f45f14991a025.png?w=500&auto=format',
+    "https://i.seadn.io/gcs/files/602bb22216c2c2ffac0f45f14991a025.png?w=500&auto=format",
   largeImageUrl:
-    'https://i.seadn.io/gcs/files/602bb22216c2c2ffac0f45f14991a025.png?w=500&auto=format',
-  mediumUsername: 'every30days',
-  name: 'Every 30 Days',
+    "https://i.seadn.io/gcs/files/602bb22216c2c2ffac0f45f14991a025.png?w=500&auto=format",
+  mediumUsername: "every30days",
+  name: "Every 30 Days",
   shortDescription:
-    'Every 30 Days (E30D) is a month-long exhibition of a single,...',
-  slug: 'every30days',
-  telegramUrl: 'https://t.me/every30days',
-  twitterUsername: 'every30days',
-  instagramUsername: 'every30days',
-  wikiUrl: 'https://wiki.opensea.io/collection-wiki/every-30-days',
+    "Every 30 Days (E30D) is a month-long exhibition of a single,...",
+  slug: "every30days",
+  telegramUrl: "https://t.me/every30days",
+  twitterUsername: "every30days",
+  instagramUsername: "every30days",
+  wikiUrl: "https://wiki.opensea.io/collection-wiki/every-30-days",
   createdAt: new Date(),
   updatedAt: new Date(),
 };
 
-@Entity({ name: 'openseaCollection' })
+@Entity({ name: "openseaCollection" })
 export class OpenseaCollection {
   @PrimaryGeneratedColumn()
   id: number;
 
   @OneToOne(() => Contract, (contract) => contract.openseaCollection, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
-  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
 
   @Column({ nullable: true })
@@ -71,7 +72,7 @@ export class OpenseaCollection {
   @Column({ nullable: true })
   createdDate: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
   @Column({ nullable: true })
@@ -153,112 +154,112 @@ const {
 if (isNestJs) {
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
     ApiProperty({
-      name: 'bannerImageUrl',
+      name: "bannerImageUrl",
       type: String,
       example: bannerImageUrl,
-      description: '배너 이미지 URL',
+      description: "배너 이미지 URL",
     }),
     ApiProperty({
-      name: 'createdDate',
+      name: "createdDate",
       type: Date,
       example: createdDate,
-      description: '생성일',
+      description: "생성일",
     }),
     ApiProperty({
-      name: 'description',
+      name: "description",
       type: String,
       example: description,
-      description: '설명',
+      description: "설명",
     }),
     ApiProperty({
-      name: 'discordUrl',
+      name: "discordUrl",
       type: String,
       example: discordUrl,
-      description: '디스코드 URL',
+      description: "디스코드 URL",
     }),
     ApiProperty({
-      name: 'externalUrl',
+      name: "externalUrl",
       type: String,
       example: externalUrl,
-      description: '외부 URL',
+      description: "외부 URL",
     }),
     ApiProperty({
-      name: 'imageUrl',
+      name: "imageUrl",
       type: String,
       example: imageUrl,
-      description: '이미지 URL',
+      description: "이미지 URL",
     }),
     ApiProperty({
-      name: 'largeImageUrl',
+      name: "largeImageUrl",
       type: String,
       example: largeImageUrl,
-      description: '큰 이미지 URL',
+      description: "큰 이미지 URL",
     }),
     ApiProperty({
-      name: 'mediumUsername',
+      name: "mediumUsername",
       type: String,
       example: mediumUsername,
-      description: '미디엄 유저네임',
+      description: "미디엄 유저네임",
     }),
     ApiProperty({
-      name: 'name',
+      name: "name",
       type: String,
       example: name,
-      description: '이름',
+      description: "이름",
     }),
     ApiProperty({
-      name: 'shortDescription',
+      name: "shortDescription",
       type: String,
       example: shortDescription,
-      description: '짧은 설명',
+      description: "짧은 설명",
     }),
     ApiProperty({
-      name: 'slug',
+      name: "slug",
       type: String,
       example: slug,
-      description: 'slug',
+      description: "slug",
     }),
     ApiProperty({
-      name: 'telegramUrl',
+      name: "telegramUrl",
       type: String,
       example: telegramUrl,
-      description: '텔레그램 URL',
+      description: "텔레그램 URL",
     }),
     ApiProperty({
-      name: 'twitterUsername',
+      name: "twitterUsername",
       type: String,
       example: twitterUsername,
-      description: '트위터 유저네임',
+      description: "트위터 유저네임",
     }),
     ApiProperty({
-      name: 'instagramUsername',
+      name: "instagramUsername",
       type: String,
       example: instagramUsername,
-      description: '인스타그램 유저네임',
+      description: "인스타그램 유저네임",
     }),
     ApiProperty({
-      name: 'wikiUrl',
+      name: "wikiUrl",
       type: String,
       example: wikiUrl,
-      description: '위키 URL',
+      description: "위키 URL",
     }),
     ApiProperty({
-      name: 'createdAt',
+      name: "createdAt",
       type: Date,
       example: createdAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updatedAt',
+      name: "updatedAt",
       type: Date,
       example: updatedAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 

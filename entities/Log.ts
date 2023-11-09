@@ -46,7 +46,7 @@ export class Log {
   @JoinColumn({ name: "transactionId", referencedColumnName: "id" })
   transaction: Transaction;
 
-  @ManyToOne(() => Contract, (contract) => contract.nfts, {
+  @ManyToOne(() => Contract, (contract) => contract.logs, {
     onDelete: "SET NULL",
   })
   @JoinColumn({ name: "contractId", referencedColumnName: "id" })
