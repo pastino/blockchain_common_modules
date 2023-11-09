@@ -118,6 +118,7 @@ export const downloadImage = async ({
         __dirname,
         "..",
         "..",
+        "..",
         "assets-storage",
         "images",
         contractAddress
