@@ -51,9 +51,6 @@ export class Transaction {
     retryCount: number = 10
   ): Promise<TransactionReceipt | null> {
     try {
-      // const response = await alchemy.core.getTransactionReceipt(
-      //   transactionHash
-      // );
       const response = await web3.eth.getTransactionReceipt(transactionHash);
       return response;
     } catch (e: any) {
@@ -76,10 +73,7 @@ export class Transaction {
     retryCount: number = 10
   ): Promise<any> {
     try {
-      // const response = await alchemy.core.getTransaction(transactionHash);
       const response = await web3.eth.getTransaction(transactionHash);
-      // confirmations 없음
-      // gasLimit 없음
       return response;
     } catch (e: any) {
       if (retryCount > 0) {

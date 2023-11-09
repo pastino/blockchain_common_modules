@@ -1,7 +1,6 @@
 import { getRepository } from "typeorm";
 import { Contract, Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
-import { alchemy } from "../blockEventHandler";
 import axios, { AxiosResponse } from "axios";
 import { getNFTDetails, sleep } from "../utils";
 import crypto from "crypto";
@@ -9,7 +8,6 @@ import { TraitType } from "../entities/TraitType";
 import { AttributeNFT } from "../entities/AttributeNFT";
 import { TraitTypeContract } from "../entities/TraitTypeContract";
 import { Attribute } from "../entities/Attribute";
-import Bottleneck from "bottleneck";
 import { downloadImage } from "../downloadNFTImage";
 
 const openSeaConfig: any = {
