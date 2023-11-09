@@ -299,7 +299,6 @@ export const SALE_HEX_SIGNATURE_LIST = [
         const to: any = topics[2]
           ? web3.eth.abi.decodeParameter("address", topics[2])
           : "";
-
         const quantity = Number(decodedData?.[9]);
         return {
           action: "Sale",
@@ -583,18 +582,18 @@ export const SALE_HEX_SIGNATURE_LIST = [
         const { tokenId } = unpackTokenIdListingIndexTrader(
           BigInt(decodedData.tokenIdListingIndexTrader)
         );
-
         const { price, collection } = unpackCollectionPriceSide(
           BigInt(decodedData.collectionPriceSide)
         );
 
+        // 해당 시그니처에서는 from, to 주소를 찾을 수 없어, 트랜잭션의 trnsfer 데이터로 from, to 주소를 찾는다.
         const fromToData = findTargetLogFromTo(String(tokenId), logs);
 
         if (!fromToData) return;
         const { from, to } = fromToData;
 
         const value = Number(price) / 10 ** 18;
-
+     
         return {
           action: "Sale",
           contract: collection,

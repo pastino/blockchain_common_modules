@@ -292,7 +292,6 @@ export class Transaction {
           timestamp,
           eventTime,
         };
-
         const transaction = await getRepository(TransactionEntity).save({
           ...transactionData,
           data: transactionData.input,

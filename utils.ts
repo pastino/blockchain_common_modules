@@ -167,7 +167,7 @@ export const findTargetLogFromTo = (tokenId: string, logs: any[]) => {
   );
 
   // Transfer log 아니면 중단
-  if (hasThirdTopicLogs?.length > 0) return;
+  if (hasThirdTopicLogs?.length === 0) return;
 
   // Transfer log 중에서 tokenId가 일치하는 log 찾기
   const targetTransferLog = hasThirdTopicLogs.find(
