@@ -680,24 +680,28 @@ export class Transaction {
       });
 
       if (decodedLog) {
-        const createdDecodeLog = await getRepository(DecodedLog).save({
-          ...decodedLog,
-          contractAddress: decodedLog.contract,
-          log: logData,
-          ...logInputData,
-          transaction,
-          timestamp: transaction.timestamp,
-          eventTime: transaction.eventTime,
-          gasUsed: transaction.gasUsed,
-          cumulativeGasUsed: transaction.cumulativeGasUsed,
-          effectiveGasPrice: transaction.effectiveGasPrice,
-          gasPrice: transaction.gasPrice,
-          gasLimit: transaction.gasLimit,
-        });
-        await getRepository(LogEntity).update(
-          { id: logData.id },
-          { decodedLog: createdDecodeLog }
-        );
+        try {
+          const createdDecodeLog = await getRepository(DecodedLog).save({
+            ...decodedLog,
+            contractAddress: decodedLog.contract,
+            log: logData,
+            ...logInputData,
+            transaction,
+            timestamp: transaction.timestamp,
+            eventTime: transaction.eventTime,
+            gasUsed: transaction.gasUsed,
+            cumulativeGasUsed: transaction.cumulativeGasUsed,
+            effectiveGasPrice: transaction.effectiveGasPrice,
+            gasPrice: transaction.gasPrice,
+            gasLimit: transaction.gasLimit,
+          });
+          await getRepository(LogEntity).update(
+            { id: logData.id },
+            { decodedLog: createdDecodeLog }
+          );
+        } catch (e) {
+          throw e;
+        }
       }
 
       for (let i = 0; i < topics.length; i++) {

@@ -65,6 +65,7 @@ export async function handleBlockEvent(blockNum: number) {
     await getRepository(BlockNumber).delete({ blockNumber: blockNum });
     await getRepository(LogError).save({
       blockNumber: blockNum,
+      errorMessage: e.message,
     });
     console.log(e);
 

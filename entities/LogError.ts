@@ -21,6 +21,9 @@ export class LogError {
   @Column({ nullable: true })
   logId: number;
 
+  @Column({ nullable: true })
+  errorMessage: string;
+
   @Column({ nullable: true, default: false })
   isCompletedCreate: boolean;
 
