@@ -63,6 +63,7 @@ export async function getIsERC721Event(
 ) {
   const { address, topics, data } = log;
   const hexSignature = topics[0];
+
   const signature = SALE_HEX_SIGNATURE_LIST.find(
     (item) => item.hexSignature === hexSignature
   );
@@ -593,7 +594,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
         const { from, to } = fromToData;
 
         const value = Number(price) / 10 ** 18;
-     
+
         return {
           action: "Sale",
           contract: collection,

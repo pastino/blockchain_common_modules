@@ -19,6 +19,7 @@ export const ormconfig: ConnectionOptions = {
   entities: [__dirname + "/entities/*.*"],
   migrations: [__dirname + "/migrations/*.*"],
   subscribers: [__dirname + "/subscribers/*.*"],
+  dropSchema: true,
   extra: {},
   ...(!isNestJs && {
     cli: {

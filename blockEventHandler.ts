@@ -24,7 +24,6 @@ export async function handleBlockEvent(blockNum: number) {
     });
 
     if (existingBlock) return { isSuccess: false, message: "이미 처리된 블록" };
-    // const blockData = await alchemy.core.getBlock(blockNum);
     const blockData = await web3.eth.getBlock(blockNum);
     const blockNumber = await getRepository(BlockNumber).save({
       blockNumber: blockNum,
