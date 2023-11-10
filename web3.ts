@@ -1,10 +1,8 @@
 const Web3 = require("web3");
-const INFURA_ENDPOINT = `http://121.168.75.64`;
-const INFURA_ENDPOINTt = `ws://121.168.75.64/eth/ws`;
+const ETH_NODE_HTTP = `http://121.168.75.64`;
+const ETH_NODE_WS = `ws://121.168.75.64/eth-ws/`;
 
-const web3 = new Web3(new Web3.providers.HttpProvider(INFURA_ENDPOINT));
-const web_socket3 = new Web3(
-  new Web3.providers.WebsocketProvider(INFURA_ENDPOINTt)
-);
+const web3 = new Web3(new Web3.providers.HttpProvider(ETH_NODE_HTTP));
+const web_socket3 = new Web3(new Web3.providers.WebsocketProvider(ETH_NODE_WS));
 
 export { web3, web_socket3 };
