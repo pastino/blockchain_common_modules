@@ -64,37 +64,37 @@ export class DecodedLog {
   action: Action;
 
   @Column({ nullable: true })
-  contractAddress: String;
+  contractAddress: string;
 
   @Column({ nullable: true })
-  tokenId: String;
+  tokenId: string;
 
   @Column({ nullable: true })
-  from: String;
+  from: string;
 
   @Column({ nullable: true })
-  to: String;
+  to: string;
 
   @Column({ nullable: true, type: "float" })
   ethValue: number;
 
   @Column({ nullable: true })
-  unit: String;
+  unit: string;
 
   @Column({ nullable: true, type: "float" })
   value: number;
 
   @Column({ nullable: true })
-  platform: String;
+  platform: string;
 
   @Column({ nullable: true })
-  quantity: number;
+  quantity: string;
 
   @Column({ nullable: true })
-  minterAddress: String;
+  minterAddress: string;
 
   @Column({ nullable: true })
-  stage: String;
+  stage: string;
 
   @Column({ nullable: true })
   mintCount: number;

@@ -450,7 +450,7 @@
 import { Block, Log, TransactionReceipt } from "alchemy-sdk";
 import { Message } from "./kakao";
 import moment from "moment";
-import { getIsERC721Event, SIGNATURE_LIST } from "../ABI";
+import { getIsERC721Event } from "../ABI";
 import { getRepository } from "typeorm";
 import { ContractManager } from "./contract";
 import { NFT } from "./nft";
@@ -539,68 +539,6 @@ export class Transaction {
     }
   }
 
-  private async anylyzeLog(log: Log): Promise<
-    Success<{
-      name: string;
-      type: string;
-      [key: string]: any;
-    }>
-  > {
-    const topics = log.topics;
-    const haxSignature = topics[0];
-
-    const signatureDataLength = SIGNATURE_LIST.filter(
-      (signature) => signature.hexSignature === haxSignature
-    ).length;
-
-    let signatureData;
-    // TODO 1. 여기 수정 필요
-    if (signatureDataLength > 1) {
-      signatureData = SIGNATURE_LIST.find(
-        (signature) =>
-          signature.hexSignature === haxSignature &&
-          topics.length === signature.indexLength + 1
-      );
-    } else if (signatureDataLength === 1) {
-      signatureData = SIGNATURE_LIST.find(
-        (signature) => signature.hexSignature === haxSignature
-      );
-    }
-
-    if (!signatureData)
-      return { isSuccess: false, message: "signatureData is empty" };
-
-    try {
-      const decodedSignatureData = signatureData.function(log);
-      return { isSuccess: true, data: decodedSignatureData };
-    } catch (e) {
-      console.log(log.transactionHash, topics, signatureData);
-      return { isSuccess: false };
-    }
-  }
-
-  private async getDecodedLogs(
-    logs: Log[]
-  ): Promise<{ isERC721: boolean; decodedLogs: ABIIntreface[] }> {
-    const decodedLogs: ABIIntreface[] = [];
-    for (let i = 0; i < logs.length; i++) {
-      const decodedSignatureData = await this.anylyzeLog(logs[i]);
-      if (decodedSignatureData?.data) {
-        decodedLogs.push(decodedSignatureData.data);
-      }
-    }
-
-    const isERC721 = decodedLogs.find(
-      (item) => item.name === "Transfer" && item.type === "ERC721"
-    );
-
-    return { isERC721: isERC721 ? true : false, decodedLogs };
-  }
-
-  private hexToStringValue = (hexValue: string): string => {
-    return parseInt(hexValue, 16).toString();
-  };
-
   private async createContractAndNFT({
     tokenId,
     contractAddress,
@@ -635,6 +573,7 @@ export class Transaction {
         });
         nftData = await nft.saveNFT();
       }
+
       return { isSuccess: true, contractData, nftData };
     } catch (e: any) {
       await getRepository(ContractError).save({
@@ -820,6 +759,7 @@ export class Transaction {
         });
         const contractData = result.contractData;
         const nftData = result.nftData;
+
         await this.createLog({
           log,
           transaction,
@@ -828,6 +768,7 @@ export class Transaction {
           decodedLog: decodedData || null,
         });
       }
+
       await getRepository(BlockNumberEntity).update(
         { id: this.blockNumber.id },
         { isNFTCompletedUpdate: true }

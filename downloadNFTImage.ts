@@ -44,6 +44,12 @@ const makeRequest = async ({ imageUrl, server }: any) => {
   }
 };
 
+const getUrlExtension = (url: string) => {
+  const urlObj = new URL(url);
+  const pathname = urlObj.pathname;
+  return pathname.slice(((pathname.lastIndexOf(".") - 1) >>> 0) + 2);
+};
+
 export const downloadImage = async ({
   imageUrl,
   contractAddress,
@@ -60,7 +66,6 @@ export const downloadImage = async ({
   try {
     let imageData;
     const MAX_SIZE_IN_BYTES = 5 * 1024 * 1024; // 5MB
-
     const dataUrlPattern = /^data:image\/([a-zA-Z0-9]+);base64,/;
     const matchResult = imageUrl.match(dataUrlPattern);
     if (matchResult && matchResult[1]) {
@@ -125,14 +130,10 @@ export const downloadImage = async ({
       );
     }
 
-    const ext = path.extname(imageUrl).toLowerCase();
-    let format = ext.replace(".", "");
-
-    if (!format) {
-      format = "png";
-    }
+    const format = getUrlExtension(imageUrl) || "png";
 
     let hashedFileName;
+
     if (format === "svg+xml") {
       hashedFileName = encrypt(tokenId) + ".png";
     } else if (format === "mp4") {
@@ -140,13 +141,11 @@ export const downloadImage = async ({
     } else {
       hashedFileName = encrypt(tokenId) + `.${format}`;
     }
-
     const thumbnailPath = path.join(baseDirectory, "thumbnail");
     // No special case for mp4 anymore
     if (!fs.existsSync(thumbnailPath)) {
       fs.mkdirSync(thumbnailPath, { recursive: true });
     }
-
     if (["jpeg", "jpg", "png", "webp", "tiff"].includes(format)) {
       // For image formats that Sharp can handle, we resize and change format
       const transformer = sharp(imageData)
@@ -167,16 +166,19 @@ export const downloadImage = async ({
       fs.writeFileSync(tempFilePath, imageData);
 
       const outputPath = path.join(thumbnailPath, hashedFileName);
-
       await new Promise((resolve, reject) => {
         ffmpeg(tempFilePath)
           .outputOptions("-vf scale=200:-1") // Resize the GIF
           .output(outputPath)
           .on("end", () => {
+            console.log("delete");
             fs.unlinkSync(tempFilePath); // Delete the original, unprocessed GIF file
             resolve(undefined);
           })
-          .on("error", reject)
+          .on("error", (err) => {
+            // TODO 여기에 이미지 에러 로그 추가
+            reject(err);
+          })
           .run(); // Run the command
       });
     } else if (format === "mp4") {
@@ -198,7 +200,10 @@ export const downloadImage = async ({
             fs.unlinkSync(tempFilePath); // Delete the original, unprocessed video file
             resolve(undefined);
           })
-          .on("error", reject)
+          .on("error", (err) => {
+            // TODO 여기에 이미지 에러 로그 추가
+            reject(err);
+          })
           .run(); // Run the command
       });
     } else {

@@ -56,11 +56,11 @@ export async function handleBlockEvent(blockNum: number) {
     console.log("블록 데이터 생성 완료", blockNum);
     return { isSuccess: true, message: `블록 데이터 생성 완료 - ${blockNum}` };
   } catch (e: any) {
-    await kakaoMessage.sendMessage(
-      `${moment(new Date()).format(
-        "MM/DD HH:mm"
-      )}\n\n블록 데이터 생성 실패 ${blockNum}\n\n${e.message}`
-    );
+    // await kakaoMessage.sendMessage(
+    //   `${moment(new Date()).format(
+    //     "MM/DD HH:mm"
+    //   )}\n\n블록 데이터 생성 실패 ${blockNum}\n\n${e.message}`
+    // );
 
     await getRepository(BlockNumber).delete({ blockNumber: blockNum });
     await getRepository(LogError).save({

@@ -179,6 +179,7 @@ export class NFT {
       if (nft && nftData.attribute && nftData.attribute.length > 0) {
         await this.saveAttributes(nft, this.contract, nftData.attribute);
       }
+
       return nft;
     } catch (e) {
       throw e;
@@ -270,7 +271,6 @@ export class NFT {
 
     try {
       nftData = await getNFTDetails(this.contract.address, this.tokenId);
-
       try {
         nft = await this.createNFTAndAttributes(nftData);
       } catch (e: any) {
@@ -297,7 +297,7 @@ export class NFT {
     } finally {
       // NFT 이미지 생성
       try {
-        if (nft?.imageRoute) return;
+        if (nft?.imageRoute) return nft;
         if (!nft || !nft?.imageRaw) {
           let failedMessage = "";
           if (!nft) failedMessage = "nft가 없습니다.";
@@ -306,9 +306,8 @@ export class NFT {
             { id: nft?.id },
             { isImageUploaded: false, imageSaveError: failedMessage }
           );
-          return;
+          return nft;
         }
-
         const { isSuccess, message, hashedFileName } = await downloadImage({
           imageUrl:
             typeof nftData?.imageUri === "string"
@@ -317,15 +316,13 @@ export class NFT {
           contractAddress: this.contract.address,
           tokenId: this.tokenId,
         });
-
         if (!isSuccess) {
           await getRepository(NFTEntity).update(
             { id: nft?.id },
             { isImageUploaded: false, imageSaveError: message }
           );
-          return;
+          return nft;
         }
-
         await getRepository(NFTEntity).update(
           { id: nft?.id },
           {
@@ -334,6 +331,7 @@ export class NFT {
           }
         );
         console.log("파일을 다운로드하고 저장했습니다.");
+        return nft;
       } catch (e) {
         null;
       }
