@@ -330,7 +330,6 @@ export class NFT {
             isImageUploaded: true,
           }
         );
-        console.log("파일을 다운로드하고 저장했습니다.");
         return nft;
       } catch (e) {
         null;

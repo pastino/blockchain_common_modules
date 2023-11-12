@@ -326,7 +326,8 @@ export const getNFTDetails = async (
       nftDetails.attribute = metadata?.attributes || [];
       nftDetails.attributesRaw = uri;
     } catch (error) {
-      console.error("Error fetching NFT details:", error);
+      // console.error("Error fetching NFT details:", error);
+      // TODO nft 저장 안되는 케이스 정보 저장 필요?
     }
   };
 
