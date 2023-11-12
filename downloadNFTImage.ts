@@ -232,7 +232,7 @@ export const downloadImage = async ({
             fs.unlinkSync(tempFilePath); // Delete the original, unprocessed GIF file
             resolve(undefined);
           })
-          .on("error", (err) => {
+          .on("error", (err: any) => {
             // TODO 여기에 이미지 에러 로그 추가
             reject(err);
           })
@@ -256,7 +256,7 @@ export const downloadImage = async ({
             fs.unlinkSync(tempFilePath); // Delete the original, unprocessed video file
             resolve(undefined);
           })
-          .on("error", (err) => {
+          .on("error", (err: any) => {
             // TODO 여기에 이미지 에러 로그 추가
             reject(err);
           })

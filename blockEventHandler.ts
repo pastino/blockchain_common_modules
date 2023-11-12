@@ -3,7 +3,6 @@ import { getRepository } from "typeorm";
 import { BlockNumber } from "./entities/BlockNumber";
 import { Message } from "./modules/kakao";
 import { Transaction } from "./modules/transaction";
-import moment from "moment";
 import { LogError } from "./entities/LogError";
 import { web3 } from "./web3";
 
