@@ -44,6 +44,59 @@ const makeRequest = async ({ imageUrl, server }: any) => {
   }
 };
 
+function isMP4(buffer: any) {
+  // MP4 파일은 'ftyp' 박스를 포함할 수 있습니다.
+  // 이 박스는 파일의 시작 부분 근처에 위치할 수 있으므로,
+  // 버퍼의 처음 12바이트 내에서 'ftyp' 시그니처를 찾습니다.
+  const signatures = ["66747970", "6d703432"]; // 'ftyp', 'mp42' 시그니처
+
+  for (let i = 0; i < 12; i++) {
+    const signature = buffer.toString("hex", i, i + 4);
+    if (signatures.includes(signature)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function getFileExtension(buffer: any) {
+  const signatures: any = {
+    ffd8ffe0: "jpg",
+    ffd8ffe1: "jpg",
+    ffd8ffe2: "jpg",
+    ffd8ffe3: "jpg",
+    ffd8ffe8: "jpg",
+    "89504e47": "png",
+    "47494638": "gif",
+    "424d": "bmp",
+    "52494646": "webp",
+    "49492a00": "tiff",
+    "4d4d002a": "tiff",
+    "4d4d002b": "tiff",
+    "00000018": "mp4",
+    "00000020": "mp4",
+    "66747970": "mp4", // MP4의 경우 더 복잡한 체크가 필요할 수 있음
+    "25504446": "pdf",
+    "504b0304": "zip",
+  };
+
+  const signature = buffer.toString("hex", 0, 4);
+  for (let key in signatures) {
+    if (signature.startsWith(key)) {
+      return signatures[key];
+    }
+  }
+
+  // 확장자를 찾지 못한 경우, MP4인지 확인
+  if (isMP4(buffer)) {
+    return "mp4";
+  }
+
+  return null;
+
+  return null;
+}
+
 const getUrlExtension = (url: string) => {
   const urlObj = new URL(url);
   const pathname = urlObj.pathname;
@@ -66,7 +119,7 @@ export const downloadImage = async ({
   try {
     let imageData;
     const MAX_SIZE_IN_BYTES = 5 * 1024 * 1024; // 5MB
-    const dataUrlPattern = /^data:image\/([a-zA-Z0-9]+);base64,/;
+    const dataUrlPattern = /^data:image\/([a-zA-Z0-9+]+);base64,/;
     const matchResult = imageUrl.match(dataUrlPattern);
     if (matchResult && matchResult[1]) {
       const mimeType = matchResult[1];
@@ -80,6 +133,7 @@ export const downloadImage = async ({
           hashedFileName: "",
         }; // 혹은 다른 오류 처리 로직
       }
+
       imageData = Buffer.from(base64Data, "base64");
     } else {
       let server = "";
@@ -89,6 +143,7 @@ export const downloadImage = async ({
           ipfsHash = ipfsHash.split("ipfs/")[1];
         }
         imageUrl = `https://ipfs.io/ipfs/${ipfsHash}`;
+
         server = "ipfs.io";
       } else if (imageUrl.startsWith("ar://")) {
         const arweaveHash = imageUrl.split("ar://")[1];
@@ -97,6 +152,7 @@ export const downloadImage = async ({
       } else {
         server = imageUrl.split("/")[2];
       }
+
       const {
         isSuccess,
         imageUrl: fetchedImageUrl,
@@ -105,7 +161,6 @@ export const downloadImage = async ({
         imageUrl,
         server,
       });
-
       if (!isSuccess) {
         return {
           isSuccess: true,
@@ -130,7 +185,9 @@ export const downloadImage = async ({
       );
     }
 
-    const format = getUrlExtension(imageUrl) || "png";
+    let format = getUrlExtension(imageUrl);
+    if (!format) format = getFileExtension(imageData);
+    if (!format) format = "png";
 
     let hashedFileName;
 
@@ -141,6 +198,7 @@ export const downloadImage = async ({
     } else {
       hashedFileName = encrypt(tokenId) + `.${format}`;
     }
+
     const thumbnailPath = path.join(baseDirectory, "thumbnail");
     // No special case for mp4 anymore
     if (!fs.existsSync(thumbnailPath)) {
@@ -171,7 +229,6 @@ export const downloadImage = async ({
           .outputOptions("-vf scale=200:-1") // Resize the GIF
           .output(outputPath)
           .on("end", () => {
-            console.log("delete");
             fs.unlinkSync(tempFilePath); // Delete the original, unprocessed GIF file
             resolve(undefined);
           })
@@ -187,7 +244,6 @@ export const downloadImage = async ({
         `${encrypt(tokenId)}_temp.mp4`
       );
       fs.writeFileSync(tempFilePath, imageData);
-
       const outputPath = path.join(thumbnailPath, `${hashedFileName}`);
 
       await new Promise((resolve, reject) => {
