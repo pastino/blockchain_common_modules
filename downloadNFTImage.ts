@@ -117,12 +117,14 @@ export const downloadImage = async ({
   hashedFileName: string;
 }> => {
   try {
+    console.log(1);
     let imageData;
     const MAX_SIZE_IN_BYTES = 5 * 1024 * 1024; // 5MB
     const dataUrlPattern = /^data:image\/([a-zA-Z0-9+]+);base64,/;
     const matchResult = imageUrl.match(dataUrlPattern);
     if (matchResult && matchResult[1]) {
       const mimeType = matchResult[1];
+      console.log("mimeType", mimeType);
       const base64Data = imageUrl.replace(dataUrlPattern, "");
       // 길이 체크
       if (Buffer.from(base64Data, "base64").length > MAX_SIZE_IN_BYTES) {
@@ -133,8 +135,9 @@ export const downloadImage = async ({
           hashedFileName: "",
         }; // 혹은 다른 오류 처리 로직
       }
-
+      console.log("base64Data", base64Data);
       imageData = Buffer.from(base64Data, "base64");
+      console.log("imageData", imageData);
     } else {
       let server = "";
       if (imageUrl.startsWith("ipfs://")) {
@@ -170,7 +173,7 @@ export const downloadImage = async ({
       }
       imageData = fetchedImageUrl;
     }
-
+    console.log(2);
     let baseDirectory = __dirname;
 
     if (IS_PRODUCTION) {
