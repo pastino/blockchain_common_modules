@@ -117,14 +117,12 @@ export const downloadImage = async ({
   hashedFileName: string;
 }> => {
   try {
-    console.log(1);
     let imageData;
     const MAX_SIZE_IN_BYTES = 5 * 1024 * 1024; // 5MB
     const dataUrlPattern = /^data:image\/([a-zA-Z0-9+]+);base64,/;
     const matchResult = imageUrl.match(dataUrlPattern);
     if (matchResult && matchResult[1]) {
       const mimeType = matchResult[1];
-      console.log("mimeType", mimeType);
       const base64Data = imageUrl.replace(dataUrlPattern, "");
       // 길이 체크
       if (Buffer.from(base64Data, "base64").length > MAX_SIZE_IN_BYTES) {
@@ -135,9 +133,8 @@ export const downloadImage = async ({
           hashedFileName: "",
         }; // 혹은 다른 오류 처리 로직
       }
-      console.log("base64Data", base64Data);
+
       imageData = Buffer.from(base64Data, "base64");
-      console.log("imageData", imageData);
     } else {
       let server = "";
       if (imageUrl.startsWith("ipfs://")) {
@@ -173,11 +170,10 @@ export const downloadImage = async ({
       }
       imageData = fetchedImageUrl;
     }
-    console.log(2);
+
     let baseDirectory = __dirname;
 
     if (IS_PRODUCTION) {
-      console.log("baseDirectory", baseDirectory, contractAddress);
       baseDirectory = path.join(
         __dirname,
         "..",
@@ -188,13 +184,13 @@ export const downloadImage = async ({
         contractAddress
       );
     }
-    console.log(3);
+
     let format = getUrlExtension(imageUrl);
     if (!format) format = getFileExtension(imageData);
     if (!format) format = "png";
 
     let hashedFileName;
-    console.log(4, format);
+
     if (format === "svg+xml") {
       hashedFileName = encrypt(tokenId) + ".png";
     } else if (format === "mp4") {
@@ -202,7 +198,7 @@ export const downloadImage = async ({
     } else {
       hashedFileName = encrypt(tokenId) + `.${format}`;
     }
-    console.log(5, hashedFileName);
+
     const thumbnailPath = path.join(baseDirectory, "thumbnail");
     // No special case for mp4 anymore
     if (!fs.existsSync(thumbnailPath)) {
@@ -269,7 +265,6 @@ export const downloadImage = async ({
     } else {
       fs.writeFileSync(path.join(thumbnailPath, hashedFileName), imageData);
     }
-    console.log(6);
     return { isSuccess: true, message: "", hashedFileName };
   } catch (error: any) {
     return { isSuccess: false, message: error.message, hashedFileName: "" };
