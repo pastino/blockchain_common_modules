@@ -187,13 +187,13 @@ export const downloadImage = async ({
         contractAddress
       );
     }
-
+    console.log(3);
     let format = getUrlExtension(imageUrl);
     if (!format) format = getFileExtension(imageData);
     if (!format) format = "png";
 
     let hashedFileName;
-
+    console.log(4, format);
     if (format === "svg+xml") {
       hashedFileName = encrypt(tokenId) + ".png";
     } else if (format === "mp4") {
@@ -201,7 +201,7 @@ export const downloadImage = async ({
     } else {
       hashedFileName = encrypt(tokenId) + `.${format}`;
     }
-
+    console.log(5, hashedFileName);
     const thumbnailPath = path.join(baseDirectory, "thumbnail");
     // No special case for mp4 anymore
     if (!fs.existsSync(thumbnailPath)) {
@@ -268,6 +268,7 @@ export const downloadImage = async ({
     } else {
       fs.writeFileSync(path.join(thumbnailPath, hashedFileName), imageData);
     }
+    console.log(6);
     return { isSuccess: true, message: "", hashedFileName };
   } catch (error: any) {
     return { isSuccess: false, message: error.message, hashedFileName: "" };
