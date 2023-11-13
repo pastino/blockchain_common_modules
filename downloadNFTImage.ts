@@ -177,6 +177,7 @@ export const downloadImage = async ({
     let baseDirectory = __dirname;
 
     if (IS_PRODUCTION) {
+      console.log("baseDirectory", baseDirectory, contractAddress);
       baseDirectory = path.join(
         __dirname,
         "..",
