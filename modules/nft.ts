@@ -218,46 +218,9 @@ export class NFT {
     }
   }
 
-  async saveNFTForCollection(nftData: any) {
-    let nft = await getRepository(NFTEntity).findOne({
-      where: {
-        contract: this.contract as any,
-        tokenId: this.tokenId as any,
-      },
-    });
-
-    if (nft) {
-      return nft;
-    }
-
-    try {
-      try {
-        nft = await this.createNFTAndAttributes(nftData);
-      } catch (e: any) {
-        if (e.code === "23505") {
-          nft = await getRepository(NFTEntity).findOne({
-            where: {
-              contract: this.contract as any,
-              tokenId: this.tokenId as any,
-            },
-          });
-        } else {
-          throw e;
-        }
-      }
-
-      if (!nft) {
-        throw `Failed to find or save nft`;
-      }
-
-      return nft;
-    } catch (e: any) {
-      throw e;
-    }
-  }
-
-  async saveNFT() {
+  async saveNFT(isUpdate: boolean = false) {
     let nftData: any;
+
     let nft = await getRepository(NFTEntity).findOne({
       where: {
         contract: this.contract as any,
@@ -265,12 +228,18 @@ export class NFT {
       },
     });
 
-    if (nft) {
+    if (nft && !isUpdate) {
       return nft;
     }
 
     try {
       nftData = await getNFTDetails(this.contract.address, this.tokenId);
+
+      if (isUpdate) {
+        nftData.id = nft?.id;
+      }
+
+      console.log("nftData", nftData);
       try {
         nft = await this.createNFTAndAttributes(nftData);
       } catch (e: any) {

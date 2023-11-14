@@ -266,7 +266,7 @@ export const getNFTDetails = async (
     title: null as string | null,
     description: null,
     imageUri: null,
-    attribute: null,
+    attribute: [],
     tokenType: null as string | null,
     attributesRaw: null,
   };
