@@ -14,7 +14,7 @@ import { Contract } from "./Contract";
 import { Log } from "./Log";
 import { nftExample } from "../entityExamples";
 import * as dotenv from "dotenv";
-import { AttributeNFT } from "./AttributeNFT";
+import { AttributeProperty } from "./AttributeProperty";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -57,10 +57,14 @@ export class NFT {
   })
   logs: Log[];
 
-  @OneToMany(() => AttributeNFT, (attributeNFT) => attributeNFT.nft, {
-    onDelete: "CASCADE",
-  })
-  attributeNFTs: AttributeNFT[];
+  @OneToMany(
+    () => AttributeProperty,
+    (attributeProperty) => attributeProperty.nft,
+    {
+      onDelete: "RESTRICT",
+    }
+  )
+  properties: AttributeProperty[];
 
   @Column({ nullable: true, default: null })
   isAttributeUpdated: boolean;
@@ -219,13 +223,6 @@ if (isNestJs) {
       example: logs,
       description: "메타데이터 이미지",
     }),
-    ApiProperty({
-      name: "attributeNFTs",
-      type: () => [AttributeNFT],
-      example: attributeNFTs,
-      description: "메타데이터 이미지",
-    }),
-
     ApiProperty({
       name: "createdAt",
       type: Date,

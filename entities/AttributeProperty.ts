@@ -8,11 +8,10 @@ import {
   ManyToOne,
   JoinColumn,
 } from "typeorm";
-import { Transaction } from "./Transaction";
 import * as dotenv from "dotenv";
-import { blockNumberExample } from "../entityExamples";
 import { Contract } from "./Contract";
-import { AttributeProperty } from "./AttributeProperty";
+import { Attribute } from "./Attribute";
+import { NFT } from "./NFT";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -21,26 +20,21 @@ const ApiProperty = isNestJs
   ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
-@Entity({ name: "attribute" })
-export class Attribute {
+@Entity({ name: "attributeProperty" })
+export class AttributeProperty {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Contract, (contract) => contract.nfts)
-  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
-  contract: Contract;
+  @ManyToOne(() => Attribute, (attribute) => attribute.properties)
+  @JoinColumn({ name: "attributeId", referencedColumnName: "id" })
+  attribute: Attribute;
+
+  @ManyToOne(() => NFT, (nft) => nft.properties)
+  @JoinColumn({ name: "nftId", referencedColumnName: "id" })
+  nft: NFT;
 
   @Column({ nullable: true })
-  traitType: string;
-
-  @OneToMany(
-    () => AttributeProperty,
-    (attributeProperty) => attributeProperty.attribute,
-    {
-      onDelete: "CASCADE",
-    }
-  )
-  properties: AttributeProperty[];
+  value: string;
 
   @CreateDateColumn()
   createdAt: Date;

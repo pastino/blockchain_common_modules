@@ -13,10 +13,10 @@ import {
 import { NFT } from "./NFT";
 import { TrendCollection } from "./TrendCollection";
 import { OpenseaCollection } from "./OpenseaCollection";
+import { Attribute } from "./Attribute";
 import { Log } from "./Log";
 import * as dotenv from "dotenv";
 import { contractExample } from "../entityExamples";
-import { TraitTypeContract } from "./TraitTypeContract";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -89,6 +89,11 @@ export class Contract {
   })
   logs: Log[];
 
+  @OneToMany(() => Log, (log) => log.contract, {
+    onDelete: "RESTRICT",
+  })
+  attributes: Attribute[];
+
   @OneToMany(
     () => TrendCollection,
     (trendCollection) => trendCollection.contract,
@@ -97,15 +102,6 @@ export class Contract {
     }
   )
   trendCollections: TrendCollection[];
-
-  @OneToMany(
-    () => TraitTypeContract,
-    (traitTypeContract) => traitTypeContract.contract,
-    {
-      onDelete: "CASCADE",
-    }
-  )
-  traitTypeContracts: TraitTypeContract[];
 
   @CreateDateColumn()
   createdAt: Date;
@@ -281,12 +277,6 @@ if (isNestJs) {
       type: String,
       example: alchemyCollectionError,
       description: "Alchemy 컬렉션 에러",
-    }),
-    ApiProperty({
-      name: "traitTypeContracts",
-      type: () => [TraitTypeContract],
-      example: traitTypeContracts,
-      description: "트레이트 타입 컨트랙트 데이터",
     }),
     ApiProperty({
       name: "nfts",
