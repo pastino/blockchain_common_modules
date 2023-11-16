@@ -106,6 +106,7 @@ export class NFT {
           attribute.contract = contract;
           attribute = await attributeRepo.save(attribute);
         }
+
         let attributeProperty = await attributePropertyRepo.findOne({
           where: {
             value: attributeData.value,
@@ -113,6 +114,7 @@ export class NFT {
           },
           relations: ["nfts"], // 추가: nft 관계 로드
         });
+
         if (!attributeProperty) {
           attributeProperty = new AttributeProperty();
           attributeProperty.value = attributeData.value;

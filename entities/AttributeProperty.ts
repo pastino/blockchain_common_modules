@@ -8,6 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
   ManyToMany,
+  Index,
 } from "typeorm";
 import * as dotenv from "dotenv";
 import { Contract } from "./Contract";
@@ -22,6 +23,7 @@ const ApiProperty = isNestJs
   : () => {};
 
 @Entity({ name: "attributeProperty" })
+@Index("idx_attributeproperty_attribute_value", ["attribute", "value"])
 export class AttributeProperty {
   @PrimaryGeneratedColumn()
   id: number;

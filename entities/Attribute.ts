@@ -8,9 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from "typeorm";
-import { Transaction } from "./Transaction";
 import * as dotenv from "dotenv";
-import { blockNumberExample } from "../entityExamples";
 import { Contract } from "./Contract";
 import { AttributeProperty } from "./AttributeProperty";
 
