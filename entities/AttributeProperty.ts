@@ -7,6 +7,7 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  ManyToMany,
 } from "typeorm";
 import * as dotenv from "dotenv";
 import { Contract } from "./Contract";
@@ -29,9 +30,9 @@ export class AttributeProperty {
   @JoinColumn({ name: "attributeId", referencedColumnName: "id" })
   attribute: Attribute;
 
-  @ManyToOne(() => NFT, (nft) => nft.properties)
+  @ManyToMany(() => NFT, (nft) => nft.attributeProperties)
   @JoinColumn({ name: "nftId", referencedColumnName: "id" })
-  nft: NFT;
+  nfts: NFT[];
 
   @Column({ nullable: true })
   value: string;

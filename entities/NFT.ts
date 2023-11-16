@@ -9,6 +9,7 @@ import {
   OneToMany,
   Unique,
   Index,
+  ManyToMany,
 } from "typeorm";
 import { Contract } from "./Contract";
 import { Log } from "./Log";
@@ -57,14 +58,14 @@ export class NFT {
   })
   logs: Log[];
 
-  @OneToMany(
+  @ManyToMany(
     () => AttributeProperty,
-    (attributeProperty) => attributeProperty.nft,
+    (attributeProperty) => attributeProperty.nfts,
     {
       onDelete: "RESTRICT",
     }
   )
-  properties: AttributeProperty[];
+  attributeProperties: AttributeProperty[];
 
   @Column({ nullable: true, default: null })
   isAttributeUpdated: boolean;

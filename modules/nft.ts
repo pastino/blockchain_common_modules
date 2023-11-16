@@ -100,7 +100,6 @@ export class NFT {
         )
           continue;
 
-        // attribute가 이미 생성되었는지 확인 후, 없으면 생성
         let attribute = await attributeRepo.findOne({
           where: { traitType: attributeData.trait_type },
         });
@@ -110,15 +109,34 @@ export class NFT {
           attribute.traitType = attributeData.trait_type;
           attribute.contract = contract;
           attribute = await attributeRepo.save(attribute);
+        }
 
-          let attributeProperty = new AttributeProperty();
+        let attributeProperty = await attributePropertyRepo.findOne({
+          where: {
+            value: attributeData.value,
+            attribute: attribute,
+          },
+          relations: ["nfts"], // 추가: nft 관계 로드
+        });
+
+        if (!attributeProperty) {
+          attributeProperty = new AttributeProperty();
           attributeProperty.value = attributeData.value;
           attributeProperty.attribute = attribute;
-          attributeProperty.nft = nft;
-          attributeProperty = await attributePropertyRepo.save(
-            attributeProperty
-          );
+          attributeProperty.nfts = [nft]; // nft 추가
+        } else {
+          // NFT가 이미 존재하지 않는 경우에만 추가
+          if (
+            !attributeProperty.nfts.some(
+              (existingNFT) => existingNFT.id === nft.id
+            )
+          ) {
+            attributeProperty.nfts.push(nft);
+          }
         }
+
+        // 변경된 attributeProperty 저장
+        attributeProperty = await attributePropertyRepo.save(attributeProperty);
       }
     } catch (e) {
       throw e;
