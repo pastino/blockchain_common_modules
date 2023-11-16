@@ -31,7 +31,6 @@ export class AttributeProperty {
   attribute: Attribute;
 
   @ManyToMany(() => NFT, (nft) => nft.attributeProperties)
-  @JoinColumn({ name: "nftId", referencedColumnName: "id" })
   nfts: NFT[];
 
   @Column({ nullable: true })

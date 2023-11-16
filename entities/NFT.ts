@@ -10,6 +10,7 @@ import {
   Unique,
   Index,
   ManyToMany,
+  JoinTable,
 } from "typeorm";
 import { Contract } from "./Contract";
 import { Log } from "./Log";
@@ -65,6 +66,9 @@ export class NFT {
       onDelete: "RESTRICT",
     }
   )
+  @JoinTable({
+    name: "attributeNFTMapping",
+  })
   attributeProperties: AttributeProperty[];
 
   @Column({ nullable: true, default: null })
