@@ -77,6 +77,9 @@ export class NFT {
   @Column({ nullable: true, default: null, length: 1000 })
   imageRoute: string;
 
+  @Column({ nullable: true, default: null, length: 1000 })
+  imageAlchemyUrl: string;
+
   @Column({ nullable: true, default: null })
   isImageUploaded: boolean;
 
@@ -114,7 +117,6 @@ if (isNestJs) {
     imageFormat,
     imageBytes,
     logs,
-    attributeNFTs,
     imageRoute,
     isImageUploaded,
     imageSaveError,

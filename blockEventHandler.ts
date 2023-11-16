@@ -10,6 +10,7 @@ const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
   network: Network.ETH_MAINNET,
 };
+
 export const alchemy = new Alchemy(config);
 const kakaoMessage = new Message();
 

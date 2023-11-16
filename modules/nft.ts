@@ -4,13 +4,10 @@ import { NFT as NFTEntity } from "../entities/NFT";
 import axios, { AxiosResponse } from "axios";
 import { getNFTDetails, sleep } from "../utils";
 import crypto from "crypto";
-// import { TraitType } from "../entities/TraitType";
-// import { AttributeNFT } from "../entities/AttributeNFT";
-// import { TraitTypeContract } from "../entities/TraitTypeContract";
-// import { Attribute } from "../entities/Attribute";
 import { downloadImage } from "../downloadNFTImage";
 import { Attribute } from "../entities/Attribute";
 import { AttributeProperty } from "../entities/AttributeProperty";
+import { alchemy } from "../blockEventHandler";
 
 const openSeaConfig: any = {
   headers: {
@@ -147,6 +144,17 @@ export class NFT {
       const truncateTitle = (title: string) =>
         title.length > 500 ? title.slice(0, 500) : title;
 
+      let imageAlchemyUrl = "";
+      try {
+        const alchemyNFTData = await alchemy.nft.getNftMetadata(
+          this.contract.address,
+          this.tokenId
+        );
+        imageAlchemyUrl = alchemyNFTData?.media?.[0]?.thumbnail || "";
+      } catch (e) {
+        console.log(e);
+      }
+
       const nft = await getRepository(NFTEntity).save({
         ...nftData,
         isAttributeUpdated: true,
@@ -155,6 +163,7 @@ export class NFT {
         contract: this.contract,
         attributesRaw: sanitizeText(nftData.attributesRaw || "") || "",
         imageRaw: sanitizeText(nftData.imageUri || "") || "",
+        imageAlchemyUrl,
       });
 
       if (!this.contract.description) {
@@ -250,46 +259,47 @@ export class NFT {
       return nft;
     } catch (e: any) {
       throw e;
-    } finally {
-      // NFT 이미지 생성
-      try {
-        if (nft?.imageRoute) return nft;
-        if (!nft || !nft?.imageRaw) {
-          let failedMessage = "";
-          if (!nft) failedMessage = "nft가 없습니다.";
-          if (!nft?.imageRaw) failedMessage = "이미지 url이 없습니다.";
-          await getRepository(NFTEntity).update(
-            { id: nft?.id },
-            { isImageUploaded: false, imageSaveError: failedMessage }
-          );
-          return nft;
-        }
-        const { isSuccess, message, hashedFileName } = await downloadImage({
-          imageUrl:
-            typeof nftData?.imageUri === "string"
-              ? nftData?.imageUri.replace(/\x00/g, "")
-              : "",
-          contractAddress: this.contract.address,
-          tokenId: this.tokenId,
-        });
-        if (!isSuccess) {
-          await getRepository(NFTEntity).update(
-            { id: nft?.id },
-            { isImageUploaded: false, imageSaveError: message }
-          );
-          return nft;
-        }
-        await getRepository(NFTEntity).update(
-          { id: nft?.id },
-          {
-            imageRoute: hashedFileName,
-            isImageUploaded: true,
-          }
-        );
-        return nft;
-      } catch (e) {
-        null;
-      }
     }
+    // finally {
+    //   // NFT 이미지 생성
+    //   try {
+    //     if (nft?.imageRoute) return nft;
+    //     if (!nft || !nft?.imageRaw) {
+    //       let failedMessage = "";
+    //       if (!nft) failedMessage = "nft가 없습니다.";
+    //       if (!nft?.imageRaw) failedMessage = "이미지 url이 없습니다.";
+    //       await getRepository(NFTEntity).update(
+    //         { id: nft?.id },
+    //         { isImageUploaded: false, imageSaveError: failedMessage }
+    //       );
+    //       return nft;
+    //     }
+    //     const { isSuccess, message, hashedFileName } = await downloadImage({
+    //       imageUrl:
+    //         typeof nftData?.imageUri === "string"
+    //           ? nftData?.imageUri.replace(/\x00/g, "")
+    //           : "",
+    //       contractAddress: this.contract.address,
+    //       tokenId: this.tokenId,
+    //     });
+    //     if (!isSuccess) {
+    //       await getRepository(NFTEntity).update(
+    //         { id: nft?.id },
+    //         { isImageUploaded: false, imageSaveError: message }
+    //       );
+    //       return nft;
+    //     }
+    //     await getRepository(NFTEntity).update(
+    //       { id: nft?.id },
+    //       {
+    //         imageRoute: hashedFileName,
+    //         isImageUploaded: true,
+    //       }
+    //     );
+    //     return nft;
+    //   } catch (e) {
+    //     null;
+    //   }
+    // }
   }
 }
