@@ -23,7 +23,10 @@ export async function handleBlockEvent(blockNum: number) {
       },
     });
 
-    if (existingBlock) return { isSuccess: false, message: "이미 처리된 블록" };
+    if (existingBlock) {
+      console.log("이미 처리된 블록", blockNum);
+      return { isSuccess: false, message: "이미 처리된 블록" };
+    }
     const blockData = await web3.eth.getBlock(blockNum);
     const blockNumber = await getRepository(BlockNumber).save({
       blockNumber: blockNum,
