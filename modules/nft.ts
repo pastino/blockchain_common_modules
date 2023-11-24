@@ -147,17 +147,18 @@ export class NFT {
         title.length > 500 ? title.slice(0, 500) : title;
 
       let imageAlchemyUrl = "";
+      let imageAlchemyError = "";
       try {
         const alchemyNFTData = await alchemy.nft.getNftMetadata(
           this.contract.address,
           this.tokenId
         );
         imageAlchemyUrl = alchemyNFTData?.media?.[0]?.thumbnail || "";
-      } catch (e) {
-        console.log(e);
+      } catch (e: any) {
+        imageAlchemyError = e.message;
       }
 
-      const nft = await getRepository(NFTEntity).save({
+      const saveData = {
         ...nftData,
         isAttributeUpdated: true,
         title: sanitizeText(truncateTitle(nftData.title || "")) || "",
@@ -166,7 +167,11 @@ export class NFT {
         attributesRaw: sanitizeText(nftData.attributesRaw || "") || "",
         imageRaw: sanitizeText(nftData.imageUri || "") || "",
         imageAlchemyUrl,
-      });
+      };
+
+      if (imageAlchemyError) saveData.imageAlchemyError = imageAlchemyError;
+
+      const nft = await getRepository(NFTEntity).save(saveData);
 
       if (!this.contract.description) {
         await getRepository(Contract).update(
