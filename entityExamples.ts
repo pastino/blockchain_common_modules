@@ -161,6 +161,9 @@ export var nftExample: any = {
   imageSaveError: 'Request failed with status code 523',
   isAttributeUpdated: true,
   logs: [logExample],
+  imageAlchemyUrl:
+    'https://res.cloudinary.com/alchemyapi/image/upload/thumbnailv2/eth-mainnet/386fcc4e38a78df1e247f3c3fec64e32',
+  alchemyImageError: '',
   createAt: new Date(),
   updateAt: new Date(),
 };
