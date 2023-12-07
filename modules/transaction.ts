@@ -231,10 +231,16 @@ export class Transaction {
 
         const timestamp = this.blockData.timestamp;
         const eventTime = new Date(timestamp * 1000);
+
+        eventTime.setMinutes(
+          eventTime.getMinutes() - eventTime.getTimezoneOffset()
+        );
+
         const timeOption = {
           timestamp,
           eventTime,
         };
+
         const transaction = await getRepository(TransactionEntity).save({
           ...transactionData,
           data: transactionData.input,
