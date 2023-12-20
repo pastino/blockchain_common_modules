@@ -36,6 +36,7 @@ export class NFT {
     retryCount: number = 10
   ): Promise<AxiosResponse | undefined> {
     try {
+      // v1 삭제됨. v2로 변경 필요
       const response = await axios.get(
         `https://api.opensea.io/api/v1/asset/${contractAddress}/${tokenId}`,
         openSeaConfig

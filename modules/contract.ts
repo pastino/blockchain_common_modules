@@ -42,16 +42,15 @@ export class ContractManager {
   ): Promise<any> {
     try {
       const contractDataByAddress = await axios.get(
-        `https://api.opensea.io/api/v1/asset_contract/${contractAddress}`,
+        `https://api.opensea.io/api/v2/chain/ethereum/contract/${contractAddress}`,
         openSeaConfig
       );
-
       await sleep(1);
 
       let contractDataBySlag;
       try {
         contractDataBySlag = await axios.get(
-          `https://api.opensea.io/api/v1/collection/${contractDataByAddress.data?.collection?.slug}`,
+          `https://api.opensea.io/api/v2/collections/${contractDataByAddress.data?.collection}`,
           openSeaConfig
         );
       } catch (e) {
@@ -109,23 +108,38 @@ export class ContractManager {
           const { contractDataByAddress, contractDataBySlag } =
             await this.handleOpenseaContract(contract.address);
 
+          const snakeObject = {
+            ...contractDataBySlag?.data,
+            slug: contractDataBySlag?.data?.collection,
+            totalSupply: contractDataByAddress?.data?.supply,
+            count: contractDataByAddress?.data?.supply,
+          };
+
           const createEntityData = new CreateEntityData({
-            snakeObject: {
-              ...contractDataByAddress?.data?.collection,
-              totalSupply:
-                contractDataBySlag?.data?.collection?.stats?.total_supply,
-              count: contractDataBySlag?.data?.collection?.stats?.count,
-            },
+            snakeObject,
             entity: OpenseaCollection,
             filterList: ["id"],
           });
+
+          interface AdditionalData {
+            createdDate?: Date;
+          }
+
+          const additionalData: AdditionalData = {};
+
+          if (contractMetaData && contractMetaData.createdDate) {
+            additionalData.createdDate = contractMetaData.createdDate;
+          }
+
           const openseaCollection = await this.queryRunner.manager.save(
             OpenseaCollection,
             {
               ...createEntityData.createTableRowData(),
+              ...additionalData,
               contract,
             }
           );
+
           await this.queryRunner.manager.update(
             ContractEntity,
             {

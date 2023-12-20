@@ -4,6 +4,7 @@ import { Contract } from "web3-eth-contract";
 import axios from "axios";
 
 import Web3 from "web3";
+import { alchemy } from "./blockEventHandler";
 const web3 = new Web3();
 
 export const sleep = (sec: number) => {
@@ -195,6 +196,34 @@ export const findTargetLogFromTo = (tokenId: string, logs: any[]) => {
   return { from, to };
 };
 
+// async function getContractCreationDate(contractAddress: string) {
+//   console.log("contractAddress", contractAddress);
+
+//   const tx = await web3.eth.getTransactionFromBlock(contractAddress, 0);
+//   console.log("tx", tx);
+//   const block = await web3.eth.getBlock(tx.blockNumber as number, true);
+//   return block.timestamp;
+// }
+
+// async function getContractCreationDate(contractAddress: string) {
+//   const blockNumber = await web3.eth.getBlockNumber(); // 현재 블록 번호를 가져옴
+
+//   for (let i = blockNumber; i >= 0; i--) {
+//     const block = await web3.eth.getBlock(i, true);
+//     for (const tx of block.transactions) {
+//       if (
+//         tx.to === null &&
+//         tx.from.toLowerCase() === contractAddress.toLowerCase()
+//       ) {
+//         // 컨트랙트 생성 트랜잭션 발견
+//         return block.timestamp;
+//       }
+//     }
+//   }
+
+//   throw new Error("컨트랙트 생성 트랜잭션을 찾을 수 없음");
+// }
+
 export const getContractDetails = async (
   address: string,
   tokenId: number | string
@@ -209,7 +238,10 @@ export const getContractDetails = async (
     symbol: null,
     totalSupply: null,
     tokenType: null as string | null,
-    description: null, // 추후 description 처리를 위해 추가하였습니다.
+    description: null,
+    contractDeployer: "",
+    deployedBlockNumber: 0,
+    createdDate: null as Date | null,
   };
 
   try {
@@ -246,6 +278,30 @@ export const getContractDetails = async (
       contractDetails.tokenType = "ERC1155";
     } catch (error) {}
   }
+
+  try {
+    const contractDataByAlchemy = await alchemy.nft.getContractMetadata(
+      address
+    );
+    const contractDeployer = contractDataByAlchemy?.contractDeployer;
+    const deployedBlockNumber = contractDataByAlchemy?.deployedBlockNumber;
+    if (contractDeployer) contractDetails.contractDeployer = contractDeployer;
+    if (deployedBlockNumber) {
+      contractDetails.deployedBlockNumber = deployedBlockNumber;
+
+      if (deployedBlockNumber) {
+        const blockData = await cunnectedWeb3.eth.getBlock(deployedBlockNumber);
+
+        const createdDate = new Date(Number(blockData?.timestamp) * 1000);
+
+        createdDate.setMinutes(
+          createdDate.getMinutes() - createdDate.getTimezoneOffset()
+        );
+
+        contractDetails.createdDate = createdDate;
+      }
+    }
+  } catch (error) {}
 
   return contractDetails;
 };
@@ -306,12 +362,11 @@ export const getNFTDetails = async (
         const contentIndex = uri.indexOf(",");
         const content = uri.substring(contentIndex + 1);
 
-        if (uri.startsWith("data:application/json;base64,")) {
-          metadata = decodeBase64Json(uri.split(",")[1]);
-        } else if (uri.startsWith("data:application/json;utf8,")) {
-          metadata = JSON.parse(decodeURIComponent(content));
+        if (uri.includes("base64,")) {
+          metadata = decodeBase64Json(content);
         } else {
-          console.log("uri", uri);
+          let decodedContent = decodeURIComponent(content);
+          metadata = JSON.parse(decodedContent);
         }
       } else {
         try {

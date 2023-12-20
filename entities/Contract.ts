@@ -103,6 +103,9 @@ export class Contract {
   )
   trendCollections: TrendCollection[];
 
+  @Column({ nullable: true, default: null })
+  createdDate: Date;
+
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()
@@ -296,6 +299,12 @@ if (isNestJs) {
       type: () => [TrendCollection],
       example: trendCollections,
       description: "트렌드 컬렉션 데이터",
+    }),
+    ApiProperty({
+      name: "createdDate",
+      type: Date,
+      example: createdAt,
+      description: "컬랙션 처음 생성된 시간",
     }),
 
     ApiProperty({
