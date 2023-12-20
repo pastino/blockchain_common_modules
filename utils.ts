@@ -295,7 +295,7 @@ export const getContractDetails = async (
         const createdDate = new Date(Number(blockData?.timestamp) * 1000);
 
         createdDate.setMinutes(
-          createdDate.getMinutes() - createdDate.getTimezoneOffset()
+          createdDate.getMinutes() + createdDate.getTimezoneOffset()
         );
 
         contractDetails.createdDate = createdDate;

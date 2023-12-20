@@ -233,7 +233,7 @@ export class Transaction {
         const eventTime = new Date(timestamp * 1000);
 
         eventTime.setMinutes(
-          eventTime.getMinutes() - eventTime.getTimezoneOffset()
+          eventTime.getMinutes() + eventTime.getTimezoneOffset()
         );
 
         const timeOption = {
