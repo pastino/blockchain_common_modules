@@ -19,7 +19,10 @@ export const ormconfig: ConnectionOptions = {
   entities: [__dirname + "/entities/*.*"],
   migrations: [__dirname + "/migrations/*.*"],
   subscribers: [__dirname + "/subscribers/*.*"],
-  extra: {},
+  extra: {
+    connectionLimit: 10, // 연결 풀의 최대 연결 수
+    waitForConnections: true, // 연결 풀이 연결을 대기할지 여부
+  },
   ...(!isNestJs && {
     cli: {
       migrationsDir: "src/shared/migrations",
