@@ -218,9 +218,6 @@ export class Transaction {
         return { isSuccess: false, message: "Transactions are empty" };
       }
 
-      let erc721Logs: any = [];
-      const nonErc721Logs = [];
-
       // First pass: Process all transactions and gather ERC721 and non-ERC721 logs
       for (let i = 0; i < transactions.length; i++) {
         const transactionHash = transactions[i];
@@ -259,71 +256,40 @@ export class Transaction {
 
         if (!logs || logs.length === 0) continue;
 
-        // 트랜잭션 로그 데이터들 필터링
-        for (let j = 0; j < logs.length; j++) {
-          const log = logs[j];
+        for (let i = 0; i < logs.length; i++) {
+          const log = logs[i];
           const data = await getIsERC721Event(
             log,
             logs,
             this.blockNumber?.blockNumber,
             transactionHash
           );
+          const decodedData = data.decodedData;
 
           if (data.isERC721Event) {
-            erc721Logs.push({
-              log,
-              decodedData: data.decodedData,
+            const contractAddress = decodedData?.contract;
+            const result = await this.createContractAndNFT({
               transaction,
+              tokenId: decodedData?.tokenId,
+              contractAddress,
+            });
+            const contractData = result.contractData;
+            const nftData = result.nftData;
+
+            await this.createLog({
+              log,
+              transaction,
+              contractData,
+              nftData,
+              decodedLog: decodedData || null,
             });
           } else {
-            nonErc721Logs.push({ log, transaction });
+            await this.createLog({
+              log,
+              transaction,
+            });
           }
         }
-
-        // 판매에 해당하는 전송 로그를 필터링합니다.
-        erc721Logs = erc721Logs.filter((log: any) => {
-          if (
-            log.decodedData?.action !== "Transfer" &&
-            log.decodedData?.action !== "TransferSingle"
-          ) {
-            return true;
-          }
-
-          // 이 전송 로그에 해당하는 판매 로그가 있는지 확인합니다
-          const matchingSaleLog = erc721Logs
-            .filter((log: any) => log.decodedData?.action === "Sale")
-            .find(
-              (saleLog: any) =>
-                saleLog.decodedData?.contract === log.decodedData?.contract &&
-                saleLog.decodedData?.tokenId === log.decodedData?.tokenId &&
-                saleLog.decodedData?.from === log.decodedData?.from &&
-                saleLog.decodedData?.to === log.decodedData?.to
-            );
-
-          // 해당하는 판매 로그가 없는 경우에만 로그를 유지합니다
-          return matchingSaleLog === undefined;
-        });
-      }
-
-      // Second pass: Process all ERC721 logs
-      for (let i = 0; i < erc721Logs.length; i++) {
-        const { log, decodedData, transaction } = erc721Logs[i];
-        const contractAddress = decodedData?.contract;
-        const result = await this.createContractAndNFT({
-          transaction,
-          tokenId: decodedData?.tokenId,
-          contractAddress,
-        });
-        const contractData = result.contractData;
-        const nftData = result.nftData;
-
-        await this.createLog({
-          log,
-          transaction,
-          contractData,
-          nftData,
-          decodedLog: decodedData || null,
-        });
       }
 
       await getRepository(BlockNumberEntity).update(
@@ -331,15 +297,6 @@ export class Transaction {
         { isNFTCompletedUpdate: true }
       );
 
-      // Third pass: Process all non-ERC721 logs
-      for (let i = 0; i < nonErc721Logs.length; i++) {
-        const { log, transaction } = nonErc721Logs[i];
-
-        await this.createLog({
-          log,
-          transaction,
-        });
-      }
       return { isSuccess: true };
     } catch (e) {
       throw e;
