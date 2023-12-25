@@ -247,7 +247,6 @@ export class NFT {
       try {
         nft = await this.createNFTAndAttributes(nftData);
       } catch (e: any) {
-        console.log("에러");
         if (e.code === "23505") {
           nft = await getRepository(NFTEntity).findOne({
             where: {

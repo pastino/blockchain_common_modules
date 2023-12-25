@@ -169,7 +169,6 @@ export class ContractManager {
       return contract;
     } catch (e: any) {
       await this.queryRunner.rollbackTransaction();
-
       throw e;
     } finally {
       await this.queryRunner.release();

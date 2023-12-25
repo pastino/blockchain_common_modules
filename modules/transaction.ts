@@ -218,79 +218,97 @@ export class Transaction {
         return { isSuccess: false, message: "Transactions are empty" };
       }
 
-      // First pass: Process all transactions and gather ERC721 and non-ERC721 logs
-      for (let i = 0; i < transactions.length; i++) {
-        const transactionHash = transactions[i];
-        const transactionData = await this.getTransaction(transactionHash);
-        const transactionReceipt = await this.getTransactionReceipt(
-          transactionHash
-        );
+      const CONCURRENT_LIMIT = 50; // 동시에 처리되는 작업 수를 제한합니다.
+      const LOGS_LIMIT = 50; // 각 트랜잭션의 로그 처리에 대한 LIMIT를 설정합니다.
 
-        const timestamp = this.blockData.timestamp;
-        const eventTime = new Date(timestamp * 1000);
+      const transactionChunks = this.chunkArray(transactions, CONCURRENT_LIMIT);
 
-        eventTime.setMinutes(
-          eventTime.getMinutes() + eventTime.getTimezoneOffset()
-        );
+      // 작업을 일정 개수로 나눠서 처리합니다.
+      const processChunks = async () => {
+        for (const chunk of transactionChunks) {
+          const transactionPromises = chunk.map(async (transactionHash) => {
+            const transactionData = await this.getTransaction(transactionHash);
+            const transactionReceipt = await this.getTransactionReceipt(
+              transactionHash
+            );
 
-        const timeOption = {
-          timestamp,
-          eventTime,
-        };
+            const timestamp = this.blockData.timestamp;
+            const eventTime = new Date(timestamp * 1000);
+            eventTime.setMinutes(
+              eventTime.getMinutes() + eventTime.getTimezoneOffset()
+            );
 
-        const transaction = await getRepository(TransactionEntity).save({
-          ...transactionData,
-          data: transactionData.input,
-          blockNumber: this.blockNumber,
-          gasUsed: transactionReceipt?.gasUsed,
-          cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
-          effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
-          gasPrice: transactionData?.gasPrice,
-          gasLimit: transactionData?.gas,
-          value: transactionData?.value,
-          chainId: parseInt(transactionData.chainId, 16) || null,
-          ...timeOption,
-        });
+            const timeOption = {
+              timestamp,
+              eventTime,
+            };
 
-        const logs = transactionReceipt?.logs;
-
-        if (!logs || logs.length === 0) continue;
-
-        for (let i = 0; i < logs.length; i++) {
-          const log = logs[i];
-          const data = await getIsERC721Event(
-            log,
-            logs,
-            this.blockNumber?.blockNumber,
-            transactionHash
-          );
-          const decodedData = data.decodedData;
-
-          if (data.isERC721Event) {
-            const contractAddress = decodedData?.contract;
-            const result = await this.createContractAndNFT({
-              transaction,
-              tokenId: decodedData?.tokenId,
-              contractAddress,
+            const transaction = await getRepository(TransactionEntity).save({
+              ...transactionData,
+              data: transactionData.input,
+              blockNumber: this.blockNumber,
+              gasUsed: transactionReceipt?.gasUsed,
+              cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
+              effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
+              gasPrice: transactionData?.gasPrice,
+              gasLimit: transactionData?.gas,
+              value: transactionData?.value,
+              chainId: parseInt(transactionData.chainId, 16) || null,
+              ...timeOption,
             });
-            const contractData = result.contractData;
-            const nftData = result.nftData;
 
-            await this.createLog({
-              log,
-              transaction,
-              contractData,
-              nftData,
-              decodedLog: decodedData || null,
+            return { transaction, transactionReceipt };
+          });
+
+          const results = await Promise.all(transactionPromises);
+
+          for (const { transaction, transactionReceipt } of results) {
+            const logs = transactionReceipt?.logs;
+
+            if (!logs || logs.length === 0) continue;
+
+            const limitedLogs = logs.slice(0, LOGS_LIMIT); // 로그 처리에 대한 LIMIT 적용
+
+            const logPromises = limitedLogs.map(async (log) => {
+              const data = await getIsERC721Event(
+                log,
+                logs,
+                this.blockNumber?.blockNumber,
+                transaction.hash
+              );
+              const decodedData = data.decodedData;
+
+              if (data.isERC721Event) {
+                const contractAddress = decodedData?.contract;
+                const result = await this.createContractAndNFT({
+                  transaction,
+                  tokenId: decodedData?.tokenId,
+                  contractAddress,
+                });
+                const contractData = result.contractData;
+                const nftData = result.nftData;
+
+                await this.createLog({
+                  log,
+                  transaction,
+                  contractData,
+                  nftData,
+                  decodedLog: decodedData || null,
+                });
+              } else {
+                await this.createLog({
+                  log,
+                  transaction,
+                });
+              }
             });
-          } else {
-            await this.createLog({
-              log,
-              transaction,
-            });
+
+            await Promise.all(logPromises);
           }
         }
-      }
+      };
+
+      await processChunks();
 
       await getRepository(BlockNumberEntity).update(
         { id: this.blockNumber.id },
@@ -302,4 +320,109 @@ export class Transaction {
       throw e;
     }
   }
+
+  // 배열을 일정 크기로 나누는 함수
+  chunkArray(arr: any[], chunkSize: number) {
+    const chunkedArr = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      chunkedArr.push(arr.slice(i, i + chunkSize));
+    }
+    return chunkedArr;
+  }
+
+  // public async progressTransaction(): Promise<any> {
+  //   try {
+  //     const transactions = this.blockData?.transactions;
+  //     if (!transactions || transactions.length === 0) {
+  //       await getRepository(BlockNumberEntity).update(
+  //         { id: this.blockNumber.id },
+  //         { isNFTCompletedUpdate: true }
+  //       );
+  //       return { isSuccess: false, message: "Transactions are empty" };
+  //     }
+
+  //     // First pass: Process all transactions and gather ERC721 and non-ERC721 logs
+  //     for (let i = 0; i < transactions.length; i++) {
+  //       const transactionHash = transactions[i];
+  //       const transactionData = await this.getTransaction(transactionHash);
+  //       const transactionReceipt = await this.getTransactionReceipt(
+  //         transactionHash
+  //       );
+
+  //       const timestamp = this.blockData.timestamp;
+  //       const eventTime = new Date(timestamp * 1000);
+
+  //       eventTime.setMinutes(
+  //         eventTime.getMinutes() + eventTime.getTimezoneOffset()
+  //       );
+
+  //       const timeOption = {
+  //         timestamp,
+  //         eventTime,
+  //       };
+
+  //       const transaction = await getRepository(TransactionEntity).save({
+  //         ...transactionData,
+  //         data: transactionData.input,
+  //         blockNumber: this.blockNumber,
+  //         gasUsed: transactionReceipt?.gasUsed,
+  //         cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
+  //         effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
+  //         gasPrice: transactionData?.gasPrice,
+  //         gasLimit: transactionData?.gas,
+  //         value: transactionData?.value,
+  //         chainId: parseInt(transactionData.chainId, 16) || null,
+  //         ...timeOption,
+  //       });
+
+  //       const logs = transactionReceipt?.logs;
+
+  //       if (!logs || logs.length === 0) continue;
+
+  //       for (let i = 0; i < logs.length; i++) {
+  //         const log = logs[i];
+  //         const data = await getIsERC721Event(
+  //           log,
+  //           logs,
+  //           this.blockNumber?.blockNumber,
+  //           transactionHash
+  //         );
+  //         const decodedData = data.decodedData;
+
+  //         if (data.isERC721Event) {
+  //           const contractAddress = decodedData?.contract;
+  //           const result = await this.createContractAndNFT({
+  //             transaction,
+  //             tokenId: decodedData?.tokenId,
+  //             contractAddress,
+  //           });
+  //           const contractData = result.contractData;
+  //           const nftData = result.nftData;
+
+  //           await this.createLog({
+  //             log,
+  //             transaction,
+  //             contractData,
+  //             nftData,
+  //             decodedLog: decodedData || null,
+  //           });
+  //         } else {
+  //           await this.createLog({
+  //             log,
+  //             transaction,
+  //           });
+  //         }
+  //       }
+  //     }
+
+  //     await getRepository(BlockNumberEntity).update(
+  //       { id: this.blockNumber.id },
+  //       { isNFTCompletedUpdate: true }
+  //     );
+
+  //     return { isSuccess: true };
+  //   } catch (e) {
+  //     throw e;
+  //   }
+  // }
 }
