@@ -116,7 +116,7 @@ if (isNestJs) {
     staticCreateAt,
     createdAt,
     updatedAt,
-  } = upcomingContractExample;
+  } = trendUpcomingContractExample;
 
   const propertyDecorators = [
     ApiProperty({
