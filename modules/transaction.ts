@@ -218,14 +218,16 @@ export class Transaction {
         return { isSuccess: false, message: "Transactions are empty" };
       }
 
-      const LOGS_LIMIT = 50; // 각 트랜잭션의 로그 처리에 대한 LIMIT를 설정합니다.
-
       for (let index = 0; index < transactions.length; index++) {
         const transactionHash = transactions[index];
+
+        console.log(1);
         const transactionData = await this.getTransaction(transactionHash);
+        console.log(2);
         const transactionReceipt = await this.getTransactionReceipt(
           transactionHash
         );
+        console.log(3);
 
         const timestamp = this.blockData.timestamp;
         const eventTime = new Date(timestamp * 1000);
@@ -237,7 +239,7 @@ export class Transaction {
           timestamp,
           eventTime,
         };
-
+        console.log(4);
         const transaction = await getRepository(TransactionEntity).save({
           ...transactionData,
           data: transactionData.input,
@@ -251,7 +253,7 @@ export class Transaction {
           chainId: parseInt(transactionData.chainId, 16) || null,
           ...timeOption,
         });
-
+        console.log(5);
         const logs = transactionReceipt?.logs;
 
         if (!logs || logs.length === 0) continue;
@@ -261,6 +263,7 @@ export class Transaction {
         );
 
         for (const log of logs) {
+          console.log(1, 6);
           const data = await getIsERC721Event(
             log,
             logs,
@@ -268,8 +271,9 @@ export class Transaction {
             transaction.hash
           );
           const decodedData = data.decodedData;
-
+          console.log(1, 7);
           if (data.isERC721Event) {
+            console.log(2, 8);
             const contractAddress = decodedData?.contract;
             const result = await this.createContractAndNFT({
               transaction,
@@ -287,6 +291,7 @@ export class Transaction {
               decodedLog: decodedData || null,
             });
           } else {
+            console.log(2, 9);
             await this.createLog({
               log,
               transaction,
@@ -295,11 +300,13 @@ export class Transaction {
         }
       }
 
+      console.log(10);
+
       await getRepository(BlockNumberEntity).update(
         { id: this.blockNumber.id },
         { isNFTCompletedUpdate: true }
       );
-
+      console.log(11);
       return { isSuccess: true };
     } catch (e) {
       throw e;
