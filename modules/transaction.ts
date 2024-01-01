@@ -258,7 +258,7 @@ export class Transaction {
 
           // 로그를 병렬로 처리
           await Promise.all(
-            logs.map(async (log) => {
+            logs.map(async (log, index) => {
               const data = await getIsERC721Event(
                 log,
                 logs,
@@ -289,6 +289,10 @@ export class Transaction {
                   transaction,
                 });
               }
+
+              console.log(
+                `${this.blockNumber?.blockNumber}: ${index} 로그 완료`
+              );
             })
           );
         }
