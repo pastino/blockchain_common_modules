@@ -108,17 +108,13 @@ export class Transaction {
         address: contractAddress,
       });
 
-      console.log(111, 1);
-
       const contractData = await contract.saveContract(tokenId);
-      console.log(111, 2);
       await getRepository(TransactionEntity).update(
         { id: transaction.id },
         { contract: contractData }
       );
 
       let nftData;
-      console.log(111, 3);
 
       if (tokenId) {
         const nft = new NFT({
@@ -127,7 +123,6 @@ export class Transaction {
         });
         nftData = await nft.saveNFT();
       }
-      console.log(111, 4);
       return { isSuccess: true, contractData, nftData };
     } catch (e: any) {
       await getRepository(ContractError).save({
@@ -196,9 +191,7 @@ export class Transaction {
           throw e;
         }
       }
-      console.log("topic 저장", 7, topics.length);
       for (let i = 0; i < topics.length; i++) {
-        console.log(`topic - ${i}`);
         const value = topics[i];
         await getRepository(TopicEntity).save({
           index: i,
@@ -225,13 +218,10 @@ export class Transaction {
       for (let index = 0; index < transactions.length; index++) {
         const transactionHash = transactions[index];
 
-        console.log(1);
         const transactionData = await this.getTransaction(transactionHash);
-        console.log(2);
         const transactionReceipt = await this.getTransactionReceipt(
           transactionHash
         );
-        console.log(3);
 
         const timestamp = this.blockData.timestamp;
         const eventTime = new Date(timestamp * 1000);
@@ -243,7 +233,6 @@ export class Transaction {
           timestamp,
           eventTime,
         };
-        console.log(4);
         const transaction = await getRepository(TransactionEntity).save({
           ...transactionData,
           data: transactionData.input,
@@ -257,7 +246,6 @@ export class Transaction {
           chainId: parseInt(transactionData.chainId, 16) || null,
           ...timeOption,
         });
-        console.log(5);
         const logs = transactionReceipt?.logs;
 
         if (!logs || logs.length === 0) continue;
@@ -267,7 +255,6 @@ export class Transaction {
         );
 
         for (const log of logs) {
-          console.log(1, 6);
           const data = await getIsERC721Event(
             log,
             logs,
@@ -275,16 +262,13 @@ export class Transaction {
             transaction.hash
           );
           const decodedData = data.decodedData;
-          console.log(1, 7);
           if (data.isERC721Event) {
-            console.log(2, 8);
             const contractAddress = decodedData?.contract;
             const result = await this.createContractAndNFT({
               transaction,
               tokenId: decodedData?.tokenId,
               contractAddress,
             });
-            console.log(2, 9);
             const contractData = result.contractData;
             const nftData = result.nftData;
 
@@ -295,9 +279,7 @@ export class Transaction {
               nftData,
               decodedLog: decodedData || null,
             });
-            console.log(2, 10);
           } else {
-            console.log(2, 11);
             await this.createLog({
               log,
               transaction,
@@ -306,13 +288,10 @@ export class Transaction {
         }
       }
 
-      console.log(10);
-
       await getRepository(BlockNumberEntity).update(
         { id: this.blockNumber.id },
         { isNFTCompletedUpdate: true }
       );
-      console.log(11);
       return { isSuccess: true };
     } catch (e) {
       throw e;
