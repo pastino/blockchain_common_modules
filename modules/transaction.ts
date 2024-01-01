@@ -193,7 +193,7 @@ export class Transaction {
           throw e;
         }
       }
-      console.log(7, topics.legnth);
+      console.log(7, topics.length);
       for (let i = 0; i < topics.length; i++) {
         const value = topics[i];
         await getRepository(TopicEntity).save({
@@ -280,6 +280,7 @@ export class Transaction {
               tokenId: decodedData?.tokenId,
               contractAddress,
             });
+            console.log(2, 9);
             const contractData = result.contractData;
             const nftData = result.nftData;
 
@@ -290,8 +291,9 @@ export class Transaction {
               nftData,
               decodedLog: decodedData || null,
             });
+            console.log(2, 10);
           } else {
-            console.log(2, 9);
+            console.log(2, 11);
             await this.createLog({
               log,
               transaction,
