@@ -226,46 +226,54 @@ export class Transaction {
       // 작업을 일정 개수로 나눠서 처리합니다.
       const processChunks = async () => {
         for (const chunk of transactionChunks) {
-          const transactionPromises = chunk.map(async (transactionHash) => {
-            const transactionData = await this.getTransaction(transactionHash);
-            const transactionReceipt = await this.getTransactionReceipt(
-              transactionHash
-            );
+          const transactionPromises = chunk.map(
+            async (transactionHash, index) => {
+              const transactionData = await this.getTransaction(
+                transactionHash
+              );
+              const transactionReceipt = await this.getTransactionReceipt(
+                transactionHash
+              );
 
-            const timestamp = this.blockData.timestamp;
-            const eventTime = new Date(timestamp * 1000);
-            eventTime.setMinutes(
-              eventTime.getMinutes() + eventTime.getTimezoneOffset()
-            );
+              const timestamp = this.blockData.timestamp;
+              const eventTime = new Date(timestamp * 1000);
+              eventTime.setMinutes(
+                eventTime.getMinutes() + eventTime.getTimezoneOffset()
+              );
 
-            const timeOption = {
-              timestamp,
-              eventTime,
-            };
+              const timeOption = {
+                timestamp,
+                eventTime,
+              };
 
-            const transaction = await getRepository(TransactionEntity).save({
-              ...transactionData,
-              data: transactionData.input,
-              blockNumber: this.blockNumber,
-              gasUsed: transactionReceipt?.gasUsed,
-              cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
-              effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
-              gasPrice: transactionData?.gasPrice,
-              gasLimit: transactionData?.gas,
-              value: transactionData?.value,
-              chainId: parseInt(transactionData.chainId, 16) || null,
-              ...timeOption,
-            });
+              const transaction = await getRepository(TransactionEntity).save({
+                ...transactionData,
+                data: transactionData.input,
+                blockNumber: this.blockNumber,
+                gasUsed: transactionReceipt?.gasUsed,
+                cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
+                effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
+                gasPrice: transactionData?.gasPrice,
+                gasLimit: transactionData?.gas,
+                value: transactionData?.value,
+                chainId: parseInt(transactionData.chainId, 16) || null,
+                ...timeOption,
+              });
 
-            return { transaction, transactionReceipt };
-          });
+              return { transaction, transactionReceipt, index };
+            }
+          );
 
           const results = await Promise.all(transactionPromises);
 
-          for (const { transaction, transactionReceipt } of results) {
+          for (const { transaction, transactionReceipt, index } of results) {
             const logs = transactionReceipt?.logs;
 
             if (!logs || logs.length === 0) continue;
+
+            console.log(
+              `${this.blockNumber}: transactions 길이 - ${index}/${transactions.length}, logs 길이 - ${logs.length}`
+            );
 
             const limitedLogs = logs.slice(0, LOGS_LIMIT); // 로그 처리에 대한 LIMIT 적용
 
