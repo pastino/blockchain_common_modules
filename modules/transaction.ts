@@ -218,105 +218,82 @@ export class Transaction {
         return { isSuccess: false, message: "Transactions are empty" };
       }
 
-      const CONCURRENT_LIMIT = 50; // 동시에 처리되는 작업 수를 제한합니다.
       const LOGS_LIMIT = 50; // 각 트랜잭션의 로그 처리에 대한 LIMIT를 설정합니다.
 
-      const transactionChunks = this.chunkArray(transactions, CONCURRENT_LIMIT);
+      for (let index = 0; index < transactions.length; index++) {
+        const transactionHash = transactions[index];
+        const transactionData = await this.getTransaction(transactionHash);
+        const transactionReceipt = await this.getTransactionReceipt(
+          transactionHash
+        );
 
-      // 작업을 일정 개수로 나눠서 처리합니다.
-      const processChunks = async () => {
-        for (const chunk of transactionChunks) {
-          const transactionPromises = chunk.map(
-            async (transactionHash, index) => {
-              const transactionData = await this.getTransaction(
-                transactionHash
-              );
-              const transactionReceipt = await this.getTransactionReceipt(
-                transactionHash
-              );
+        const timestamp = this.blockData.timestamp;
+        const eventTime = new Date(timestamp * 1000);
+        eventTime.setMinutes(
+          eventTime.getMinutes() + eventTime.getTimezoneOffset()
+        );
 
-              const timestamp = this.blockData.timestamp;
-              const eventTime = new Date(timestamp * 1000);
-              eventTime.setMinutes(
-                eventTime.getMinutes() + eventTime.getTimezoneOffset()
-              );
+        const timeOption = {
+          timestamp,
+          eventTime,
+        };
 
-              const timeOption = {
-                timestamp,
-                eventTime,
-              };
+        const transaction = await getRepository(TransactionEntity).save({
+          ...transactionData,
+          data: transactionData.input,
+          blockNumber: this.blockNumber,
+          gasUsed: transactionReceipt?.gasUsed,
+          cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
+          effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
+          gasPrice: transactionData?.gasPrice,
+          gasLimit: transactionData?.gas,
+          value: transactionData?.value,
+          chainId: parseInt(transactionData.chainId, 16) || null,
+          ...timeOption,
+        });
 
-              const transaction = await getRepository(TransactionEntity).save({
-                ...transactionData,
-                data: transactionData.input,
-                blockNumber: this.blockNumber,
-                gasUsed: transactionReceipt?.gasUsed,
-                cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
-                effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
-                gasPrice: transactionData?.gasPrice,
-                gasLimit: transactionData?.gas,
-                value: transactionData?.value,
-                chainId: parseInt(transactionData.chainId, 16) || null,
-                ...timeOption,
-              });
+        const logs = transactionReceipt?.logs;
 
-              return { transaction, transactionReceipt, index };
-            }
+        if (!logs || logs.length === 0) continue;
+
+        console.log(
+          `${this.blockNumber?.blockNumber}: transactions 길이 - ${index}/${transactions.length}, logs 길이 - ${logs.length}`
+        );
+
+        for (const log of logs) {
+          const data = await getIsERC721Event(
+            log,
+            logs,
+            this.blockNumber?.blockNumber,
+            transaction.hash
           );
+          const decodedData = data.decodedData;
 
-          const results = await Promise.all(transactionPromises);
-
-          for (const { transaction, transactionReceipt, index } of results) {
-            const logs = transactionReceipt?.logs;
-
-            if (!logs || logs.length === 0) continue;
-
-            console.log(
-              `${this.blockNumber}: transactions 길이 - ${index}/${transactions.length}, logs 길이 - ${logs.length}`
-            );
-
-            const limitedLogs = logs.slice(0, LOGS_LIMIT); // 로그 처리에 대한 LIMIT 적용
-
-            const logPromises = limitedLogs.map(async (log) => {
-              const data = await getIsERC721Event(
-                log,
-                logs,
-                this.blockNumber?.blockNumber,
-                transaction.hash
-              );
-              const decodedData = data.decodedData;
-
-              if (data.isERC721Event) {
-                const contractAddress = decodedData?.contract;
-                const result = await this.createContractAndNFT({
-                  transaction,
-                  tokenId: decodedData?.tokenId,
-                  contractAddress,
-                });
-                const contractData = result.contractData;
-                const nftData = result.nftData;
-
-                await this.createLog({
-                  log,
-                  transaction,
-                  contractData,
-                  nftData,
-                  decodedLog: decodedData || null,
-                });
-              } else {
-                await this.createLog({
-                  log,
-                  transaction,
-                });
-              }
+          if (data.isERC721Event) {
+            const contractAddress = decodedData?.contract;
+            const result = await this.createContractAndNFT({
+              transaction,
+              tokenId: decodedData?.tokenId,
+              contractAddress,
             });
+            const contractData = result.contractData;
+            const nftData = result.nftData;
 
-            await Promise.all(logPromises);
+            await this.createLog({
+              log,
+              transaction,
+              contractData,
+              nftData,
+              decodedLog: decodedData || null,
+            });
+          } else {
+            await this.createLog({
+              log,
+              transaction,
+            });
           }
         }
-      };
-
-      await processChunks();
+      }
 
       await getRepository(BlockNumberEntity).update(
         { id: this.blockNumber.id },
@@ -327,14 +304,5 @@ export class Transaction {
     } catch (e) {
       throw e;
     }
-  }
-
-  // 배열을 일정 크기로 나누는 함수
-  chunkArray(arr: any[], chunkSize: number) {
-    const chunkedArr = [];
-    for (let i = 0; i < arr.length; i += chunkSize) {
-      chunkedArr.push(arr.slice(i, i + chunkSize));
-    }
-    return chunkedArr;
   }
 }
