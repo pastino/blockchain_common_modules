@@ -108,14 +108,17 @@ export class Transaction {
         address: contractAddress,
       });
 
-      const contractData = await contract.saveContract(tokenId);
+      console.log(111, 1);
 
+      const contractData = await contract.saveContract(tokenId);
+      console.log(111, 2);
       await getRepository(TransactionEntity).update(
         { id: transaction.id },
         { contract: contractData }
       );
 
       let nftData;
+      console.log(111, 3);
 
       if (tokenId) {
         const nft = new NFT({
@@ -124,7 +127,7 @@ export class Transaction {
         });
         nftData = await nft.saveNFT();
       }
-
+      console.log(111, 4);
       return { isSuccess: true, contractData, nftData };
     } catch (e: any) {
       await getRepository(ContractError).save({
