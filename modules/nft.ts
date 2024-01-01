@@ -239,7 +239,6 @@ export class NFT {
 
     try {
       nftData = await getNFTDetails(this.contract.address, this.tokenId);
-
       if (isUpdate) {
         nftData.id = nft?.id;
       }
@@ -258,7 +257,6 @@ export class NFT {
           throw e;
         }
       }
-
       if (!nft) {
         throw `Failed to find or save nft`;
       }

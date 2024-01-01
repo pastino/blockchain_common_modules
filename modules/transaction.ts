@@ -196,8 +196,9 @@ export class Transaction {
           throw e;
         }
       }
-      console.log(7, topics.length);
+      console.log("topic 저장", 7, topics.length);
       for (let i = 0; i < topics.length; i++) {
+        console.log(`topic - ${i}`);
         const value = topics[i];
         await getRepository(TopicEntity).save({
           index: i,
