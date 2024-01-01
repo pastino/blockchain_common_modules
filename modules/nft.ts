@@ -226,7 +226,6 @@ export class NFT {
   async saveNFT(isUpdate: boolean = false) {
     let nftData: any;
 
-    console.log("nft", 1);
     let nft = await getRepository(NFTEntity).findOne({
       where: {
         contract: this.contract as any,
@@ -237,16 +236,13 @@ export class NFT {
     if (nft && !isUpdate) {
       return nft;
     }
-    console.log("nft", 2);
     try {
       nftData = await getNFTDetails(this.contract.address, this.tokenId);
       if (isUpdate) {
         nftData.id = nft?.id;
       }
-      console.log("nft", 3);
       try {
         nft = await this.createNFTAndAttributes(nftData);
-        console.log("nft", 4);
       } catch (e: any) {
         if (e.code === "23505") {
           nft = await getRepository(NFTEntity).findOne({
@@ -262,7 +258,6 @@ export class NFT {
       if (!nft) {
         throw `Failed to find or save nft`;
       }
-      console.log("nft", 5);
       return nft;
     } catch (e: any) {
       throw e;
