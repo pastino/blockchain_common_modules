@@ -250,12 +250,6 @@ export class Transaction {
 
           if (!logs || logs.length === 0) return; // 로그가 없으면 처리하지 않음
 
-          console.log(
-            `${this.blockNumber?.blockNumber}: transactions 길이 - ${
-              index + 1
-            }/${transactions.length}, logs 길이 - ${logs.length}`
-          );
-
           // 로그를 병렬로 처리
           await Promise.all(
             logs.map(async (log, index) => {
@@ -289,10 +283,6 @@ export class Transaction {
                   transaction,
                 });
               }
-
-              console.log(
-                `${this.blockNumber?.blockNumber}: ${index} 로그 완료`
-              );
             })
           );
         }
