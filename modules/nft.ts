@@ -232,12 +232,14 @@ export class NFT {
     });
 
     if (nft && !isUpdate) {
-      if (
-        !nft.isAttributeUpdated &&
-        nftData.attribute &&
-        nftData.attribute.length > 0
-      ) {
-        await this.saveAttributes(nft, this.contract, nftData.attribute);
+      if (!nft.isAttributeUpdated) {
+        const nftDetail = await getNFTDetails(
+          this.contract.address,
+          this.tokenId
+        );
+
+        if (nftDetail && nftDetail.attribute && nftDetail.attribute.length > 0)
+          await this.saveAttributes(nft, this.contract, nftDetail.attribute);
       }
       return nft;
     }
