@@ -4,14 +4,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
   ManyToOne,
   JoinColumn,
   ManyToMany,
   Index,
 } from "typeorm";
 import * as dotenv from "dotenv";
-import { Contract } from "./Contract";
 import { Attribute } from "./Attribute";
 import { NFT } from "./NFT";
 
@@ -23,17 +21,22 @@ const ApiProperty = isNestJs
   : () => {};
 
 @Entity({ name: "attributeProperty" })
-@Index("idx_attributeproperty_attribute_value", ["attribute", "value"])
+@Index("idx_attributeproperty_nft_attribute_value", [
+  "nft",
+  "attribute",
+  "value",
+])
 export class AttributeProperty {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ManyToOne(() => NFT, (nft) => nft.attributeProperties)
+  @JoinColumn({ name: "nftId", referencedColumnName: "id" })
+  nft: NFT;
+
   @ManyToOne(() => Attribute, (attribute) => attribute.properties)
   @JoinColumn({ name: "attributeId", referencedColumnName: "id" })
   attribute: Attribute;
-
-  @ManyToMany(() => NFT, (nft) => nft.attributeProperties)
-  nfts: NFT[];
 
   @Column({ nullable: true })
   value: string;

@@ -248,11 +248,13 @@ export class Transaction {
           });
           const logs = transactionReceipt?.logs;
 
+          console.log(`${index} - ${logs?.length}`);
+
           if (!logs || logs.length === 0) return; // 로그가 없으면 처리하지 않음
 
           // 로그를 병렬로 처리
           await Promise.all(
-            logs.map(async (log, index) => {
+            logs.map(async (log) => {
               const data = await getIsERC721Event(
                 log,
                 logs,
@@ -285,6 +287,8 @@ export class Transaction {
               }
             })
           );
+
+          console.log(`${index}/${transactions.length} 트랜잭션 완료`);
         }
       );
 

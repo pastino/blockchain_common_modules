@@ -101,6 +101,7 @@ export class NFT {
         let attribute = await attributeRepo.findOne({
           where: { traitType: attributeData.trait_type },
         });
+
         if (!attribute) {
           attribute = new Attribute();
           attribute.traitType = attributeData.trait_type;
@@ -112,28 +113,18 @@ export class NFT {
           where: {
             value: attributeData.value,
             attribute: attribute,
+            nft,
           },
-          relations: ["nfts"], // 추가: nft 관계 로드
         });
 
         if (!attributeProperty) {
           attributeProperty = new AttributeProperty();
           attributeProperty.value = attributeData.value;
           attributeProperty.attribute = attribute;
-          attributeProperty.nfts = [nft]; // nft 추가
-        } else {
-          // NFT가 이미 존재하지 않는 경우에만 추가
-          if (
-            !attributeProperty.nfts.some(
-              (existingNFT) => existingNFT.id === nft.id
-            )
-          ) {
-            attributeProperty.nfts.push(nft);
-          }
-        }
+          attributeProperty.nft = nft;
 
-        // 변경된 attributeProperty 저장
-        attributeProperty = await attributePropertyRepo.save(attributeProperty);
+          await attributePropertyRepo.save(attributeProperty);
+        }
       }
     } catch (e) {
       throw e;
@@ -154,6 +145,7 @@ export class NFT {
           this.contract.address,
           this.tokenId
         );
+
         imageAlchemyUrl = alchemyNFTData?.media?.[0]?.thumbnail || "";
       } catch (e: any) {
         imageAlchemyError = e.message;
@@ -241,6 +233,7 @@ export class NFT {
       if (isUpdate) {
         nftData.id = nft?.id;
       }
+
       try {
         nft = await this.createNFTAndAttributes(nftData);
       } catch (e: any) {
@@ -255,6 +248,7 @@ export class NFT {
           throw e;
         }
       }
+
       if (!nft) {
         throw `Failed to find or save nft`;
       }
