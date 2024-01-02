@@ -126,6 +126,12 @@ export class NFT {
           await attributePropertyRepo.save(attributeProperty);
         }
       }
+      await getRepository(NFTEntity).update(
+        { id: nft.id },
+        {
+          isAttributeUpdated: true,
+        }
+      );
     } catch (e) {
       throw e;
     }
@@ -153,7 +159,7 @@ export class NFT {
 
       const saveData = {
         ...nftData,
-        isAttributeUpdated: true,
+        isAttributeUpdated: false,
         title: sanitizeText(truncateTitle(nftData.title || "")) || "",
         description: sanitizeText(nftData.description || "") || "",
         contract: this.contract,
