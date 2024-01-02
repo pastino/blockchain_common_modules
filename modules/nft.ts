@@ -232,6 +232,13 @@ export class NFT {
     });
 
     if (nft && !isUpdate) {
+      if (
+        !nft.isAttributeUpdated &&
+        nftData.attribute &&
+        nftData.attribute.length > 0
+      ) {
+        await this.saveAttributes(nft, this.contract, nftData.attribute);
+      }
       return nft;
     }
     try {
