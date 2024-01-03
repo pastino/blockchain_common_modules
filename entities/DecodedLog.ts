@@ -32,6 +32,7 @@ const ApiProperty = isNestJs
 ])
 @Index("idx_decodedlog_transaction", ["transaction"])
 @Index("idx_decodedlog_log", ["log"])
+@Index("idx_decodedlog_nft", ["nft"])
 export class DecodedLog {
   @PrimaryGeneratedColumn()
   id: number;

@@ -26,15 +26,20 @@ const ApiProperty = isNestJs
   "attribute",
   "value",
 ])
+@Index("idx_attribute_property_nft", ["nft"])
 export class AttributeProperty {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => NFT, (nft) => nft.attributeProperties)
+  @ManyToOne(() => NFT, (nft) => nft.attributeProperties, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "nftId", referencedColumnName: "id" })
   nft: NFT;
 
-  @ManyToOne(() => Attribute, (attribute) => attribute.properties)
+  @ManyToOne(() => Attribute, (attribute) => attribute.properties, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "attributeId", referencedColumnName: "id" })
   attribute: Attribute;
 

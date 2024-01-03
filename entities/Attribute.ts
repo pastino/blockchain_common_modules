@@ -24,7 +24,9 @@ export class Attribute {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Contract, (contract) => contract.nfts)
+  @ManyToOne(() => Contract, (contract) => contract.nfts, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
 

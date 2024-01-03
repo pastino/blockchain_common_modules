@@ -233,9 +233,13 @@ export class Transaction {
             timestamp,
             eventTime,
           };
+
+          if (!transactionData.hash)
+            throw new Error("transaction hash is undefined");
+
           const transaction = await getRepository(TransactionEntity).save({
             ...transactionData,
-            data: transactionData.input,
+            data: transactionData?.input,
             blockNumber: this.blockNumber,
             gasUsed: transactionReceipt?.gasUsed,
             cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
@@ -243,7 +247,9 @@ export class Transaction {
             gasPrice: transactionData?.gasPrice,
             gasLimit: transactionData?.gas,
             value: transactionData?.value,
-            chainId: parseInt(transactionData.chainId, 16) || null,
+            chainId: transactionData?.chainId
+              ? parseInt(transactionData.chainId, 16)
+              : null,
             ...timeOption,
           });
           const logs = transactionReceipt?.logs;

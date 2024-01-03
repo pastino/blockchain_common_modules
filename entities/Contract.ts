@@ -90,7 +90,7 @@ export class Contract {
   logs: Log[];
 
   @OneToMany(() => Log, (log) => log.contract, {
-    onDelete: "RESTRICT",
+    onDelete: "CASCADE",
   })
   attributes: Attribute[];
 

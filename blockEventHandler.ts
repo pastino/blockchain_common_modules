@@ -18,36 +18,27 @@ export async function handleBlockEvent(blockNum: number) {
   try {
     console.log("블록 데이터 생성 시작", blockNum);
 
-    const startExistingBlock = new Date().getTime();
     const existingBlock = await getRepository(BlockNumber).findOne({
       where: {
         blockNumber: blockNum,
       },
     });
-    const endExistingBlock = new Date().getTime();
-    console.log(
-      "ExistingBlock",
-      (endExistingBlock - startExistingBlock) / 1000
-    );
 
     if (existingBlock) {
       console.log("이미 처리된 블록", blockNum);
       return { isSuccess: false, message: "이미 처리된 블록" };
     }
-
-    const startBlockData = new Date().getTime();
-
     const blockData = await web3.eth.getBlock(blockNum);
-    const endBlockData = new Date().getTime();
-    console.log("BlockData", (endBlockData - startBlockData) / 1000);
 
-    const startCreateBolck = new Date().getTime();
+    if (!blockData) {
+      console.log("블록 데이터 없음", blockNum);
+      return { isSuccess: false, message: "블록 데이터 없음" };
+    }
 
     const blockNumber = await getRepository(BlockNumber).save({
       blockNumber: blockNum,
     });
-    const endCreateBolck = new Date().getTime();
-    console.log("CreateBolck", (endCreateBolck - startCreateBolck) / 1000);
+
     const transaction = new Transaction({
       blockData,
       blockNumber,

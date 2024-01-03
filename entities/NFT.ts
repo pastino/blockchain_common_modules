@@ -63,7 +63,7 @@ export class NFT {
     () => AttributeProperty,
     (attributeProperty) => attributeProperty.nft,
     {
-      onDelete: "RESTRICT",
+      onDelete: "CASCADE",
     }
   )
   attributeProperties: AttributeProperty[];

@@ -147,12 +147,11 @@ export class NFT {
       let imageAlchemyUrl = "";
       let imageAlchemyError = "";
       try {
-        const alchemyNFTData = await alchemy.nft.getNftMetadata(
-          this.contract.address,
-          this.tokenId
-        );
-
-        imageAlchemyUrl = alchemyNFTData?.media?.[0]?.thumbnail || "";
+        // const alchemyNFTData = await alchemy.nft.getNftMetadata(
+        //   this.contract.address,
+        //   this.tokenId
+        // );
+        // imageAlchemyUrl = alchemyNFTData?.media?.[0]?.thumbnail || "";
       } catch (e: any) {
         imageAlchemyError = e.message;
       }

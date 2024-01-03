@@ -292,13 +292,15 @@ export const getContractDetails = async (
       if (deployedBlockNumber) {
         const blockData = await cunnectedWeb3.eth.getBlock(deployedBlockNumber);
 
-        const createdDate = new Date(Number(blockData?.timestamp) * 1000);
+        if (blockData && !isNaN(blockData.timestamp)) {
+          const createdDate = new Date(Number(blockData.timestamp) * 1000);
 
-        createdDate.setMinutes(
-          createdDate.getMinutes() + createdDate.getTimezoneOffset()
-        );
+          createdDate.setMinutes(
+            createdDate.getMinutes() + createdDate.getTimezoneOffset()
+          );
 
-        contractDetails.createdDate = createdDate;
+          contractDetails.createdDate = createdDate;
+        }
       }
     }
   } catch (error) {}
