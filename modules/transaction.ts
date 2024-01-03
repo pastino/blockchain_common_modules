@@ -268,11 +268,13 @@ export class Transaction {
               const decodedData = data.decodedData;
               if (data.isERC721Event) {
                 const contractAddress = decodedData?.contract;
+
                 const result = await this.createContractAndNFT({
                   transaction,
                   tokenId: decodedData?.tokenId,
                   contractAddress,
                 });
+
                 const contractData = result.contractData;
                 const nftData = result.nftData;
 
@@ -314,98 +316,4 @@ export class Transaction {
     }
     return chunks;
   }
-
-  // public async progressTransaction(): Promise<any> {
-  //   try {
-  //     const transactions = this.blockData?.transactions;
-  //     if (!transactions || transactions.length === 0) {
-  //       await getRepository(BlockNumberEntity).update(
-  //         { id: this.blockNumber.id },
-  //         { isNFTCompletedUpdate: true }
-  //       );
-  //       return { isSuccess: false, message: "Transactions are empty" };
-  //     }
-
-  //     for (let index = 0; index < transactions.length; index++) {
-  //       const transactionHash = transactions[index];
-
-  //       const transactionData = await this.getTransaction(transactionHash);
-  //       const transactionReceipt = await this.getTransactionReceipt(
-  //         transactionHash
-  //       );
-
-  //       const timestamp = this.blockData.timestamp;
-  //       const eventTime = new Date(timestamp * 1000);
-  //       eventTime.setMinutes(
-  //         eventTime.getMinutes() + eventTime.getTimezoneOffset()
-  //       );
-
-  //       const timeOption = {
-  //         timestamp,
-  //         eventTime,
-  //       };
-  //       const transaction = await getRepository(TransactionEntity).save({
-  //         ...transactionData,
-  //         data: transactionData.input,
-  //         blockNumber: this.blockNumber,
-  //         gasUsed: transactionReceipt?.gasUsed,
-  //         cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
-  //         effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
-  //         gasPrice: transactionData?.gasPrice,
-  //         gasLimit: transactionData?.gas,
-  //         value: transactionData?.value,
-  //         chainId: parseInt(transactionData.chainId, 16) || null,
-  //         ...timeOption,
-  //       });
-  //       const logs = transactionReceipt?.logs;
-
-  //       if (!logs || logs.length === 0) continue;
-
-  //       console.log(
-  //         `${this.blockNumber?.blockNumber}: transactions 길이 - ${index}/${transactions.length}, logs 길이 - ${logs.length}`
-  //       );
-
-  //       for (const log of logs) {
-  //         const data = await getIsERC721Event(
-  //           log,
-  //           logs,
-  //           this.blockNumber?.blockNumber,
-  //           transaction.hash
-  //         );
-  //         const decodedData = data.decodedData;
-  //         if (data.isERC721Event) {
-  //           const contractAddress = decodedData?.contract;
-  //           const result = await this.createContractAndNFT({
-  //             transaction,
-  //             tokenId: decodedData?.tokenId,
-  //             contractAddress,
-  //           });
-  //           const contractData = result.contractData;
-  //           const nftData = result.nftData;
-
-  //           await this.createLog({
-  //             log,
-  //             transaction,
-  //             contractData,
-  //             nftData,
-  //             decodedLog: decodedData || null,
-  //           });
-  //         } else {
-  //           await this.createLog({
-  //             log,
-  //             transaction,
-  //           });
-  //         }
-  //       }
-  //     }
-
-  //     await getRepository(BlockNumberEntity).update(
-  //       { id: this.blockNumber.id },
-  //       { isNFTCompletedUpdate: true }
-  //     );
-  //     return { isSuccess: true };
-  //   } catch (e) {
-  //     throw e;
-  //   }
-  // }
 }
