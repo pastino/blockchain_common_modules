@@ -215,88 +215,24 @@ export class Transaction {
         return { isSuccess: false, message: "Transactions are empty" };
       }
 
-      // 모든 트랜잭션을 병렬로 실행
-      const transactionPromises = transactions.map(
-        async (transactionHash, index) => {
-          const transactionData = await this.getTransaction(transactionHash);
-          const transactionReceipt = await this.getTransactionReceipt(
-            transactionHash
-          );
+      // 환경 변수에 따라 병렬 처리 또는 순차적 처리 결정
+      const useParallelProcessing =
+        process.env.IS_PARALLEL_TRANSCATION === "YES";
 
-          const timestamp = this.blockData.timestamp;
-          const eventTime = new Date(timestamp * 1000);
-          eventTime.setMinutes(
-            eventTime.getMinutes() + eventTime.getTimezoneOffset()
-          );
-
-          const timeOption = {
-            timestamp,
-            eventTime,
-          };
-
-          if (!transactionData.hash)
-            throw new Error("transaction hash is undefined");
-
-          const transaction = await getRepository(TransactionEntity).save({
-            ...transactionData,
-            data: transactionData?.input,
-            blockNumber: this.blockNumber,
-            gasUsed: transactionReceipt?.gasUsed,
-            cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
-            effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
-            gasPrice: transactionData?.gasPrice,
-            gasLimit: transactionData?.gas,
-            value: transactionData?.value,
-            chainId: transactionData?.chainId
-              ? parseInt(transactionData.chainId, 16)
-              : null,
-            ...timeOption,
-          });
-          const logs = transactionReceipt?.logs;
-
-          if (!logs || logs.length === 0) return; // 로그가 없으면 처리하지 않음
-
-          // 로그를 병렬로 처리
-          await Promise.all(
-            logs.map(async (log) => {
-              const data = await getIsERC721Event(
-                log,
-                logs,
-                this.blockNumber?.blockNumber,
-                transaction.hash
-              );
-              const decodedData = data.decodedData;
-              if (data.isERC721Event) {
-                const contractAddress = decodedData?.contract;
-
-                const result = await this.createContractAndNFT({
-                  transaction,
-                  tokenId: decodedData?.tokenId,
-                  contractAddress,
-                });
-
-                const contractData = result.contractData;
-                const nftData = result.nftData;
-
-                await this.createLog({
-                  log,
-                  transaction,
-                  contractData,
-                  nftData,
-                  decodedLog: decodedData || null,
-                });
-              } else {
-                await this.createLog({
-                  log,
-                  transaction,
-                });
-              }
-            })
-          );
+      if (useParallelProcessing) {
+        // 병렬 처리
+        const transactionPromises = transactions.map(
+          async (transactionHash) => {
+            await this.processTransactionHash(transactionHash);
+          }
+        );
+        await Promise.all(transactionPromises);
+      } else {
+        // 순차적 처리
+        for (const transactionHash of transactions) {
+          await this.processTransactionHash(transactionHash);
         }
-      );
-
-      await Promise.all(transactionPromises);
+      }
 
       await getRepository(BlockNumberEntity).update(
         { id: this.blockNumber.id },
@@ -306,6 +242,78 @@ export class Transaction {
       return { isSuccess: true };
     } catch (e) {
       throw e;
+    }
+  }
+
+  private async processTransactionHash(transactionHash: string): Promise<void> {
+    const transactionData = await this.getTransaction(transactionHash);
+    const transactionReceipt = await this.getTransactionReceipt(
+      transactionHash
+    );
+
+    const timestamp = this.blockData.timestamp;
+    const eventTime = new Date(timestamp * 1000);
+    eventTime.setMinutes(
+      eventTime.getMinutes() + eventTime.getTimezoneOffset()
+    );
+
+    const timeOption = {
+      timestamp,
+      eventTime,
+    };
+
+    if (!transactionData.hash) throw new Error("transaction hash is undefined");
+
+    const transaction = await getRepository(TransactionEntity).save({
+      ...transactionData,
+      data: transactionData?.input,
+      blockNumber: this.blockNumber,
+      gasUsed: transactionReceipt?.gasUsed,
+      cumulativeGasUsed: transactionReceipt?.cumulativeGasUsed,
+      effectiveGasPrice: transactionReceipt?.effectiveGasPrice,
+      gasPrice: transactionData?.gasPrice,
+      gasLimit: transactionData?.gas,
+      value: transactionData?.value,
+      chainId: transactionData?.chainId
+        ? parseInt(transactionData.chainId, 16)
+        : null,
+      ...timeOption,
+    });
+    const logs = transactionReceipt?.logs;
+
+    if (!logs || logs.length === 0) return; // 로그가 없으면 처리하지 않음
+
+    for (const log of logs) {
+      const data = await getIsERC721Event(
+        log,
+        logs,
+        this.blockNumber?.blockNumber,
+        transaction.hash
+      );
+      const decodedData = data.decodedData;
+      if (data.isERC721Event) {
+        const contractAddress = decodedData?.contract;
+        const result = await this.createContractAndNFT({
+          transaction,
+          tokenId: decodedData?.tokenId,
+          contractAddress,
+        });
+        const contractData = result.contractData;
+        const nftData = result.nftData;
+
+        await this.createLog({
+          log,
+          transaction,
+          contractData,
+          nftData,
+          decodedLog: decodedData || null,
+        });
+      } else {
+        await this.createLog({
+          log,
+          transaction,
+        });
+      }
     }
   }
 

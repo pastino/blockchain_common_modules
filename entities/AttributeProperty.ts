@@ -8,6 +8,7 @@ import {
   JoinColumn,
   ManyToMany,
   Index,
+  Unique,
 } from "typeorm";
 import * as dotenv from "dotenv";
 import { Attribute } from "./Attribute";
@@ -21,6 +22,7 @@ const ApiProperty = isNestJs
   : () => {};
 
 @Entity({ name: "attributeProperty" })
+@Unique("attributePropertyUnique", ["nft", "attribute", "value"])
 @Index("idx_attributeproperty_nft_attribute_value", [
   "nft",
   "attribute",
