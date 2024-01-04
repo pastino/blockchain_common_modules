@@ -210,6 +210,13 @@ export class NFT {
 
       if (nft && nftData.attribute && nftData.attribute.length > 0) {
         await this.saveAttributes(nft, this.contract, nftData.attribute);
+      } else {
+        await getRepository(NFTEntity).update(
+          { id: nft.id },
+          {
+            isAttributeUpdated: true,
+          }
+        );
       }
 
       return nft;
