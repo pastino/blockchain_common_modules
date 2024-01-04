@@ -99,31 +99,61 @@ export class NFT {
           continue;
 
         let attribute = await attributeRepo.findOne({
-          where: { traitType: attributeData.trait_type },
+          where: { traitType: attributeData.trait_type, contract },
         });
 
         if (!attribute) {
-          attribute = new Attribute();
-          attribute.traitType = attributeData.trait_type;
-          attribute.contract = contract;
-          attribute = await attributeRepo.save(attribute);
+          try {
+            attribute = new Attribute();
+            attribute.traitType = attributeData.trait_type;
+            attribute.contract = contract;
+            attribute = await attributeRepo.save(attribute);
+          } catch (error: any) {
+            if (error.code === "23505") {
+              // Duplicate key error
+              attribute = await attributeRepo.findOne({
+                where: { traitType: attributeData.trait_type, contract },
+              });
+            } else {
+              throw error;
+            }
+          }
         }
+
+        if (!attribute) throw `Failed to find or save attribute`;
 
         let attributeProperty = await attributePropertyRepo.findOne({
           where: {
             value: attributeData.value,
-            attribute: attribute,
+            attribute,
             nft,
           },
         });
 
         if (!attributeProperty) {
-          attributeProperty = new AttributeProperty();
-          attributeProperty.value = attributeData.value;
-          attributeProperty.attribute = attribute;
-          attributeProperty.nft = nft;
+          try {
+            attributeProperty = new AttributeProperty();
+            attributeProperty.value = attributeData.value;
+            attributeProperty.attribute = attribute;
+            attributeProperty.nft = nft;
 
-          await attributePropertyRepo.save(attributeProperty);
+            await attributePropertyRepo.save(attributeProperty);
+          } catch (error: any) {
+            if (error.code === "23505") {
+              // Duplicate key error
+              attributeProperty = await attributePropertyRepo.findOne({
+                where: {
+                  value: attributeData.value,
+                  attribute,
+                  nft,
+                },
+              });
+              if (!attributeProperty)
+                throw `Failed to find or save attribute property`;
+            } else {
+              throw error;
+            }
+          }
         }
       }
       await getRepository(NFTEntity).update(
