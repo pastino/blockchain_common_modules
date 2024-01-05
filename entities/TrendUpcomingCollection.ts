@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 import {
   Column,
   CreateDateColumn,
@@ -7,22 +7,22 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm';
-import { trendUpcomingCollectionExample } from '../entityExamples';
-import { UpcomingContract, upcomingContractExample } from './UpcomingContract';
+} from "typeorm";
+import { trendUpcomingCollectionExample } from "../entityExamples";
+import { UpcomingContract, upcomingContractExample } from "./UpcomingContract";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
 export enum TimeRange {
-  ONE_DAYS = '1D',
-  THREE_HOURS = '3D',
-  SEVEN_HOURS = '7D',
-  FOURTEEN_HOURS = '14D',
+  ONE_DAYS = "1D",
+  THREE_HOURS = "3D",
+  SEVEN_HOURS = "7D",
+  FOURTEEN_HOURS = "14D",
 }
 
 export const trendUpcomingContractExample: any = {
@@ -42,7 +42,7 @@ export const trendUpcomingContractExample: any = {
   updatedAt: new Date(),
 };
 
-@Entity({ name: 'trendUpcomingCollection' })
+@Entity({ name: "trendUpcomingCollection" })
 export class TrendUpcomingCollection {
   @PrimaryGeneratedColumn()
   id: number;
@@ -50,11 +50,14 @@ export class TrendUpcomingCollection {
   @ManyToOne(
     () => UpcomingContract,
     (upcomingContract) => upcomingContract.trendUpcomingCollections,
+    {
+      onDelete: "CASCADE",
+    }
   )
-  @JoinColumn({ name: 'upcomingContractId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "upcomingContractId", referencedColumnName: "id" })
   upcomingContract: UpcomingContract;
 
-  @Column({ type: 'enum', enum: TimeRange })
+  @Column({ type: "enum", enum: TimeRange })
   timeRange: TimeRange;
 
   @Column({ nullable: true })
@@ -63,10 +66,10 @@ export class TrendUpcomingCollection {
   @Column({ nullable: true })
   twitterBeforeFollowerCount: number;
 
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true, type: "float" })
   twitterDeviation: number;
 
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true, type: "float" })
   twitterDeviationPercent: number;
 
   @Column({ nullable: true })
@@ -75,13 +78,13 @@ export class TrendUpcomingCollection {
   @Column({ nullable: true })
   discordBeforeJoinCount: number;
 
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true, type: "float" })
   discordDeviation: number;
 
-  @Column({ nullable: true, type: 'float' })
+  @Column({ nullable: true, type: "float" })
   discordDeviationPercent: number;
 
-  @Column({ type: Date, default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: Date, default: () => "CURRENT_TIMESTAMP" })
   staticCreateAt: Date;
 
   @CreateDateColumn()
@@ -120,89 +123,89 @@ if (isNestJs) {
 
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
     ApiProperty({
-      name: 'upcomingContract',
+      name: "upcomingContract",
       type: () => UpcomingContract,
       example: upcomingContract,
-      description: 'Upcoming Contract',
+      description: "Upcoming Contract",
     }),
     ApiProperty({
-      name: 'timeRange',
+      name: "timeRange",
       type: TimeRange,
       enum: TimeRange,
       example: timeRange,
-      description: '시간대 - 현재시간으로부터 몇시간 전',
+      description: "시간대 - 현재시간으로부터 몇시간 전",
     }),
     ApiProperty({
-      name: 'twitterFollowerCount',
+      name: "twitterFollowerCount",
       type: Number,
       example: twitterFollowerCount,
-      description: '트위터 팔로워 수',
+      description: "트위터 팔로워 수",
     }),
     ApiProperty({
-      name: 'twitterBeforeFollowerCount',
+      name: "twitterBeforeFollowerCount",
       type: Number,
       example: twitterBeforeFollowerCount,
-      description: '트위터 팔로워 수 (기준 시간)',
+      description: "트위터 팔로워 수 (기준 시간)",
     }),
     ApiProperty({
-      name: 'twitterDeviation',
+      name: "twitterDeviation",
       type: Number,
       example: twitterDeviation,
-      description: '트위터 팔로워 수 변화량',
+      description: "트위터 팔로워 수 변화량",
     }),
     ApiProperty({
-      name: 'twitterDeviationPercent',
+      name: "twitterDeviationPercent",
       type: Number,
       example: twitterDeviationPercent,
       description: "트위터 팔로워 수 변화량 퍼센트 ('%' 제외)",
     }),
     ApiProperty({
-      name: 'discordJoinCount',
+      name: "discordJoinCount",
       type: Number,
       example: discordJoinCount,
-      description: '디스코드 가입자 수',
+      description: "디스코드 가입자 수",
     }),
     ApiProperty({
-      name: 'discordBeforeJoinCount',
+      name: "discordBeforeJoinCount",
       type: Number,
       example: discordBeforeJoinCount,
-      description: '디스코드 가입자 수 (기준 시간)',
+      description: "디스코드 가입자 수 (기준 시간)",
     }),
     ApiProperty({
-      name: 'discordDeviation',
+      name: "discordDeviation",
       type: Number,
       example: discordDeviation,
-      description: '디스코드 가입자 수 변화량',
+      description: "디스코드 가입자 수 변화량",
     }),
     ApiProperty({
-      name: 'discordDeviationPercent',
+      name: "discordDeviationPercent",
       type: Number,
       example: discordDeviationPercent,
       description: "디스코드 가입자 수 변화량 퍼센트 ('%' 제외)",
     }),
     ApiProperty({
-      name: 'staticCreateAt',
+      name: "staticCreateAt",
       type: Date,
       example: staticCreateAt,
-      description: '생성 시간 (static)',
+      description: "생성 시간 (static)",
     }),
     ApiProperty({
-      name: 'createdAt',
+      name: "createdAt",
       type: Date,
       example: createdAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updatedAt',
+      name: "updatedAt",
       type: Date,
       example: updatedAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 
