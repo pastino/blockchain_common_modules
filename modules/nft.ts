@@ -209,7 +209,14 @@ export class NFT {
       }
 
       if (nft && nftData.attribute && nftData.attribute.length > 0) {
+        const startSaveAttributes = new Date().getTime();
+
         await this.saveAttributes(nft, this.contract, nftData.attribute);
+        const endSaveAttributes = new Date().getTime();
+        console.log(
+          "SaveAttributes",
+          (endSaveAttributes - startSaveAttributes) / 1000
+        );
       } else {
         await getRepository(NFTEntity).update(
           { id: nft.id },
@@ -274,8 +281,13 @@ export class NFT {
           this.tokenId
         );
 
-        if (nftDetail && nftDetail.attribute && nftDetail.attribute.length > 0)
+        if (
+          nftDetail &&
+          nftDetail.attribute &&
+          nftDetail.attribute.length > 0
+        ) {
           await this.saveAttributes(nft, this.contract, nftDetail.attribute);
+        }
       }
       return nft;
     }

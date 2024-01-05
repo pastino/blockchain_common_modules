@@ -360,6 +360,7 @@ export const getNFTDetails = async (
       }
 
       let metadata;
+
       if (uri.startsWith("data:application/json;")) {
         const contentIndex = uri.indexOf(",");
         const content = uri.substring(contentIndex + 1);
@@ -372,7 +373,9 @@ export const getNFTDetails = async (
         }
       } else {
         try {
-          const response = await axios.get(uri);
+          const response = await axios.get(uri, {
+            timeout: 10000, // 10초 후 타임아웃
+          });
           metadata = response.data;
         } catch (error) {}
       }

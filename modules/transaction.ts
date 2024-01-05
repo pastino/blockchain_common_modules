@@ -109,6 +109,7 @@ export class Transaction {
       });
 
       const contractData = await contract.saveContract(tokenId);
+
       await getRepository(TransactionEntity).update(
         { id: transaction.id },
         { contract: contractData }
@@ -293,11 +294,13 @@ export class Transaction {
       const decodedData = data.decodedData;
       if (data.isERC721Event) {
         const contractAddress = decodedData?.contract;
+
         const result = await this.createContractAndNFT({
           transaction,
           tokenId: decodedData?.tokenId,
           contractAddress,
         });
+
         const contractData = result.contractData;
         const nftData = result.nftData;
 
