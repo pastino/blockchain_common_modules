@@ -284,39 +284,43 @@ export class Transaction {
 
     if (!logs || logs.length === 0) return; // 로그가 없으면 처리하지 않음
 
-    for (const log of logs) {
-      const data = await getIsERC721Event(
-        log,
-        logs,
-        this.blockNumber?.blockNumber,
-        transaction.hash
+    // 로그를 5개씩 나누어 병렬 처리
+    const logChunks = this.chunkArray(logs, 5);
+
+    for (const chunk of logChunks) {
+      await Promise.all(
+        chunk.map(async (log) => {
+          const data = await getIsERC721Event(
+            log,
+            logs,
+            this.blockNumber?.blockNumber,
+            transaction.hash
+          );
+          const decodedData = data.decodedData;
+          if (data.isERC721Event) {
+            const contractAddress = decodedData?.contract;
+            const result = await this.createContractAndNFT({
+              transaction,
+              tokenId: decodedData?.tokenId,
+              contractAddress,
+            });
+            const contractData = result.contractData;
+            const nftData = result.nftData;
+            await this.createLog({
+              log,
+              transaction,
+              contractData,
+              nftData,
+              decodedLog: decodedData || null,
+            });
+          } else {
+            await this.createLog({
+              log,
+              transaction,
+            });
+          }
+        })
       );
-      const decodedData = data.decodedData;
-      if (data.isERC721Event) {
-        const contractAddress = decodedData?.contract;
-
-        const result = await this.createContractAndNFT({
-          transaction,
-          tokenId: decodedData?.tokenId,
-          contractAddress,
-        });
-
-        const contractData = result.contractData;
-        const nftData = result.nftData;
-
-        await this.createLog({
-          log,
-          transaction,
-          contractData,
-          nftData,
-          decodedLog: decodedData || null,
-        });
-      } else {
-        await this.createLog({
-          log,
-          transaction,
-        });
-      }
     }
   }
 
