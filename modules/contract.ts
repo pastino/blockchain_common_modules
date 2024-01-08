@@ -131,10 +131,22 @@ export class ContractManager {
             additionalData.createdDate = contractMetaData.createdDate;
           }
 
+          const removeUndefinedFields = (obj: any) => {
+            return Object.keys(obj).reduce((acc: any, key) => {
+              if (obj[key] !== undefined) {
+                acc[key] = obj[key];
+              }
+              return acc;
+            }, {});
+          };
+
+          const data = createEntityData.createTableRowData();
+          const cleanedData = removeUndefinedFields(data);
+
           const openseaCollection = await this.queryRunner.manager.save(
             OpenseaCollection,
             {
-              ...createEntityData.createTableRowData(),
+              ...cleanedData,
               ...additionalData,
               contract,
             }
