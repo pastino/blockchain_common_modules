@@ -93,8 +93,6 @@ function getFileExtension(buffer: any) {
   }
 
   return null;
-
-  return null;
 }
 
 const getUrlExtension = (url: string) => {
