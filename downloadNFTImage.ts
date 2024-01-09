@@ -233,8 +233,14 @@ export const downloadImage = async ({
             resolve(undefined);
           })
           .on("error", (err: any) => {
-            // TODO 여기에 이미지 에러 로그 추가
+            console.error("ffmpeg processing error:", err);
+            fs.unlinkSync(tempFilePath);
             reject(err);
+            return {
+              isSuccess: false,
+              message: err.message,
+              hashedFileName: "",
+            };
           })
           .run(); // Run the command
       });
@@ -244,7 +250,7 @@ export const downloadImage = async ({
         `${encrypt(tokenId)}_temp.mp4`
       );
       fs.writeFileSync(tempFilePath, imageData);
-      const outputPath = path.join(thumbnailPath, `${hashedFileName}`);
+      const outputPath = path.join(thumbnailPath, hashedFileName);
 
       await new Promise((resolve, reject) => {
         ffmpeg(tempFilePath)
@@ -257,8 +263,14 @@ export const downloadImage = async ({
             resolve(undefined);
           })
           .on("error", (err: any) => {
-            // TODO 여기에 이미지 에러 로그 추가
+            console.error("ffmpeg processing error:", err);
+            fs.unlinkSync(tempFilePath);
             reject(err);
+            return {
+              isSuccess: false,
+              message: err.message,
+              hashedFileName: "",
+            };
           })
           .run(); // Run the command
       });
