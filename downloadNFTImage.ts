@@ -275,6 +275,7 @@ export const downloadImage = async ({
     } else {
       fs.writeFileSync(path.join(thumbnailPath, hashedFileName), imageData);
     }
+    console.log(contractAddress, tokenId, "이미지 생성 완료");
     return { isSuccess: true, message: "", hashedFileName };
   } catch (error: any) {
     return { isSuccess: false, message: error.message, hashedFileName: "" };
