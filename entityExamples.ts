@@ -8,8 +8,8 @@ export var traitTypeContractExample = {
   id: 1,
   traitType: traitTypeExample,
   contract: contractExample,
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export const contractDetailExample: any = {
@@ -66,8 +66,8 @@ export var contractExample: any = {
   createdNFTsPageKey: '0x0000000',
   alchemyCollectionError: 'error',
   traitTypeContracts: [traitTypeContractExample],
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var openseaCollectionExample: any = {
@@ -96,8 +96,8 @@ export var openseaCollectionExample: any = {
   twitterUsername: 'every30days',
   instagramUsername: 'every30days',
   wikiUrl: 'https://wiki.opensea.io/collection-wiki/every-30-days',
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export const upcomingContractExample: any = {
@@ -121,8 +121,8 @@ export const upcomingContractExample: any = {
   nfts: [nftExample],
   logs: [logExample],
   trendCollections: [trandCollectionExample],
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var trendUpcomingCollectionExample: any = {
@@ -138,8 +138,8 @@ export var trendUpcomingCollectionExample: any = {
   discordDeviation: -130.0,
   discordDeviationPercent: -0.6839225589225589,
   staticCreateAt: new Date(),
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var traitTypeExample: any = {
@@ -147,8 +147,8 @@ export var traitTypeExample: any = {
 
   traitType: 'Body',
   traitTypeContracts: traitTypeContractExample,
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var attributeExample: any = {
@@ -156,16 +156,16 @@ export var attributeExample: any = {
   value: 'yellow',
   traitType: traitTypeExample,
   attributeNFTs: [attributeNFTExample],
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var attributeNFTExample: any = {
   id: 1,
   attribute: 1,
   nft: nftExample,
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var nftExample: any = {
@@ -191,8 +191,8 @@ export var nftExample: any = {
   imageAlchemyUrl:
     'https://res.cloudinary.com/alchemyapi/image/upload/thumbnailv2/eth-mainnet/386fcc4e38a78df1e247f3c3fec64e32',
   alchemyImageError: '',
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var topicExample: any = {
@@ -200,8 +200,8 @@ export var topicExample: any = {
   index: 0,
   log: logExample,
   topic: '0x000000',
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var logExample: any = {
@@ -220,8 +220,8 @@ export var logExample: any = {
   topics: [topicExample],
   transaction: [transactionExample],
   decodedLog: [decodedLogExample],
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var transactionExample: any = {
@@ -244,8 +244,8 @@ export var transactionExample: any = {
   data: '0x',
   chainId: 1,
   logs: [logExample],
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var blockNumberExample: any = {
@@ -254,8 +254,8 @@ export var blockNumberExample: any = {
   transactions: [transactionExample],
   isNFTCompletedUpdate: true,
   isCompletedUpdate: true,
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var trandCollectionExample: any = {
@@ -266,8 +266,8 @@ export var trandCollectionExample: any = {
   timeRange: '1H',
   sales: 35,
   staticCreateAt: new Date(),
-  createAt: new Date(),
-  updateAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 export var decodedLogExample: any = {
@@ -296,7 +296,7 @@ export var decodedLogExample: any = {
   effectiveGasPrice: '24104367208',
   gasPrice: '24104367208',
   gasLimit: '460964',
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
   transactionFee: '0.105',
 };

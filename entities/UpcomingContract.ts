@@ -48,8 +48,8 @@ export const upcomingContractExample: any = {
   upcomingTwitters: [],
   trendUpcomingCollections: [],
   upcomingDiscords: [],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
 };
 
 const {
