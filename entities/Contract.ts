@@ -17,6 +17,7 @@ import { Attribute } from "./Attribute";
 import { Log } from "./Log";
 import * as dotenv from "dotenv";
 import { contractExample } from "../entityExamples";
+import { ContractDetail } from "./ContractDetail";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -78,6 +79,12 @@ export class Contract {
   )
   @JoinColumn({ name: "openseaCollectionId", referencedColumnName: "id" })
   openseaCollection: OpenseaCollection;
+
+  @OneToOne(() => ContractDetail, (contractDetail) => contractDetail.contract, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "contractDetailId", referencedColumnName: "id" })
+  contractDetail: ContractDetail;
 
   @OneToMany(() => NFT, (nft) => nft.contract, {
     onDelete: "CASCADE",
