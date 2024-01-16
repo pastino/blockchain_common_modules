@@ -17,6 +17,7 @@ import { Log } from "./Log";
 import { nftExample } from "../entityExamples";
 import * as dotenv from "dotenv";
 import { AttributeProperty } from "./AttributeProperty";
+import { AttributePropNFTMapping } from "./AttributePropNFTMapping";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -61,13 +62,13 @@ export class NFT {
   logs: Log[];
 
   @OneToMany(
-    () => AttributeProperty,
-    (attributeProperty) => attributeProperty.nft,
+    () => AttributePropNFTMapping,
+    (attributePropNFTMapping) => attributePropNFTMapping.nft,
     {
       onDelete: "CASCADE",
     }
   )
-  attributeProperties: AttributeProperty[];
+  attributePropNFTMappings: AttributePropNFTMapping[];
 
   @Column({ nullable: true, default: null })
   isAttributeUpdated: boolean;

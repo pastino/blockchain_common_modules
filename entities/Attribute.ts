@@ -8,6 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  Index,
 } from "typeorm";
 import * as dotenv from "dotenv";
 import { Contract } from "./Contract";
@@ -22,6 +23,7 @@ const ApiProperty = isNestJs
 
 @Entity({ name: "attribute" })
 @Unique("attributeUnique", ["contract", "traitType"])
+@Index("idx_attribute_contract", ["contract"])
 export class Attribute {
   @PrimaryGeneratedColumn()
   id: number;

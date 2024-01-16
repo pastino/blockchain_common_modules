@@ -14,7 +14,7 @@ import {
 import * as dotenv from 'dotenv';
 import { Attribute } from './Attribute';
 import { NFT } from './NFT';
-import { AttributePropNFTMapping } from './AttributePropNFTMapping';
+import { AttributeProperty } from './AttributeProperty';
 
 dotenv.config({ path: __dirname + '/../../../.env.dev' });
 const isNestJs = process.env.APP_TYPE === 'nestjs';
@@ -23,30 +23,28 @@ const ApiProperty = isNestJs
   ? require('@nestjs/swagger').ApiProperty
   : () => {};
 
-@Entity({ name: 'attributeProperty' })
-@Unique('attributePropertyUnique', ['attribute', 'value'])
-@Index('idx_attributeproperty_attribute_value', ['attribute', 'value'])
-export class AttributeProperty {
+@Entity({ name: 'attributePropNFTMapping' })
+@Index('idx_attribute_mapping_nft', ['nft'])
+@Index('idx_attribute_mapping_property', ['property'])
+export class AttributePropNFTMapping {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Attribute, (attribute) => attribute.properties, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'attributeId', referencedColumnName: 'id' })
-  attribute: Attribute;
-
-  @Column({ nullable: true })
-  value: string;
-
-  @OneToMany(
-    () => AttributePropNFTMapping,
-    (attributePropNFTMapping) => attributePropNFTMapping.property,
+  @ManyToOne(
+    () => AttributeProperty,
+    (property) => property.attributePropNFTMapping,
     {
       onDelete: 'CASCADE',
     },
   )
-  attributePropNFTMapping: AttributePropNFTMapping[];
+  @JoinColumn({ name: 'propertyId', referencedColumnName: 'id' })
+  property: AttributeProperty;
+
+  @ManyToOne(() => NFT, (nft) => nft.attributePropNFTMappings, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'nftId', referencedColumnName: 'id' })
+  nft: NFT;
 
   @CreateDateColumn()
   createdAt: Date;

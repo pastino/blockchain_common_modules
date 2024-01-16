@@ -7,7 +7,7 @@ import crypto from "crypto";
 import { downloadImage } from "../downloadNFTImage";
 import { Attribute } from "../entities/Attribute";
 import { AttributeProperty } from "../entities/AttributeProperty";
-import { alchemy } from "../blockEventHandler";
+import { AttributePropNFTMapping } from "../entities/AttributePropNFTMapping";
 
 const openSeaConfig: any = {
   headers: {
@@ -86,6 +86,7 @@ export class NFT {
   ) {
     const attributeRepo = getRepository(Attribute);
     const attributePropertyRepo = getRepository(AttributeProperty);
+    const attributePropNFTMappingRepo = getRepository(AttributePropNFTMapping);
     try {
       for (const attributeData of attributesData) {
         if (
@@ -126,7 +127,6 @@ export class NFT {
           where: {
             value: attributeData.value,
             attribute,
-            nft,
           },
         });
 
@@ -135,7 +135,6 @@ export class NFT {
             attributeProperty = new AttributeProperty();
             attributeProperty.value = attributeData.value;
             attributeProperty.attribute = attribute;
-            attributeProperty.nft = nft;
 
             await attributePropertyRepo.save(attributeProperty);
           } catch (error: any) {
@@ -145,7 +144,6 @@ export class NFT {
                 where: {
                   value: attributeData.value,
                   attribute,
-                  nft,
                 },
               });
               if (!attributeProperty)
@@ -154,6 +152,20 @@ export class NFT {
               throw error;
             }
           }
+        }
+
+        const existingMappingId = await attributePropNFTMappingRepo.findOne({
+          where: {
+            property: attributeProperty,
+            nft,
+          },
+        });
+
+        if (!existingMappingId) {
+          await attributePropNFTMappingRepo.save({
+            property: attributeProperty,
+            nft,
+          });
         }
       }
       await getRepository(NFTEntity).update(
