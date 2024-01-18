@@ -18,6 +18,7 @@ import { nftExample } from "../entityExamples";
 import * as dotenv from "dotenv";
 import { AttributeProperty } from "./AttributeProperty";
 import { AttributePropNFTMapping } from "./AttributePropNFTMapping";
+import { DecodedLog } from "./DecodedLog";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -60,6 +61,11 @@ export class NFT {
     onDelete: "RESTRICT",
   })
   logs: Log[];
+
+  @OneToMany(() => DecodedLog, (decodedLog) => decodedLog.nft, {
+    onDelete: "RESTRICT",
+  })
+  decodedLogs: DecodedLog[];
 
   @OneToMany(
     () => AttributePropNFTMapping,
