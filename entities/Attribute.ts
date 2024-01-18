@@ -9,29 +9,30 @@ import {
   JoinColumn,
   Unique,
   Index,
-} from "typeorm";
-import * as dotenv from "dotenv";
-import { Contract } from "./Contract";
-import { AttributeProperty } from "./AttributeProperty";
+} from 'typeorm';
+import * as dotenv from 'dotenv';
+import { Contract } from './Contract';
+import { AttributeProperty } from './AttributeProperty';
+import { attributeExample } from '../entityExamples';
 
-dotenv.config({ path: __dirname + "/../../../.env.dev" });
-const isNestJs = process.env.APP_TYPE === "nestjs";
+dotenv.config({ path: __dirname + '/../../../.env.dev' });
+const isNestJs = process.env.APP_TYPE === 'nestjs';
 
 const ApiProperty = isNestJs
-  ? require("@nestjs/swagger").ApiProperty
+  ? require('@nestjs/swagger').ApiProperty
   : () => {};
 
-@Entity({ name: "attribute" })
-@Unique("attributeUnique", ["contract", "traitType"])
-@Index("idx_attribute_contract", ["contract"])
+@Entity({ name: 'attribute' })
+@Unique('attributeUnique', ['contract', 'traitType'])
+@Index('idx_attribute_contract', ['contract'])
 export class Attribute {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(() => Contract, (contract) => contract.nfts, {
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
+  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
   contract: Contract;
 
   @Column({ nullable: true })
@@ -41,8 +42,8 @@ export class Attribute {
     () => AttributeProperty,
     (attributeProperty) => attributeProperty.attribute,
     {
-      onDelete: "CASCADE",
-    }
+      onDelete: 'CASCADE',
+    },
   )
   properties: AttributeProperty[];
 
@@ -54,10 +55,58 @@ export class Attribute {
   static example(): Attribute {
     const instance: any = new Attribute();
 
-    //   for (let key in blockNumberExample) {
-    //     instance[key] = blockNumberExample[key];
-    //   }
+    for (let key in attributeExample) {
+      instance[key] = attributeExample[key];
+    }
 
     return instance;
   }
+}
+
+if (isNestJs) {
+  const { id, contract, traitType, properties, createdAt, updatedAt } =
+    attributeExample;
+
+  const propertyDecorators = [
+    ApiProperty({
+      name: 'id',
+      type: Number,
+      example: id,
+      description: 'Uniqe ID',
+    }),
+    ApiProperty({
+      name: 'contract',
+      type: () => Contract,
+      example: contract,
+      description: '컬랙션 데이터',
+    }),
+    ApiProperty({
+      name: 'traitType',
+      type: String,
+      example: traitType,
+      description: '속성 타입',
+    }),
+    ApiProperty({
+      name: 'properties',
+      type: () => [AttributeProperty],
+      example: properties,
+      description: '속성 데이터',
+    }),
+    ApiProperty({
+      name: 'createdAt',
+      type: Date,
+      example: createdAt,
+      description: '생성된 시간',
+    }),
+    ApiProperty({
+      name: 'updatedAt',
+      type: Date,
+      example: updatedAt,
+      description: '업데이트된 시간',
+    }),
+  ];
+
+  propertyDecorators.forEach((decorator, index) => {
+    decorator(Attribute.prototype, index.toString());
+  });
 }

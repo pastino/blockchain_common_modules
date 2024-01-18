@@ -1,20 +1,17 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
-  Column,
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  ManyToMany,
   Index,
-  Unique,
-  OneToMany,
 } from 'typeorm';
 import * as dotenv from 'dotenv';
 import { Attribute } from './Attribute';
 import { NFT } from './NFT';
 import { AttributeProperty } from './AttributeProperty';
+import { attributePropNFTMappingExample } from '../entityExamples';
 
 dotenv.config({ path: __dirname + '/../../../.env.dev' });
 const isNestJs = process.env.APP_TYPE === 'nestjs';
@@ -54,10 +51,52 @@ export class AttributePropNFTMapping {
   static example(): Attribute {
     const instance: any = new Attribute();
 
-    //   for (let key in blockNumberExample) {
-    //     instance[key] = blockNumberExample[key];
-    //   }
+    for (let key in attributePropNFTMappingExample) {
+      instance[key] = attributePropNFTMappingExample[key];
+    }
 
     return instance;
   }
+}
+
+if (isNestJs) {
+  const { id, property, nft, createdAt, updatedAt } =
+    attributePropNFTMappingExample;
+
+  const propertyDecorators = [
+    ApiProperty({
+      name: 'id',
+      type: Number,
+      example: id,
+      description: 'Uniqe ID',
+    }),
+    ApiProperty({
+      name: 'property',
+      type: () => AttributeProperty,
+      example: property,
+      description: '속성값',
+    }),
+    ApiProperty({
+      name: 'nft',
+      type: () => NFT,
+      example: nft,
+      description: 'nft',
+    }),
+    ApiProperty({
+      name: 'createdAt',
+      type: Date,
+      example: createdAt,
+      description: '생성된 시간',
+    }),
+    ApiProperty({
+      name: 'updatedAt',
+      type: Date,
+      example: updatedAt,
+      description: '업데이트된 시간',
+    }),
+  ];
+
+  propertyDecorators.forEach((decorator, index) => {
+    decorator(AttributePropNFTMapping.prototype, index.toString());
+  });
 }

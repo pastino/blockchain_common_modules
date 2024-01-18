@@ -144,18 +144,33 @@ export var trendUpcomingCollectionExample: any = {
 
 export var traitTypeExample: any = {
   id: 1,
-
   traitType: 'Body',
   traitTypeContracts: traitTypeContractExample,
   createdAt: new Date(2024, 1, 1),
   updatedAt: new Date(2024, 1, 1),
 };
 
+export var attributePropertyExample: any = {
+  id: 1,
+  attribute: attributeExample,
+  value: 'yellow',
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
+};
+
 export var attributeExample: any = {
   id: 1,
-  value: 'yellow',
-  traitType: traitTypeExample,
-  attributeNFTs: [attributeNFTExample],
+  contract: contractExample,
+  traitType: 'Color',
+  properties: [attributePropertyExample],
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
+};
+
+export var attributePropNFTMappingExample: any = {
+  id: 1,
+  property: attributePropertyExample,
+  nft: nftExample,
   createdAt: new Date(2024, 1, 1),
   updatedAt: new Date(2024, 1, 1),
 };
