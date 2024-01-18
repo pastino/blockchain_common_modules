@@ -19,12 +19,6 @@ const openSeaConfig: any = {
   },
 };
 
-interface ContractCondition {
-  isNFTsCreated: boolean;
-  nftProgressStatus: any;
-  id?: FindOperator<number>;
-}
-
 export class ContractManager {
   private address = "";
   private queryRunner: QueryRunner;
@@ -60,6 +54,19 @@ export class ContractManager {
       return { contractDataByAddress, contractDataBySlag };
     } catch (e: any) {
       if (e.response && e.response.status !== 404) {
+        if (e.response.status === 400) {
+          const errorMessage = e.response?.data?.errors?.[0];
+          if (errorMessage) {
+            // 'Contract address'와 'not found'가 모두 포함되어 있는지 확인
+            if (
+              errorMessage.includes("Contract address") &&
+              errorMessage.includes("not found")
+            ) {
+              return { contractDataByAddress: null, contractDataBySlag: null };
+            }
+          }
+        }
+
         if (retryCount > 0) {
           await sleep(3);
           return this.handleOpenseaContract(contractAddress, retryCount - 1);
