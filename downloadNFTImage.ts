@@ -250,28 +250,33 @@ export const downloadImage = async ({
       fs.writeFileSync(tempFilePath, imageData);
       const outputPath = path.join(thumbnailPath, hashedFileName);
 
-      await new Promise((resolve, reject) => {
-        ffmpeg(tempFilePath)
-          .outputOptions("-vf", "scale=320:-1") // scale filter for resizing, you can adjust as needed
-          .outputOptions("-r 10") // Set frame rate (Hz value, fraction or abbreviation), adjust as needed
-          .toFormat("gif")
-          .output(outputPath)
-          .on("end", () => {
-            fs.unlinkSync(tempFilePath); // Delete the original, unprocessed video file
-            resolve(undefined);
-          })
-          .on("error", (err: any) => {
-            console.error("ffmpeg processing error:", err);
-            fs.unlinkSync(tempFilePath);
-            reject(err);
-            return {
-              isSuccess: false,
-              message: err.message,
-              hashedFileName: "",
-            };
-          })
-          .run(); // Run the command
-      });
+      try {
+        await new Promise((resolve, reject) => {
+          ffmpeg(tempFilePath)
+            .outputOptions("-vf", "scale=320:-1") // scale filter for resizing, you can adjust as needed
+            .outputOptions("-r 10") // Set frame rate (Hz value, fraction or abbreviation), adjust as needed
+            .toFormat("gif")
+            .output(outputPath)
+            .on("end", () => {
+              fs.unlinkSync(tempFilePath); // Delete the original, unprocessed video file
+              resolve(undefined);
+            })
+            .on("error", (err: any) => {
+              console.error("ffmpeg processing error:", err);
+              fs.unlinkSync(tempFilePath);
+              reject(err);
+              return {
+                isSuccess: false,
+                message: err.message,
+                hashedFileName: "",
+              };
+            })
+            .run(); // Run the command
+        });
+      } catch (e: any) {
+        console.error("ffmpeg processing error:", e);
+        throw e;
+      }
     } else {
       fs.writeFileSync(path.join(thumbnailPath, hashedFileName), imageData);
     }
