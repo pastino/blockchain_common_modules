@@ -320,50 +320,50 @@ export class NFT {
       if (!nft) {
         throw `Failed to find or save nft`;
       }
+      if (process.env.IS_SAVE_IMAGE === "YES") {
+        // NFT 이미지 생성
+        try {
+          if (nft?.imageRoute) return nft;
+          if (!nft || !nft?.imageRaw) {
+            let failedMessage = "";
+            if (!nft) failedMessage = "nft가 없습니다.";
+            if (!nft?.imageRaw) failedMessage = "이미지 url이 없습니다.";
+            await getRepository(NFTEntity).update(
+              { id: nft?.id },
+              { isImageUploaded: false, imageSaveError: failedMessage }
+            );
+            return nft;
+          }
+          const { isSuccess, message, hashedFileName } = await downloadImage({
+            imageUrl:
+              typeof nftData?.imageUri === "string"
+                ? nftData?.imageUri.replace(/\x00/g, "")
+                : "",
+            contractAddress: this.contract.address,
+            tokenId: this.tokenId,
+          });
+          if (!isSuccess) {
+            await getRepository(NFTEntity).update(
+              { id: nft?.id },
+              { isImageUploaded: false, imageSaveError: message }
+            );
+            return nft;
+          }
+          await getRepository(NFTEntity).update(
+            { id: nft?.id },
+            {
+              imageRoute: hashedFileName,
+              isImageUploaded: true,
+            }
+          );
+        } catch (e) {
+          null;
+        }
+      }
+
       return nft;
     } catch (e: any) {
       throw e;
-    } finally {
-      if (process.env.IS_SAVE_IMAGE === "NO") return nft;
-      // NFT 이미지 생성
-      try {
-        if (nft?.imageRoute) return nft;
-        if (!nft || !nft?.imageRaw) {
-          let failedMessage = "";
-          if (!nft) failedMessage = "nft가 없습니다.";
-          if (!nft?.imageRaw) failedMessage = "이미지 url이 없습니다.";
-          await getRepository(NFTEntity).update(
-            { id: nft?.id },
-            { isImageUploaded: false, imageSaveError: failedMessage }
-          );
-          return nft;
-        }
-        const { isSuccess, message, hashedFileName } = await downloadImage({
-          imageUrl:
-            typeof nftData?.imageUri === "string"
-              ? nftData?.imageUri.replace(/\x00/g, "")
-              : "",
-          contractAddress: this.contract.address,
-          tokenId: this.tokenId,
-        });
-        if (!isSuccess) {
-          await getRepository(NFTEntity).update(
-            { id: nft?.id },
-            { isImageUploaded: false, imageSaveError: message }
-          );
-          return nft;
-        }
-        await getRepository(NFTEntity).update(
-          { id: nft?.id },
-          {
-            imageRoute: hashedFileName,
-            isImageUploaded: true,
-          }
-        );
-        return nft;
-      } catch (e) {
-        null;
-      }
     }
   }
 }
