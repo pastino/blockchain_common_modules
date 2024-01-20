@@ -247,7 +247,9 @@ export const downloadImage = async ({
         thumbnailPath,
         `${encrypt(tokenId)}_temp.mp4`
       );
+
       fs.writeFileSync(tempFilePath, imageData);
+
       const outputPath = path.join(thumbnailPath, hashedFileName);
 
       try {
