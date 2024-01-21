@@ -162,10 +162,16 @@ export class NFT {
         });
 
         if (!existingMappingId) {
-          await attributePropNFTMappingRepo.save({
-            property: attributeProperty,
-            nft,
-          });
+          try {
+            await attributePropNFTMappingRepo.save({
+              property: attributeProperty,
+              nft,
+            });
+          } catch (error: any) {
+            if (error.code !== "23505") {
+              throw error;
+            }
+          }
         }
       }
       await getRepository(NFTEntity).update(

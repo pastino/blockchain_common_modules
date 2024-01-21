@@ -6,23 +6,25 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
-} from 'typeorm';
-import * as dotenv from 'dotenv';
-import { Attribute } from './Attribute';
-import { NFT } from './NFT';
-import { AttributeProperty } from './AttributeProperty';
-import { attributePropNFTMappingExample } from '../entityExamples';
+  Unique,
+} from "typeorm";
+import * as dotenv from "dotenv";
+import { Attribute } from "./Attribute";
+import { NFT } from "./NFT";
+import { AttributeProperty } from "./AttributeProperty";
+import { attributePropNFTMappingExample } from "../entityExamples";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
-@Entity({ name: 'attributePropNFTMapping' })
-@Index('idx_attribute_mapping_nft', ['nft'])
-@Index('idx_attribute_mapping_property', ['property'])
+@Entity({ name: "attributePropNFTMapping" })
+@Unique("attributePropNFTMappingUnique", ["property", "nft"])
+@Index("idx_attribute_mapping_nft", ["nft"])
+@Index("idx_attribute_mapping_property", ["property"])
 export class AttributePropNFTMapping {
   @PrimaryGeneratedColumn()
   id: number;
@@ -31,16 +33,16 @@ export class AttributePropNFTMapping {
     () => AttributeProperty,
     (property) => property.attributePropNFTMapping,
     {
-      onDelete: 'CASCADE',
-    },
+      onDelete: "CASCADE",
+    }
   )
-  @JoinColumn({ name: 'propertyId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "propertyId", referencedColumnName: "id" })
   property: AttributeProperty;
 
   @ManyToOne(() => NFT, (nft) => nft.attributePropNFTMappings, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
-  @JoinColumn({ name: 'nftId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "nftId", referencedColumnName: "id" })
   nft: NFT;
 
   @CreateDateColumn()
@@ -65,34 +67,34 @@ if (isNestJs) {
 
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
     ApiProperty({
-      name: 'property',
+      name: "property",
       type: () => AttributeProperty,
       example: property,
-      description: '속성값',
+      description: "속성값",
     }),
     ApiProperty({
-      name: 'nft',
+      name: "nft",
       type: () => NFT,
       example: nft,
-      description: 'nft',
+      description: "nft",
     }),
     ApiProperty({
-      name: 'createdAt',
+      name: "createdAt",
       type: Date,
       example: createdAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updatedAt',
+      name: "updatedAt",
       type: Date,
       example: updatedAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 
