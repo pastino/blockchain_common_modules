@@ -100,7 +100,23 @@ export var openseaCollectionExample: any = {
   updatedAt: new Date(2024, 1, 1),
 };
 
-export const upcomingContractExample: any = {
+export const upcomingTwitterExample: any = {
+  id: 1,
+  upcomingContract: upcomingContractExample,
+  followerCount: 4323,
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
+};
+
+export const upcomingDiscordExample: any = {
+  id: 1,
+  upcomingContract: upcomingContractExample,
+  joinCount: 4323,
+  createdAt: new Date(2024, 1, 1),
+  updatedAt: new Date(2024, 1, 1),
+};
+
+export var upcomingContractExample: any = {
   id: 1,
   // openseaCollection: openseaCollectionExample,
   address: '0xd774557b647330c91bf44cfeab205095f7e6c367',
