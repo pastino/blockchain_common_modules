@@ -132,6 +132,9 @@ export class UpcomingContract {
   @Column({ default: false })
   isPublished: boolean;
 
+  @Column({ default: false })
+  isRecommend: boolean;
+
   @Column({ nullable: true })
   contractAddress: string;
 
