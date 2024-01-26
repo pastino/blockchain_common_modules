@@ -329,14 +329,8 @@ const getAttributeByNetwork = async (uri: string) => {
       imageUri: data?.image || data?.animation_url,
       attribute: data?.attributes || [],
     };
-  } catch (error) {
-    return {
-      attributesRaw: uri,
-      title: "",
-      description: "",
-      imageUri: "",
-      attribute: [],
-    };
+  } catch (error: any) {
+    throw error;
   }
 };
 
