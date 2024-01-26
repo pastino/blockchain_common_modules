@@ -94,6 +94,9 @@ export class NFT {
   @Column({ type: "text", nullable: true, default: null })
   imageSaveError: string;
 
+  @Column({ type: "text", nullable: true, default: null })
+  attributeNetworkError: string;
+
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()

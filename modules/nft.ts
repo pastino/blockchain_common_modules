@@ -187,7 +187,12 @@ export class NFT {
 
   async createNFTAndAttributes(nftData: any) {
     try {
-      const sanitizeText = (text: string) => (text || "").replace(/\x00/g, "");
+      const sanitizeText = (text: any) => {
+        if (typeof text === "string") {
+          return text.replace(/\x00/g, "");
+        }
+        return "";
+      };
 
       const truncateTitle = (title: string) =>
         title.length > 500 ? title.slice(0, 500) : title;
@@ -287,10 +292,17 @@ export class NFT {
 
     if (nft && !isUpdate) {
       if (!nft.isAttributeUpdated) {
-        const nftDetail = await getNFTDetails(
+        const { isSuccess, nftDetail, message } = await getNFTDetails(
           this.contract.address,
           this.tokenId
         );
+
+        if (!isSuccess) {
+          await getRepository(NFTEntity).update(
+            { id: nft.id },
+            { attributeNetworkError: message }
+          );
+        }
 
         if (
           nftDetail &&
@@ -303,7 +315,17 @@ export class NFT {
       return nft;
     }
     try {
-      nftData = await getNFTDetails(this.contract.address, this.tokenId);
+      const { isSuccess, nftDetail, message } = await getNFTDetails(
+        this.contract.address,
+        this.tokenId
+      );
+
+      nftData = nftDetail;
+
+      if (!isSuccess) {
+        nftData.attributeNetworkError = message;
+      }
+
       if (isUpdate) {
         nftData.id = nft?.id;
       }

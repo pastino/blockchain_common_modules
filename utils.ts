@@ -5,6 +5,8 @@ import axios from "axios";
 
 import Web3 from "web3";
 import { alchemy } from "./blockEventHandler";
+import { getRepository } from "typeorm";
+import { NFT } from "./entities/NFT";
 const web3 = new Web3();
 
 export const sleep = (sec: number) => {
@@ -330,72 +332,82 @@ export const getNFTDetails = async (
   };
 
   try {
-    await ERC721Contract.methods.ownerOf(tokenId).call();
-    nftDetails.tokenType = "ERC721";
-  } catch (error) {}
-
-  if (!nftDetails.tokenType) {
     try {
-      await ERC1155Contract.methods
-        .balanceOf("0xD37E2eA8373b17E2e3f8825E5a83aeD319ddF52d", tokenId)
-        .call();
-      nftDetails.tokenType = "ERC1155";
+      await ERC721Contract.methods.ownerOf(tokenId).call();
+      nftDetails.tokenType = "ERC721";
     } catch (error) {}
-  }
 
-  const fetchAndSetNFTDetails = async (
-    contract: Contract,
-    uriMethod: string
-  ) => {
-    try {
-      let uri = await contract.methods[uriMethod](tokenId).call();
+    if (!nftDetails.tokenType) {
+      try {
+        await ERC1155Contract.methods
+          .balanceOf("0xD37E2eA8373b17E2e3f8825E5a83aeD319ddF52d", tokenId)
+          .call();
+        nftDetails.tokenType = "ERC1155";
+      } catch (error) {}
+    }
 
-      uri = uri.replace("{id}", tokenId.toString());
-      if (!uri) return;
+    const fetchAndSetNFTDetails = async (
+      contract: Contract,
+      uriMethod: string
+    ) => {
+      try {
+        let uri = await contract.methods[uriMethod](tokenId).call();
 
-      if (uri.startsWith("ar://")) {
-        uri = uri.replace("ar://", "https://arweave.net/");
-      } else if (uri.startsWith("ipfs://")) {
-        uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-      }
+        uri = uri.replace("{id}", tokenId.toString());
+        if (!uri) return;
 
-      let metadata;
-
-      if (uri.startsWith("data:application/json;")) {
-        const contentIndex = uri.indexOf(",");
-        const content = uri.substring(contentIndex + 1);
-
-        if (uri.includes("base64,")) {
-          metadata = decodeBase64Json(content);
-        } else {
-          let decodedContent = decodeURIComponent(content);
-          metadata = JSON.parse(decodedContent);
+        if (uri.startsWith("ar://")) {
+          uri = uri.replace("ar://", "https://arweave.net/");
+        } else if (uri.startsWith("ipfs://")) {
+          uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
         }
-      } else {
-        try {
+
+        nftDetails.attributesRaw = uri;
+
+        let metadata;
+
+        if (uri.startsWith("data:application/json;")) {
+          const contentIndex = uri.indexOf(",");
+          const content = uri.substring(contentIndex + 1);
+
+          if (uri.includes("base64,")) {
+            metadata = decodeBase64Json(content);
+          } else {
+            let decodedContent = decodeURIComponent(content);
+            metadata = JSON.parse(decodedContent);
+          }
+        } else {
           const response = await axios.get(uri, {
             timeout: 10000, // 10초 후 타임아웃
           });
           metadata = response.data;
-        } catch (error) {}
+        }
+
+        nftDetails.title = metadata?.name ? String(metadata?.name) : "";
+        nftDetails.description = metadata?.description || "";
+        nftDetails.imageUri = metadata?.image || metadata?.animation_url;
+        nftDetails.attribute = metadata?.attributes || [];
+      } catch (error: any) {
+        throw error;
       }
+    };
 
-      nftDetails.title = metadata?.name ? String(metadata?.name) : "";
-      nftDetails.description = metadata?.description || "";
-      nftDetails.imageUri = metadata?.image || metadata?.animation_url;
-      nftDetails.attribute = metadata?.attributes || [];
-      nftDetails.attributesRaw = uri;
-    } catch (error) {
-      // console.error("Error fetching NFT details:", error);
-      // TODO nft 저장 안되는 케이스 정보 저장 필요?
+    if (nftDetails.tokenType === "ERC1155") {
+      await fetchAndSetNFTDetails(ERC1155Contract, "uri");
+    } else if (nftDetails.tokenType === "ERC721") {
+      await fetchAndSetNFTDetails(ERC721Contract, "tokenURI");
     }
-  };
 
-  if (nftDetails.tokenType === "ERC1155") {
-    await fetchAndSetNFTDetails(ERC1155Contract, "uri");
-  } else if (nftDetails.tokenType === "ERC721") {
-    await fetchAndSetNFTDetails(ERC721Contract, "tokenURI");
+    return {
+      isSuccess: true,
+      nftDetail: nftDetails,
+      message: "성공",
+    };
+  } catch (e: any) {
+    return {
+      isSuccess: false,
+      nftDetail: nftDetails,
+      message: e.message,
+    };
   }
-
-  return nftDetails;
 };

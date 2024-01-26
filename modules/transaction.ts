@@ -222,12 +222,22 @@ export class Transaction {
 
       if (useParallelProcessing) {
         // 병렬 처리
-        const transactionPromises = transactions.map(
-          async (transactionHash) => {
+        // const transactionPromises = transactions.map(
+        //   async (transactionHash) => {
+        //     await this.processTransactionHash(transactionHash);
+        //   }
+        // );
+        // await Promise.all(transactionPromises);
+
+        const chunkSize = 100;
+        const transactionChunks = this.chunkArray(transactions, chunkSize);
+
+        for (const chunk of transactionChunks) {
+          const transactionPromises = chunk.map(async (transactionHash) => {
             await this.processTransactionHash(transactionHash);
-          }
-        );
-        await Promise.all(transactionPromises);
+          });
+          await Promise.all(transactionPromises);
+        }
       } else {
         // 순차적 처리
         for (const transactionHash of transactions) {
