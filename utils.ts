@@ -315,6 +315,87 @@ function decodeBase64Json(base64Encoded: string) {
   return JSON.parse(jsonString); // JSON 파싱
 }
 
+const getAttributeByNetwork = async (uri: string) => {
+  try {
+    const response = await axios.get(uri, {
+      timeout: 10000, // 10초 후 타임아웃
+    });
+    const data = response?.data;
+
+    return {
+      attributesRaw: uri,
+      title: data?.name ? String(data?.name) : "",
+      description: data?.description || "",
+      imageUri: data?.image || data?.animation_url,
+      attribute: data?.attributes || [],
+    };
+  } catch (error) {
+    return {
+      attributesRaw: uri,
+      title: "",
+      description: "",
+      imageUri: "",
+      attribute: [],
+    };
+  }
+};
+
+export interface MetaData {
+  name?: "";
+  description?: "";
+  image?: "";
+  animation_url?: "";
+  attributes?: any[];
+}
+
+export const fetchAndSetNFTDetails = async (uri: string): Promise<MetaData> => {
+  try {
+    let metadata;
+
+    if (uri.startsWith("data:application/json;")) {
+      const contentIndex = uri.indexOf(",");
+      const content = uri.substring(contentIndex + 1);
+
+      if (uri.includes("base64,")) {
+        metadata = decodeBase64Json(content);
+      } else {
+        let decodedContent = decodeURIComponent(content);
+        metadata = JSON.parse(decodedContent);
+      }
+    } else {
+      const data = await getAttributeByNetwork(uri);
+      metadata = data;
+    }
+
+    return metadata;
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+const getAttributeUriByTokenId = async ({
+  contractModule,
+  method,
+  tokenId,
+}: {
+  contractModule: Contract;
+  method: string;
+  tokenId: number | string;
+}) => {
+  let uri = await contractModule.methods[method](tokenId).call();
+
+  uri = uri.replace("{id}", tokenId.toString());
+
+  if (!uri) return "";
+
+  if (uri.startsWith("ar://")) {
+    uri = uri.replace("ar://", "https://arweave.net/");
+  } else if (uri.startsWith("ipfs://")) {
+    uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+  }
+  return uri;
+};
+
 export const getNFTDetails = async (
   address: string,
   tokenId: number | string
@@ -326,7 +407,7 @@ export const getNFTDetails = async (
     title: null as string | null,
     description: null,
     imageUri: null,
-    attribute: [],
+    attribute: [] as any[],
     tokenType: null as string | null,
     attributesRaw: null,
   };
@@ -346,57 +427,46 @@ export const getNFTDetails = async (
       } catch (error) {}
     }
 
-    const fetchAndSetNFTDetails = async (
-      contract: Contract,
-      uriMethod: string
-    ) => {
-      try {
-        let uri = await contract.methods[uriMethod](tokenId).call();
-
-        uri = uri.replace("{id}", tokenId.toString());
-        if (!uri) return;
-
-        if (uri.startsWith("ar://")) {
-          uri = uri.replace("ar://", "https://arweave.net/");
-        } else if (uri.startsWith("ipfs://")) {
-          uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-        }
-
-        nftDetails.attributesRaw = uri;
-
-        let metadata;
-
-        if (uri.startsWith("data:application/json;")) {
-          const contentIndex = uri.indexOf(",");
-          const content = uri.substring(contentIndex + 1);
-
-          if (uri.includes("base64,")) {
-            metadata = decodeBase64Json(content);
-          } else {
-            let decodedContent = decodeURIComponent(content);
-            metadata = JSON.parse(decodedContent);
-          }
-        } else {
-          const response = await axios.get(uri, {
-            timeout: 10000, // 10초 후 타임아웃
-          });
-          metadata = response.data;
-        }
-
-        nftDetails.title = metadata?.name ? String(metadata?.name) : "";
-        nftDetails.description = metadata?.description || "";
-        nftDetails.imageUri = metadata?.image || metadata?.animation_url;
-        nftDetails.attribute = metadata?.attributes || [];
-      } catch (error: any) {
-        throw error;
-      }
-    };
+    let metadata: MetaData = {};
 
     if (nftDetails.tokenType === "ERC1155") {
-      await fetchAndSetNFTDetails(ERC1155Contract, "uri");
+      const uri = await getAttributeUriByTokenId({
+        contractModule: ERC1155Contract,
+        method: "uri",
+        tokenId,
+      });
+
+      if (!uri)
+        return {
+          isSuccess: false,
+          nftDetail: nftDetails,
+          message: "No attributeRaw uri",
+        };
+
+      nftDetails.attributesRaw = uri;
+      metadata = await fetchAndSetNFTDetails(uri);
     } else if (nftDetails.tokenType === "ERC721") {
-      await fetchAndSetNFTDetails(ERC721Contract, "tokenURI");
+      const uri = await getAttributeUriByTokenId({
+        contractModule: ERC721Contract,
+        method: "tokenURI",
+        tokenId,
+      });
+
+      if (!uri)
+        return {
+          isSuccess: false,
+          nftDetail: nftDetails,
+          message: "No attributeRaw uri",
+        };
+
+      nftDetails.attributesRaw = uri;
+      metadata = await fetchAndSetNFTDetails(uri);
     }
+
+    nftDetails.title = metadata?.name ? String(metadata?.name) : "";
+    nftDetails.description = metadata?.description || "" || null;
+    nftDetails.imageUri = metadata?.image || metadata?.animation_url || null;
+    nftDetails.attribute = metadata?.attributes || [];
 
     return {
       isSuccess: true,
