@@ -79,11 +79,31 @@ export class NFT {
     return decrypted;
   }
 
-  async saveAttributes(
-    nft: NFTEntity,
-    contract: ContractEntity,
-    attributesData: any[]
-  ) {
+  async saveAttributes(nft: NFTEntity, contract: ContractEntity, nftData: any) {
+    const attributesData = nftData.attribute;
+
+    if (!nft) return;
+
+    if (nftData?.attributeNetworkError) {
+      await getRepository(NFTEntity).update(
+        { id: nft.id },
+        {
+          isAttributeUpdated: false,
+        }
+      );
+      return;
+    }
+
+    if (!nftData?.attribute || nftData.attribute.length <= 0) {
+      await getRepository(NFTEntity).update(
+        { id: nft.id },
+        {
+          isAttributeUpdated: true,
+        }
+      );
+      return;
+    }
+
     const attributeRepo = getRepository(Attribute);
     const attributePropertyRepo = getRepository(AttributeProperty);
     const attributePropNFTMappingRepo = getRepository(AttributePropNFTMapping);
@@ -231,16 +251,7 @@ export class NFT {
         );
       }
 
-      if (nft && nftData.attribute && nftData.attribute.length > 0) {
-        await this.saveAttributes(nft, this.contract, nftData.attribute);
-      } else {
-        await getRepository(NFTEntity).update(
-          { id: nft.id },
-          {
-            isAttributeUpdated: true,
-          }
-        );
-      }
+      await this.saveAttributes(nft, this.contract, nftData.attribute);
 
       return nft;
     } catch (e) {
@@ -309,7 +320,7 @@ export class NFT {
           nftDetail.attribute &&
           nftDetail.attribute.length > 0
         ) {
-          await this.saveAttributes(nft, this.contract, nftDetail.attribute);
+          await this.saveAttributes(nft, this.contract, nftDetail);
         }
       }
       return nft;
