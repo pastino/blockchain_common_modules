@@ -19,7 +19,7 @@ const ApiProperty = isNestJs
 
 @Entity({ name: "loadmap" })
 export class Loadmap {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @ManyToOne(() => ContractDetail, (contractDetail) => contractDetail.benefits)

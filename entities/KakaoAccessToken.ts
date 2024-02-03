@@ -8,7 +8,7 @@ import {
 
 @Entity({ name: "kakaoAccessToken" })
 export class KakaoAccessToken {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @Column({ nullable: true })

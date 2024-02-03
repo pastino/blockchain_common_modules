@@ -10,7 +10,7 @@ import { WalletContractConnection } from "./WalletContractConnection";
 
 @Entity()
 export class Wallet {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @Column({ nullable: true })

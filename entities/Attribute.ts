@@ -9,30 +9,30 @@ import {
   JoinColumn,
   Unique,
   Index,
-} from 'typeorm';
-import * as dotenv from 'dotenv';
-import { Contract } from './Contract';
-import { AttributeProperty } from './AttributeProperty';
-import { attributeExample } from '../entityExamples';
+} from "typeorm";
+import * as dotenv from "dotenv";
+import { Contract } from "./Contract";
+import { AttributeProperty } from "./AttributeProperty";
+import { attributeExample } from "../entityExamples";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
-@Entity({ name: 'attribute' })
-@Unique('attributeUnique', ['contract', 'traitType'])
-@Index('idx_attribute_contract', ['contract'])
+@Entity({ name: "attribute" })
+@Unique("attributeUnique", ["contract", "traitType"])
+@Index("idx_attribute_contract", ["contract"])
 export class Attribute {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @ManyToOne(() => Contract, (contract) => contract.nfts, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
-  @JoinColumn({ name: 'contractId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
 
   @Column({ nullable: true })
@@ -42,8 +42,8 @@ export class Attribute {
     () => AttributeProperty,
     (attributeProperty) => attributeProperty.attribute,
     {
-      onDelete: 'CASCADE',
-    },
+      onDelete: "CASCADE",
+    }
   )
   properties: AttributeProperty[];
 
@@ -69,40 +69,40 @@ if (isNestJs) {
 
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
     ApiProperty({
-      name: 'contract',
+      name: "contract",
       type: () => Contract,
       example: contract,
-      description: '컬랙션 데이터',
+      description: "컬랙션 데이터",
     }),
     ApiProperty({
-      name: 'traitType',
+      name: "traitType",
       type: String,
       example: traitType,
-      description: '속성 타입',
+      description: "속성 타입",
     }),
     ApiProperty({
-      name: 'properties',
+      name: "properties",
       type: () => [AttributeProperty],
       example: properties,
-      description: '속성 데이터',
+      description: "속성 데이터",
     }),
     ApiProperty({
-      name: 'createdAt',
+      name: "createdAt",
       type: Date,
       example: createdAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updatedAt',
+      name: "updatedAt",
       type: Date,
       example: updatedAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 

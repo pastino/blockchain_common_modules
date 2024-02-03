@@ -68,7 +68,7 @@ const {
 @Entity({ name: "trendCollection" })
 @Index("idx_trend_time_static", ["timeRange", "staticCreateAt"])
 export class TrendCollection {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @ManyToOne(() => Contract, (contract) => contract.trendCollections, {

@@ -20,7 +20,7 @@ const ApiProperty = isNestJs
 
 @Entity({ name: "blockNumber" })
 export class BlockNumber {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @Column({ nullable: false, unique: true })

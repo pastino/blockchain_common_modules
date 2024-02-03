@@ -6,31 +6,31 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-} from 'typeorm';
-import { UpcomingContract } from './UpcomingContract';
-import { upcomingDiscordExample } from '../entityExamples';
-import * as dotenv from 'dotenv';
+} from "typeorm";
+import { UpcomingContract } from "./UpcomingContract";
+import { upcomingDiscordExample } from "../entityExamples";
+import * as dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
-@Entity({ name: 'upcomingDiscord' })
+@Entity({ name: "upcomingDiscord" })
 export class UpcomingDiscord {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @ManyToOne(
     () => UpcomingContract,
     (upcomingContract) => upcomingContract.upcomingDiscords,
     {
-      onDelete: 'CASCADE',
-    },
+      onDelete: "CASCADE",
+    }
   )
-  @JoinColumn({ name: 'upcomingContractId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "upcomingContractId", referencedColumnName: "id" })
   upcomingContract: UpcomingContract;
 
   @Column({ nullable: false })
@@ -58,34 +58,34 @@ const { id, upcomingContract, joinCount, createdAt, updatedAt } =
 if (isNestJs) {
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
     ApiProperty({
-      name: 'upcomingContract',
+      name: "upcomingContract",
       type: () => UpcomingContract,
       example: upcomingContract,
-      description: '업커밍 컬렉션',
+      description: "업커밍 컬렉션",
     }),
     ApiProperty({
-      name: 'joinCount',
+      name: "joinCount",
       type: Number,
       example: joinCount,
-      description: '디스코드 채널 가압자 수',
+      description: "디스코드 채널 가압자 수",
     }),
     ApiProperty({
-      name: 'createdAt',
+      name: "createdAt",
       type: Date,
       example: createdAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updatedAt',
+      name: "updatedAt",
       type: Date,
       example: updatedAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 

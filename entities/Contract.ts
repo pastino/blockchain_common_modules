@@ -32,7 +32,7 @@ const ApiProperty = isNestJs
 @Unique(["address"])
 @Index("idx_contract_openseaCollection", ["openseaCollection"])
 export class Contract {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @Column({ nullable: true })

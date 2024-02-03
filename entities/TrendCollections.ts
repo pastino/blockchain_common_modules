@@ -51,7 +51,7 @@ const {
 
 @Entity({ name: "trendCollections" })
 export class TrendCollections {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @ManyToOne(() => Contract, (contract) => contract.trendCollections)

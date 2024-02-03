@@ -31,7 +31,7 @@ const ApiProperty = isNestJs
 @Index("idx_transaction_hash", ["hash"])
 @Index("idx_transaction_contract", ["contract"])
 export class Transaction {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @Column({ nullable: true })

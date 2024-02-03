@@ -8,7 +8,7 @@ import {
 
 @Entity({ name: "openseaNFT" })
 export class OpenseaNFT {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @Column({ nullable: true })

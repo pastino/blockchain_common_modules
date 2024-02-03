@@ -21,7 +21,7 @@ const ApiProperty = isNestJs
 
 @Entity({ name: "benefit" })
 export class Benefit {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @ManyToOne(() => ContractDetail, (contractDetail) => contractDetail.benefits)

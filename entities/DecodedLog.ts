@@ -40,7 +40,7 @@ const ApiProperty = isNestJs
 @Index("idx_decodedlog_log", ["log"])
 @Index("idx_decodedlog_nft", ["nft"])
 export class DecodedLog {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @OneToOne(() => Log, (log) => log.decodedLog, {

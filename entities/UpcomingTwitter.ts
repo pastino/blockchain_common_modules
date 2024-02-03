@@ -6,31 +6,31 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-} from 'typeorm';
-import { UpcomingContract } from './UpcomingContract';
-import { upcomingTwitterExample } from '../entityExamples';
-import * as dotenv from 'dotenv';
+} from "typeorm";
+import { UpcomingContract } from "./UpcomingContract";
+import { upcomingTwitterExample } from "../entityExamples";
+import * as dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + '/../../../.env.dev' });
-const isNestJs = process.env.APP_TYPE === 'nestjs';
+dotenv.config({ path: __dirname + "/../../../.env.dev" });
+const isNestJs = process.env.APP_TYPE === "nestjs";
 
 const ApiProperty = isNestJs
-  ? require('@nestjs/swagger').ApiProperty
+  ? require("@nestjs/swagger").ApiProperty
   : () => {};
 
-@Entity({ name: 'upcomingTwitter' })
+@Entity({ name: "upcomingTwitter" })
 export class UpcomingTwitter {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @ManyToOne(
     () => UpcomingContract,
     (upcomingContract) => upcomingContract.upcomingTwitters,
     {
-      onDelete: 'CASCADE',
-    },
+      onDelete: "CASCADE",
+    }
   )
-  @JoinColumn({ name: 'upcomingContractId', referencedColumnName: 'id' })
+  @JoinColumn({ name: "upcomingContractId", referencedColumnName: "id" })
   upcomingContract: UpcomingContract;
 
   @Column({ nullable: false })
@@ -58,34 +58,34 @@ const { id, upcomingContract, followerCount, createdAt, updatedAt } =
 if (isNestJs) {
   const propertyDecorators = [
     ApiProperty({
-      name: 'id',
+      name: "id",
       type: Number,
       example: id,
-      description: 'Uniqe ID',
+      description: "Uniqe ID",
     }),
     ApiProperty({
-      name: 'upcomingContract',
+      name: "upcomingContract",
       type: () => UpcomingContract,
       example: upcomingContract,
-      description: '업커밍 컬렉션',
+      description: "업커밍 컬렉션",
     }),
     ApiProperty({
-      name: 'followerCount',
+      name: "followerCount",
       type: Number,
       example: followerCount,
-      description: '트위터 팔로워 수',
+      description: "트위터 팔로워 수",
     }),
     ApiProperty({
-      name: 'createdAt',
+      name: "createdAt",
       type: Date,
       example: createdAt,
-      description: '생성된 시간',
+      description: "생성된 시간",
     }),
     ApiProperty({
-      name: 'updatedAt',
+      name: "updatedAt",
       type: Date,
       example: updatedAt,
-      description: '업데이트된 시간',
+      description: "업데이트된 시간",
     }),
   ];
 

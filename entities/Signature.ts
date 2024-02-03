@@ -4,17 +4,17 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Column,
-} from 'typeorm';
+} from "typeorm";
 
-@Entity({ name: 'signature' })
+@Entity({ name: "signature" })
 export class Signature {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @Column({ nullable: false })
   signatureId: number;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: "text", nullable: false })
   textSignature: string;
 
   @Column({ nullable: false })

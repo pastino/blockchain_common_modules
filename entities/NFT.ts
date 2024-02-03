@@ -32,7 +32,7 @@ const ApiProperty = isNestJs
 @Index("idx_nft_id_isAttributeUpdated", ["id", "isAttributeUpdated"])
 @Index("idx_nft_contract", ["contract"])
 export class NFT {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @ManyToOne(() => Contract, (contract) => contract.nfts)

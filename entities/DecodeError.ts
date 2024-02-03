@@ -8,7 +8,7 @@ import {
 
 @Entity({ name: "decodeError" })
 export class DecodeError {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @Column({ nullable: true })

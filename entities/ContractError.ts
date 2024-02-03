@@ -8,7 +8,7 @@ import {
 
 @Entity({ name: "contractError" })
 export class ContractError {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @Column()

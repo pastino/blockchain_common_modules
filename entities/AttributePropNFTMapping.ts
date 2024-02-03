@@ -26,7 +26,7 @@ const ApiProperty = isNestJs
 @Index("idx_attribute_mapping_nft", ["nft"])
 @Index("idx_attribute_mapping_property", ["property"])
 export class AttributePropNFTMapping {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: number;
 
   @ManyToOne(
