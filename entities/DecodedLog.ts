@@ -32,6 +32,7 @@ const ApiProperty = isNestJs
   "timestamp",
   "id",
 ])
+@Index("idx_decodedlog_nft_action_timestamp", ["nft", "action", "timestamp"])
 @Index("idx_decodedlog_contractaddress_timestamp", [
   "contractAddress",
   "timestamp",

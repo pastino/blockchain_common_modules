@@ -23,35 +23,29 @@ export async function handleBlockEvent(blockNum: number) {
         blockNumber: blockNum,
       },
     });
-
     if (existingBlock) {
       console.log("이미 처리된 블록", blockNum);
       return { isSuccess: false, message: "이미 처리된 블록" };
     }
-
     const blockData = await web3.eth.getBlock(blockNum);
 
     if (!blockData) {
       console.log("블록 데이터 없음", blockNum);
       return { isSuccess: false, message: "블록 데이터 없음" };
     }
-
     const blockNumber = await getRepository(BlockNumber).save({
       blockNumber: blockNum,
     });
-
     const transaction = new Transaction({
       blockData,
       blockNumber,
     });
-
     await transaction.progressTransaction();
 
     await getRepository(BlockNumber).update(
       { id: blockNumber.id },
       { isCompletedUpdate: true }
     );
-
     const logErrorList = await getRepository(LogError).find({
       where: {
         blockNumber: blockNum,

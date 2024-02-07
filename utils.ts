@@ -407,39 +407,9 @@ export const getNFTDetails = async (
   };
 
   try {
-    try {
-      await ERC721Contract.methods.ownerOf(tokenId).call();
-      nftDetails.tokenType = "ERC721";
-    } catch (error) {}
-
-    if (!nftDetails.tokenType) {
-      try {
-        await ERC1155Contract.methods
-          .balanceOf("0xD37E2eA8373b17E2e3f8825E5a83aeD319ddF52d", tokenId)
-          .call();
-        nftDetails.tokenType = "ERC1155";
-      } catch (error) {}
-    }
-
     let metadata: MetaData = {};
 
-    if (nftDetails.tokenType === "ERC1155") {
-      const uri = await getAttributeUriByTokenId({
-        contractModule: ERC1155Contract,
-        method: "uri",
-        tokenId,
-      });
-
-      if (!uri)
-        return {
-          isSuccess: false,
-          nftDetail: nftDetails,
-          message: "No attributeRaw uri",
-        };
-
-      nftDetails.attributesRaw = uri;
-      metadata = await fetchAndSetNFTDetails(uri);
-    } else if (nftDetails.tokenType === "ERC721") {
+    try {
       const uri = await getAttributeUriByTokenId({
         contractModule: ERC721Contract,
         method: "tokenURI",
@@ -455,6 +425,26 @@ export const getNFTDetails = async (
 
       nftDetails.attributesRaw = uri;
       metadata = await fetchAndSetNFTDetails(uri);
+    } catch (e: any) {
+      try {
+        const uri = await getAttributeUriByTokenId({
+          contractModule: ERC1155Contract,
+          method: "uri",
+          tokenId,
+        });
+
+        if (!uri)
+          return {
+            isSuccess: false,
+            nftDetail: nftDetails,
+            message: "No attributeRaw uri",
+          };
+
+        nftDetails.attributesRaw = uri;
+        metadata = await fetchAndSetNFTDetails(uri);
+      } catch (e: any) {
+        throw e;
+      }
     }
 
     nftDetails.title = metadata?.name ? String(metadata?.name) : "";
