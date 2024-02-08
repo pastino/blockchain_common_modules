@@ -8,12 +8,12 @@ import { web3 } from "./web3";
 
 const kakaoMessage = new Message();
 
-export async function handleBlockEvent(blockNum: number, apiKey: string) {
+export async function handleBlockEvent(blockNum: number, apiKey?: string) {
   try {
     console.log("블록 데이터 생성 시작", blockNum);
 
     const config = {
-      apiKey,
+      apiKey: apiKey || process.env.ALCHEMY_API_KEY,
       network: Network.ETH_MAINNET,
     };
 
