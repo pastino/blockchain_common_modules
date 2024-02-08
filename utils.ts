@@ -1,12 +1,9 @@
 import { ERC_1155_ABI, ERC_20_ABI, ERC_721_ABI } from "./ABI";
-import { web3 as cunnectedWeb3 } from "./web3";
+import { web3 as connectedWeb3 } from "./web3";
 import { Contract } from "web3-eth-contract";
 import axios from "axios";
-
 import Web3 from "web3";
-import { alchemy } from "./blockEventHandler";
-import { getRepository } from "typeorm";
-import { NFT } from "./entities/NFT";
+
 const web3 = new Web3();
 
 export const sleep = (sec: number) => {
@@ -228,11 +225,12 @@ export const findTargetLogFromTo = (tokenId: string, logs: any[]) => {
 
 export const getContractDetails = async (
   address: string,
-  tokenId: number | string
+  tokenId: number | string,
+  alchemy: any
 ) => {
-  const ERC20Contract = new cunnectedWeb3.eth.Contract(ERC_20_ABI, address);
-  const ERC721Contract = new cunnectedWeb3.eth.Contract(ERC_721_ABI, address);
-  const ERC1155Contract = new cunnectedWeb3.eth.Contract(ERC_1155_ABI, address);
+  const ERC20Contract = new connectedWeb3.eth.Contract(ERC_20_ABI, address);
+  const ERC721Contract = new connectedWeb3.eth.Contract(ERC_721_ABI, address);
+  const ERC1155Contract = new connectedWeb3.eth.Contract(ERC_1155_ABI, address);
 
   let contractDetails = {
     address: address,
@@ -292,7 +290,7 @@ export const getContractDetails = async (
       contractDetails.deployedBlockNumber = deployedBlockNumber;
 
       if (deployedBlockNumber) {
-        const blockData = await cunnectedWeb3.eth.getBlock(deployedBlockNumber);
+        const blockData = await connectedWeb3.eth.getBlock(deployedBlockNumber);
 
         if (blockData && !isNaN(blockData.timestamp)) {
           const createdDate = new Date(Number(blockData.timestamp) * 1000);
@@ -376,92 +374,113 @@ const getAttributeUriByTokenId = async ({
   method: string;
   tokenId: number | string;
 }) => {
-  let uri = await contractModule.methods[method](tokenId).call();
+  try {
+    let uri = await contractModule.methods[method](tokenId).call();
 
-  uri = uri.replace("{id}", tokenId.toString());
+    uri = uri.replace("{id}", tokenId.toString());
 
-  if (!uri) return "";
+    if (!uri) return "";
 
-  if (uri.startsWith("ar://")) {
-    uri = uri.replace("ar://", "https://arweave.net/");
-  } else if (uri.startsWith("ipfs://")) {
-    uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+    if (uri.startsWith("ar://")) {
+      uri = uri.replace("ar://", "https://arweave.net/");
+    } else if (uri.startsWith("ipfs://")) {
+      uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+    }
+    return uri;
+  } catch (e) {
+    throw e;
   }
-  return uri;
 };
 
 export const getNFTDetails = async (
   address: string,
-  tokenId: number | string
+  tokenId: number | string,
+  alchemy: any
 ) => {
-  const ERC721Contract = new cunnectedWeb3.eth.Contract(ERC_721_ABI, address);
-  const ERC1155Contract = new cunnectedWeb3.eth.Contract(ERC_1155_ABI, address);
+  const ERC721Contract = new connectedWeb3.eth.Contract(ERC_721_ABI, address);
+  const ERC1155Contract = new connectedWeb3.eth.Contract(ERC_1155_ABI, address);
   let nftDetails = {
     tokenId,
-    title: null as string | null,
+    title: null,
     description: null,
     imageUri: null,
-    attribute: [] as any[],
-    tokenType: null as string | null,
+    attribute: [],
+    tokenType: null,
     attributesRaw: null,
+    imageAlchemyUrl: null,
+    processingStatus: 1,
   };
 
-  try {
-    let metadata: MetaData = {};
-
+  async function tryFetchMetadataFromAlchemy() {
     try {
-      const uri = await getAttributeUriByTokenId({
-        contractModule: ERC721Contract,
-        method: "tokenURI",
-        tokenId,
-      });
-
-      if (!uri)
+      const data = await alchemy.nft.getNftMetadata(address, tokenId);
+      if (data) {
         return {
-          isSuccess: false,
-          nftDetail: nftDetails,
-          message: "No attributeRaw uri",
+          ...nftDetails,
+          title: data?.title || data?.rawMetadata?.name || null,
+          description:
+            data?.description || data?.rawMetadata?.description || null,
+          tokenType: data?.tokenType,
+          imageUri: data?.media?.[0]?.raw,
+          attribute: data?.rawMetadata?.attributes || [],
+          attributesRaw: data?.tokenUri?.raw || null,
+          imageAlchemyUrl: data?.media?.[0]?.thumbnail || null,
+          processingStatus: 3,
         };
+      }
+    } catch (error) {
+      console.error("Failed to fetch NFT details from Alchemy:", error);
+      throw new Error("Alchemy data fetch failed");
+    }
+  }
 
-      nftDetails.attributesRaw = uri;
-      metadata = await fetchAndSetNFTDetails(uri);
-    } catch (e: any) {
-      try {
-        const uri = await getAttributeUriByTokenId({
-          contractModule: ERC1155Contract,
-          method: "uri",
-          tokenId,
-        });
+  try {
+    let uri = await getAttributeUriByTokenId({
+      contractModule: ERC721Contract,
+      method: "tokenURI",
+      tokenId,
+    }).catch(() =>
+      getAttributeUriByTokenId({
+        contractModule: ERC1155Contract,
+        method: "uri",
+        tokenId,
+      })
+    );
 
-        if (!uri)
-          return {
-            isSuccess: false,
-            nftDetail: nftDetails,
-            message: "No attributeRaw uri",
-          };
-
-        nftDetails.attributesRaw = uri;
-        metadata = await fetchAndSetNFTDetails(uri);
-      } catch (e: any) {
-        throw e;
+    if (!uri) {
+      // If getting URI fails, try fetching metadata from Alchemy
+      const alchemyDetails = await tryFetchMetadataFromAlchemy();
+      if (alchemyDetails) {
+        return { isSuccess: true, nftDetail: alchemyDetails, message: "성공" };
+      } else {
+        throw new Error(
+          "Failed to fetch NFT details from both contract and Alchemy"
+        );
       }
     }
 
-    nftDetails.title = metadata?.name ? String(metadata?.name) : "";
-    nftDetails.description = metadata?.description || "" || null;
-    nftDetails.imageUri = metadata?.image || metadata?.animation_url || null;
-    nftDetails.attribute = metadata?.attributes || [];
-
-    return {
-      isSuccess: true,
-      nftDetail: nftDetails,
-      message: "성공",
-    };
-  } catch (e: any) {
+    try {
+      const metadata = await fetchAndSetNFTDetails(uri);
+      return {
+        isSuccess: true,
+        nftDetail: {
+          ...nftDetails,
+          ...metadata,
+          attributesRaw: uri,
+          processingStatus: 3,
+        },
+        message: "성공",
+      };
+    } catch (error) {
+      const updatedDetails = await tryFetchMetadataFromAlchemy();
+      return { isSuccess: true, nftDetail: updatedDetails, message: "성공" };
+    }
+  } catch (error: any) {
+    // If all attempts fail, including Alchemy
     return {
       isSuccess: false,
       nftDetail: nftDetails,
-      message: e.message,
+      message: error.message || "Failed to process NFT details",
     };
   }
 };

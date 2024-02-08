@@ -6,17 +6,18 @@ import { Transaction } from "./modules/transaction";
 import { LogError } from "./entities/LogError";
 import { web3 } from "./web3";
 
-const config = {
-  apiKey: process.env.ALCHEMY_API_KEY,
-  network: Network.ETH_MAINNET,
-};
-
-export const alchemy = new Alchemy(config);
 const kakaoMessage = new Message();
 
-export async function handleBlockEvent(blockNum: number) {
+export async function handleBlockEvent(blockNum: number, apiKey: string) {
   try {
     console.log("블록 데이터 생성 시작", blockNum);
+
+    const config = {
+      apiKey,
+      network: Network.ETH_MAINNET,
+    };
+
+    const alchemy = new Alchemy(config);
 
     const existingBlock = await getRepository(BlockNumber).findOne({
       where: {
@@ -39,6 +40,7 @@ export async function handleBlockEvent(blockNum: number) {
     const transaction = new Transaction({
       blockData,
       blockNumber,
+      alchemy,
     });
     await transaction.progressTransaction();
 

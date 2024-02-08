@@ -82,7 +82,10 @@ export class ContractManager {
     }
   }
 
-  async saveContract(tokenId: number | string): Promise<ContractEntity> {
+  async saveContract(
+    tokenId: number | string,
+    alchemy: any
+  ): Promise<ContractEntity> {
     await this.queryRunner.connect();
     await this.queryRunner.startTransaction();
     try {
@@ -96,7 +99,8 @@ export class ContractManager {
       if (!contract) {
         const contractMetaData = await getContractDetails(
           this.address,
-          tokenId
+          tokenId,
+          alchemy
         );
 
         const newContract = {

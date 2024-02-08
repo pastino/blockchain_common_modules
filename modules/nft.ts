@@ -4,7 +4,6 @@ import { NFT as NFTEntity } from "../entities/NFT";
 import axios, { AxiosResponse } from "axios";
 import { getNFTDetails, sleep } from "../utils";
 import crypto from "crypto";
-import { downloadImage } from "../downloadNFTImage";
 import { Attribute } from "../entities/Attribute";
 import { AttributeProperty } from "../entities/AttributeProperty";
 import { AttributePropNFTMapping } from "../entities/AttributePropNFTMapping";
@@ -18,16 +17,20 @@ const openSeaConfig: any = {
 export class NFT {
   private contract: ContractEntity;
   private tokenId: number | string;
+  private alchemy: any;
 
   constructor({
     contract,
     tokenId,
+    alchemy,
   }: {
     contract: ContractEntity;
     tokenId: number | string;
+    alchemy: any;
   }) {
     this.contract = contract;
     this.tokenId = tokenId;
+    this.alchemy = alchemy;
   }
 
   async handleOpenseaNFT(
@@ -83,26 +86,6 @@ export class NFT {
     const attributesData = nftData.attribute;
 
     if (!nft) return;
-
-    if (nftData?.attributeNetworkError) {
-      await getRepository(NFTEntity).update(
-        { id: nft.id },
-        {
-          isAttributeUpdated: false,
-        }
-      );
-      return;
-    }
-
-    if (!nftData?.attribute || nftData.attribute.length <= 0) {
-      await getRepository(NFTEntity).update(
-        { id: nft.id },
-        {
-          isAttributeUpdated: true,
-        }
-      );
-      return;
-    }
 
     const attributeRepo = getRepository(Attribute);
     const attributePropertyRepo = getRepository(AttributeProperty);
@@ -194,12 +177,6 @@ export class NFT {
           }
         }
       }
-      await getRepository(NFTEntity).update(
-        { id: nft.id },
-        {
-          isAttributeUpdated: true,
-        }
-      );
     } catch (e) {
       throw e;
     }
@@ -217,18 +194,6 @@ export class NFT {
       const truncateTitle = (title: string) =>
         title.length > 500 ? title.slice(0, 500) : title;
 
-      let imageAlchemyUrl = "";
-      let imageAlchemyError = "";
-      try {
-        // const alchemyNFTData = await alchemy.nft.getNftMetadata(
-        //   this.contract.address,
-        //   this.tokenId
-        // );
-        // imageAlchemyUrl = alchemyNFTData?.media?.[0]?.thumbnail || "";
-      } catch (e: any) {
-        imageAlchemyError = e.message;
-      }
-
       const saveData = {
         ...nftData,
         isAttributeUpdated: false,
@@ -237,10 +202,7 @@ export class NFT {
         contract: this.contract,
         attributesRaw: sanitizeText(nftData.attributesRaw || "") || "",
         imageRaw: sanitizeText(nftData.imageUri || "") || "",
-        imageAlchemyUrl,
       };
-
-      if (imageAlchemyError) saveData.imageAlchemyError = imageAlchemyError;
 
       const nft = await getRepository(NFTEntity).save(saveData);
 
@@ -291,7 +253,7 @@ export class NFT {
     }
   }
 
-  async saveNFT(isUpdate: boolean = false) {
+  async saveNFT() {
     let nftData: any;
 
     let nft = await getRepository(NFTEntity).findOne({
@@ -301,34 +263,14 @@ export class NFT {
       },
     });
 
-    if (nft && !isUpdate) {
-      if (!nft.isAttributeUpdated) {
-        const { isSuccess, nftDetail, message } = await getNFTDetails(
-          this.contract.address,
-          this.tokenId
-        );
-
-        if (!isSuccess) {
-          await getRepository(NFTEntity).update(
-            { id: nft.id },
-            { attributeNetworkError: message }
-          );
-        }
-
-        if (
-          nftDetail &&
-          nftDetail.attribute &&
-          nftDetail.attribute.length > 0
-        ) {
-          await this.saveAttributes(nft, this.contract, nftDetail);
-        }
-      }
+    if (nft) {
       return nft;
     }
     try {
       const { isSuccess, nftDetail, message } = await getNFTDetails(
         this.contract.address,
-        this.tokenId
+        this.tokenId,
+        this.alchemy
       );
 
       nftData = nftDetail;
@@ -337,12 +279,12 @@ export class NFT {
         nftData.attributeNetworkError = message;
       }
 
-      if (isUpdate) {
-        nftData.id = nft?.id;
-      }
-
       try {
         nft = await this.createNFTAndAttributes(nftData);
+        await getRepository(NFTEntity).update(
+          { id: nft?.id },
+          { isUpdatedComplete: true }
+        );
       } catch (e: any) {
         if (e.code === "23505") {
           nft = await getRepository(NFTEntity).findOne({
@@ -359,46 +301,49 @@ export class NFT {
       if (!nft) {
         throw `Failed to find or save nft`;
       }
-      if (process.env.IS_SAVE_IMAGE === "YES") {
-        // NFT 이미지 생성
-        try {
-          if (nft?.imageRoute) return nft;
-          if (!nft || !nft?.imageRaw) {
-            let failedMessage = "";
-            if (!nft) failedMessage = "nft가 없습니다.";
-            if (!nft?.imageRaw) failedMessage = "이미지 url이 없습니다.";
-            await getRepository(NFTEntity).update(
-              { id: nft?.id },
-              { isImageUploaded: false, imageSaveError: failedMessage }
-            );
-            return nft;
-          }
-          const { isSuccess, message, hashedFileName } = await downloadImage({
-            imageUrl:
-              typeof nftData?.imageUri === "string"
-                ? nftData?.imageUri.replace(/\x00/g, "")
-                : "",
-            contractAddress: this.contract.address,
-            tokenId: this.tokenId,
-          });
-          if (!isSuccess) {
-            await getRepository(NFTEntity).update(
-              { id: nft?.id },
-              { isImageUploaded: false, imageSaveError: message }
-            );
-            return nft;
-          }
-          await getRepository(NFTEntity).update(
-            { id: nft?.id },
-            {
-              imageRoute: hashedFileName,
-              isImageUploaded: true,
-            }
-          );
-        } catch (e) {
-          null;
-        }
-      }
+
+      // if (process.env.IS_SAVE_IMAGE === "YES") {
+      //   // NFT 이미지 생성
+      //   try {
+      //     if (nft?.imageRoute) return nft;
+      //     if (!nft?.imageRaw) {
+      //       let failedMessage = "";
+      //       if (!nft) failedMessage = "nft가 없습니다.";
+      //       if (!nft?.imageRaw) failedMessage = "이미지 url이 없습니다.";
+      //       await getRepository(NFTEntity).update(
+      //         { id: nft?.id },
+      //         { processingStatus: 4,  }
+      //       );
+      //       return nft;
+      //     }
+      //     const { isSuccess, message, hashedFileName } = await downloadImage({
+      //       imageUrl:
+      //         typeof nftData?.imageUri === "string"
+      //           ? nftData?.imageUri.replace(/\x00/g, "")
+      //           : "",
+      //       contractAddress: this.contract.address,
+      //       tokenId: this.tokenId,
+      //     });
+      //     if (!isSuccess) {
+      //       // 수정
+      //       // await getRepository(NFTEntity).update(
+      //       //   { id: nft?.id },
+      //       //   { isImageUploaded: false, imageSaveError: message }
+      //       // );
+      //       return nft;
+      //     }
+      //     // 수정
+      //     // await getRepository(NFTEntity).update(
+      //     //   { id: nft?.id },
+      //     //   {
+      //     //     imageRoute: hashedFileName,
+      //     //     isImageUploaded: true,
+      //     //   }
+      //     // );
+      //   } catch (e) {
+      //     null;
+      //   }
+      // }
 
       return nft;
     } catch (e: any) {

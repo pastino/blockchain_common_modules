@@ -29,7 +29,6 @@ const ApiProperty = isNestJs
 
 @Entity({ name: "nft" })
 @Unique("uniqueIndex", ["contract", "tokenId"])
-@Index("idx_nft_id_isAttributeUpdated", ["id", "isAttributeUpdated"])
 @Index("idx_nft_contract", ["contract"])
 export class NFT {
   @PrimaryGeneratedColumn("increment", { type: "bigint" })
@@ -76,9 +75,6 @@ export class NFT {
   )
   attributePropNFTMappings: AttributePropNFTMapping[];
 
-  @Column({ nullable: true, default: null })
-  isAttributeUpdated: boolean;
-
   @Column({ nullable: true, default: null, length: 1000 })
   imageRoute: string;
 
@@ -88,14 +84,14 @@ export class NFT {
   @Column({ nullable: true, default: null, length: 1000 })
   alchemyImageError: string;
 
-  @Column({ nullable: true, default: null })
-  isImageUploaded: boolean;
+  @Column({ nullable: false, default: 1 })
+  processingStatus: number;
 
-  @Column({ type: "text", nullable: true, default: null })
-  imageSaveError: string;
+  @Column({ nullable: true, default: null, length: 1000 })
+  errorMessage: string;
 
-  @Column({ type: "text", nullable: true, default: null })
-  attributeNetworkError: string;
+  @Column({ nullable: false, default: false })
+  isUpdatedComplete: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

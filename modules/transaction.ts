@@ -34,16 +34,20 @@ export class Transaction {
   private transactionHash = "";
   private blockData: Block;
   private blockNumber: BlockNumberEntity;
+  private alchemy: any;
 
   constructor({
     blockData,
     blockNumber,
+    alchemy,
   }: {
     blockData: Block;
     blockNumber: BlockNumberEntity;
+    alchemy: any;
   }) {
     this.blockData = blockData;
     this.blockNumber = blockNumber;
+    this.alchemy = alchemy;
   }
 
   private async getTransactionReceipt(
@@ -101,14 +105,14 @@ export class Transaction {
   }): Promise<{
     isSuccess: boolean;
     contractData: ContractEntity;
-    nftData?: NFTEntity;
+    nftData: any;
   }> {
     try {
       const contract = new ContractManager({
         address: contractAddress,
       });
 
-      const contractData = await contract.saveContract(tokenId);
+      const contractData = await contract.saveContract(tokenId, this.alchemy);
 
       await getRepository(TransactionEntity).update(
         { id: transaction.id },
@@ -121,6 +125,7 @@ export class Transaction {
         const nft = new NFT({
           contract: contractData,
           tokenId,
+          alchemy: this.alchemy,
         });
         nftData = await nft.saveNFT();
       }
