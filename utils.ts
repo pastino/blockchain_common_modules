@@ -348,12 +348,21 @@ export const fetchAndSetNFTDetails = async (uri: string): Promise<MetaData> => {
       const contentIndex = uri.indexOf(",");
       const content = uri.substring(contentIndex + 1);
 
+      let jsonResult: any = {};
       if (uri.includes("base64,")) {
-        metadata = decodeBase64Json(content);
+        jsonResult = decodeBase64Json(content);
       } else {
         let decodedContent = decodeURIComponent(content);
-        metadata = JSON.parse(decodedContent);
+        jsonResult = JSON.parse(decodedContent);
       }
+
+      metadata = {
+        attributesRaw: uri,
+        title: jsonResult?.name ? String(jsonResult?.name) : "",
+        description: jsonResult?.description || "",
+        imageUri: jsonResult?.image || jsonResult?.animation_url,
+        attribute: jsonResult?.attributes || [],
+      };
     } else {
       const data = await getAttributeByNetwork(uri);
       metadata = data;
@@ -399,13 +408,14 @@ export const getNFTDetails = async (
 ) => {
   const ERC721Contract = new connectedWeb3.eth.Contract(ERC_721_ABI, address);
   const ERC1155Contract = new connectedWeb3.eth.Contract(ERC_1155_ABI, address);
+
   let nftDetails = {
     tokenId,
     title: null,
     description: null,
     imageUri: null,
     attribute: [],
-    tokenType: null,
+    tokenType: null as string | null,
     attributesRaw: null,
     imageAlchemyUrl: null,
     processingStatus: 1,
@@ -415,47 +425,74 @@ export const getNFTDetails = async (
     try {
       const data = await alchemy.nft.getNftMetadata(address, tokenId);
       if (data) {
+        let metadataUpdate: any = {};
+        if (!data.title || !data.description || !data.media?.[0]?.raw) {
+          const uri = data.tokenUri?.raw || data.tokenUri;
+          if (uri) {
+            const additionalMetadata = await fetchAndSetNFTDetails(uri);
+            metadataUpdate = {
+              title: additionalMetadata.name || "",
+              description: additionalMetadata.description || "",
+              imageUri: additionalMetadata.image || "",
+            };
+          }
+        }
+
         return {
           ...nftDetails,
-          title: data?.title || data?.rawMetadata?.name || null,
+          title:
+            data?.title ||
+            data?.rawMetadata?.name ||
+            metadataUpdate?.title ||
+            null,
           description:
-            data?.description || data?.rawMetadata?.description || null,
+            data?.description ||
+            data?.rawMetadata?.description ||
+            metadataUpdate?.description ||
+            null,
           tokenType: data?.tokenType,
-          imageUri: data?.media?.[0]?.raw,
+          imageUri: data?.media?.[0]?.raw || metadataUpdate?.imageUri,
           attribute: data?.rawMetadata?.attributes || [],
           attributesRaw: data?.tokenUri?.raw || null,
           imageAlchemyUrl: data?.media?.[0]?.thumbnail || null,
           processingStatus: 3,
         };
       }
-    } catch (error) {
-      console.error("Failed to fetch NFT details from Alchemy:", error);
-      throw new Error("Alchemy data fetch failed");
+    } catch (error: any) {
+      throw new Error("Alchemy data fetch failed - " + error.message);
     }
   }
 
   try {
-    let uri = await getAttributeUriByTokenId({
-      contractModule: ERC721Contract,
-      method: "tokenURI",
-      tokenId,
-    }).catch(() =>
-      getAttributeUriByTokenId({
-        contractModule: ERC1155Contract,
-        method: "uri",
+    let uri;
+    try {
+      uri = await getAttributeUriByTokenId({
+        contractModule: ERC721Contract,
+        method: "tokenURI",
         tokenId,
-      })
-    );
-
-    if (!uri) {
-      // If getting URI fails, try fetching metadata from Alchemy
-      const alchemyDetails = await tryFetchMetadataFromAlchemy();
-      if (alchemyDetails) {
-        return { isSuccess: true, nftDetail: alchemyDetails, message: "성공" };
-      } else {
-        throw new Error(
-          "Failed to fetch NFT details from both contract and Alchemy"
-        );
+      });
+      nftDetails.tokenType = "ERC721";
+    } catch (error) {
+      try {
+        uri = await getAttributeUriByTokenId({
+          contractModule: ERC1155Contract,
+          method: "uri",
+          tokenId,
+        });
+        nftDetails.tokenType = "ERC1155";
+      } catch (innerError) {
+        const alchemyDetails = await tryFetchMetadataFromAlchemy();
+        if (alchemyDetails) {
+          return {
+            isSuccess: true,
+            nftDetail: alchemyDetails,
+            message: "성공",
+          };
+        } else {
+          throw new Error(
+            "Failed to fetch NFT details from both contract and Alchemy"
+          );
+        }
       }
     }
 
@@ -476,7 +513,6 @@ export const getNFTDetails = async (
       return { isSuccess: true, nftDetail: updatedDetails, message: "성공" };
     }
   } catch (error: any) {
-    // If all attempts fail, including Alchemy
     return {
       isSuccess: false,
       nftDetail: nftDetails,

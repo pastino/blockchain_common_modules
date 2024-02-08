@@ -82,9 +82,11 @@ export class NFT {
     return decrypted;
   }
 
-  async saveAttributes(nft: NFTEntity, contract: ContractEntity, nftData: any) {
-    const attributesData = nftData.attribute;
-
+  async saveAttributes(
+    nft: NFTEntity,
+    contract: ContractEntity,
+    attributesData: any
+  ) {
     if (!nft) return;
 
     const attributeRepo = getRepository(Attribute);
@@ -276,7 +278,7 @@ export class NFT {
       nftData = nftDetail;
 
       if (!isSuccess) {
-        nftData.attributeNetworkError = message;
+        nftData.errorMessage = message;
       }
 
       try {
