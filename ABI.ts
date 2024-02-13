@@ -417,7 +417,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
           type: "event",
         };
 
-        const decodedData = web3.eth.abi.decodeParameters(
+        const decodedData: any = web3.eth.abi.decodeParameters(
           BLUR_ABI.inputs.filter((input) => !input.indexed),
           data
         );
@@ -825,7 +825,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
             "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
           ) {
             const amount = web3.eth.abi.decodeParameter("uint256", item?.data);
-            const fromAddress = web3.eth.abi.decodeParameter(
+            const fromAddress: any = web3.eth.abi.decodeParameter(
               "address",
               item?.topics[1]
             );
@@ -1173,7 +1173,7 @@ export const SALE_HEX_SIGNATURE_LIST = [
           type: "event",
         };
 
-        const decodedData = web3.eth.abi.decodeParameters(
+        const decodedData: any = web3.eth.abi.decodeParameters(
           X2Y2_ABI.inputs.filter((input) => !input.indexed),
           data
         );
@@ -1253,7 +1253,10 @@ export const SALE_HEX_SIGNATURE_LIST = [
       try {
         if (topics.length <= 3) return;
 
-        const fromAddress = web3.eth.abi.decodeParameter("address", topics[1]);
+        const fromAddress: any = web3.eth.abi.decodeParameter(
+          "address",
+          topics[1]
+        );
         const actionType =
           fromAddress.toLowerCase() ===
           "0x0000000000000000000000000000000000000000"
@@ -1312,7 +1315,10 @@ export const SALE_HEX_SIGNATURE_LIST = [
         const tokenId = decodedData?.[0];
         const quantity = decodedData?.[1];
 
-        const fromAddress = web3.eth.abi.decodeParameter("address", topics[2]);
+        const fromAddress: any = web3.eth.abi.decodeParameter(
+          "address",
+          topics[2]
+        );
         const actionType =
           fromAddress.toLowerCase() ===
           "0x0000000000000000000000000000000000000000"

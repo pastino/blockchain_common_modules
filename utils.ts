@@ -379,7 +379,7 @@ const getAttributeUriByTokenId = async ({
   method,
   tokenId,
 }: {
-  contractModule: Contract;
+  contractModule: any;
   method: string;
   tokenId: number | string;
 }) => {
