@@ -18,7 +18,13 @@ const encrypt = (tokenId: string | number) => {
   return encrypted;
 };
 
-const makeRequest = async ({ imageUrl, server }: any) => {
+const makeRequest = async ({
+  imageUrl,
+  server,
+  alchemy,
+  contractAddress,
+  tokenId,
+}: any) => {
   try {
     const response = await axiosInstance.get(imageUrl as string, {
       responseType: "arraybuffer",
@@ -31,16 +37,19 @@ const makeRequest = async ({ imageUrl, server }: any) => {
       message: "",
     };
   } catch (error: any) {
-    if (error.response && error.response.status === 429) {
-      const retryAfter = error.response.headers["retry-after"];
+    const data = await alchemy.nft.getNftMetadata(contractAddress, tokenId);
+    if (data?.media?.[0]?.thumbnail) {
       return {
-        isSuccess: false,
-        imageUrl: "",
-        message: `429 에러 발생. ${retryAfter}초 후에 다시 시도. Server: ${server}, ${imageUrl}`,
+        isSuccess: true,
+        imageUrl: data?.media?.[0]?.thumbnail,
+        message: "",
       };
-    } else {
-      throw error;
     }
+    return {
+      isSuccess: false,
+      imageUrl: "",
+      message: error.message,
+    };
   }
 };
 
@@ -105,10 +114,12 @@ export const downloadImage = async ({
   imageUrl,
   contractAddress,
   tokenId,
+  alchemy,
 }: {
   imageUrl: string;
   contractAddress: string;
   tokenId: string | number;
+  alchemy: any;
 }): Promise<{
   isSuccess: boolean;
   message: string;
@@ -141,7 +152,6 @@ export const downloadImage = async ({
           ipfsHash = ipfsHash.split("ipfs/")[1];
         }
         imageUrl = `https://ipfs.io/ipfs/${ipfsHash}`;
-
         server = "ipfs.io";
       } else if (imageUrl.startsWith("ar://")) {
         const arweaveHash = imageUrl.split("ar://")[1];
@@ -158,7 +168,11 @@ export const downloadImage = async ({
       } = await makeRequest({
         imageUrl,
         server,
+        alchemy,
+        contractAddress,
+        tokenId,
       });
+
       if (!isSuccess) {
         return {
           isSuccess: true,
