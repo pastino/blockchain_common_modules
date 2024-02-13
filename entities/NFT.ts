@@ -81,9 +81,6 @@ export class NFT {
   @Column({ nullable: true, default: null, length: 1000 })
   imageAlchemyUrl: string;
 
-  @Column({ nullable: true, default: null, length: 1000 })
-  alchemyImageError: string;
-
   @Column({ nullable: false, default: 1 })
   processingStatus: number;
 

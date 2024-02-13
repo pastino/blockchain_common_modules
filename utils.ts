@@ -1,6 +1,5 @@
 import { ERC_1155_ABI, ERC_20_ABI, ERC_721_ABI } from "./ABI";
 import { web3 as connectedWeb3 } from "./web3";
-import { Contract } from "web3-eth-contract";
 import axios from "axios";
 import Web3 from "web3";
 
@@ -434,8 +433,8 @@ export const getNFTDetails = async (
       const data = await alchemy.nft.getNftMetadata(address, tokenId);
       if (data) {
         let metadataUpdate: any = {};
-        if (!data.title || !data.description || !data.media?.[0]?.raw) {
-          let uri = data.tokenUri?.raw || data.tokenUri;
+        if (!data.name || !data.description || !data.image?.cachedUrl) {
+          let uri = data.tokenUri;
 
           if (uri) {
             if (uri.startsWith("ipfs://")) {
@@ -460,20 +459,21 @@ export const getNFTDetails = async (
         return {
           ...nftDetails,
           title:
-            data?.title ||
-            data?.rawMetadata?.name ||
+            data?.name ||
+            data?.raw?.metadata?.name ||
             metadataUpdate?.title ||
             null,
           description:
             data?.description ||
-            data?.rawMetadata?.description ||
+            data?.raw?.metadata?.description ||
             metadataUpdate?.description ||
             null,
           tokenType: data?.tokenType,
-          imageUri: data?.media?.[0]?.raw || metadataUpdate?.imageUri,
-          attribute: data?.rawMetadata?.attributes || [],
-          attributesRaw: data?.tokenUri?.raw || null,
-          imageAlchemyUrl: data?.media?.[0]?.thumbnail || null,
+          imageUri: data.image?.cachedUrl || data.image?.thumbnailUrl,
+          attribute: data?.raw?.metadata?.attributes || [],
+          attributesRaw: data?.raw?.tokenUri || null,
+          imageAlchemyUrl:
+            data?.image?.cachedUrl || data?.image?.thumbnailUrl || null,
           processingStatus: 3,
         };
       }

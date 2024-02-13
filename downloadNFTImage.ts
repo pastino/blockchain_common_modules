@@ -38,10 +38,10 @@ const makeRequest = async ({
     };
   } catch (error: any) {
     const data = await alchemy.nft.getNftMetadata(contractAddress, tokenId);
-    if (data?.media?.[0]?.thumbnail) {
+    if (data.image?.cachedUrl || data.image?.thumbnailUrl) {
       return {
         isSuccess: true,
-        imageUrl: data?.media?.[0]?.thumbnail,
+        imageUrl: data.image?.cachedUrl || data.image?.thumbnailUrl,
         message: "",
       };
     }
