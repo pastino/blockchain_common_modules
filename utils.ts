@@ -427,14 +427,25 @@ export const getNFTDetails = async (
       if (data) {
         let metadataUpdate: any = {};
         if (!data.title || !data.description || !data.media?.[0]?.raw) {
-          const uri = data.tokenUri?.raw || data.tokenUri;
+          let uri = data.tokenUri?.raw || data.tokenUri;
+
+          if (uri.startsWith("ipfs://")) {
+            let ipfsHash = uri.split("ipfs://")[1];
+            if (ipfsHash.startsWith("ipfs/")) {
+              ipfsHash = ipfsHash.split("ipfs/")[1];
+            }
+            uri = `https://ipfs.io/ipfs/${ipfsHash}`;
+          }
+
           if (uri) {
-            const additionalMetadata = await fetchAndSetNFTDetails(uri);
-            metadataUpdate = {
-              title: additionalMetadata.name || "",
-              description: additionalMetadata.description || "",
-              imageUri: additionalMetadata.image || "",
-            };
+            try {
+              const additionalMetadata = await fetchAndSetNFTDetails(uri);
+              metadataUpdate = {
+                title: additionalMetadata.name || "",
+                description: additionalMetadata.description || "",
+                imageUri: additionalMetadata.image || "",
+              };
+            } catch (e) {}
           }
         }
 
