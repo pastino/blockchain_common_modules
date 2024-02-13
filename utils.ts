@@ -345,23 +345,31 @@ export const fetchAndSetNFTDetails = async (uri: string): Promise<MetaData> => {
     let metadata;
 
     if (uri.startsWith("data:application/json;")) {
+      // ','의 첫 번째 인덱스를 찾아서, 실제 JSON 데이터가 시작하는 위치를 찾습니다.
       const contentIndex = uri.indexOf(",");
+
+      // 실제 JSON 데이터 부분을 추출합니다.
       const content = uri.substring(contentIndex + 1);
 
       let jsonResult: any = {};
-      if (uri.includes("base64,")) {
-        jsonResult = decodeBase64Json(content);
+
+      // 데이터가 base64로 인코딩된 경우 디코딩합니다.
+      if (uri.substring(0, contentIndex).endsWith(";base64")) {
+        const decodedContent = Buffer.from(content, "base64").toString("utf8");
+        jsonResult = JSON.parse(decodedContent);
       } else {
-        let decodedContent = decodeURIComponent(content);
+        // URL 인코딩된 경우 또는 단순 문자열로 제공된 경우
+        const decodedContent = decodeURIComponent(content);
         jsonResult = JSON.parse(decodedContent);
       }
 
+      // JSON 결과를 사용하여 필요한 작업을 수행합니다.
       metadata = {
         attributesRaw: uri,
-        title: jsonResult?.name ? String(jsonResult?.name) : "",
-        description: jsonResult?.description || "",
-        imageUri: jsonResult?.image || jsonResult?.animation_url,
-        attribute: jsonResult?.attributes || [],
+        title: jsonResult.name ? String(jsonResult.name) : "",
+        description: jsonResult.description || "",
+        imageUri: jsonResult.image || jsonResult.animation_url,
+        attribute: jsonResult.attributes || [],
       };
     } else {
       const data = await getAttributeByNetwork(uri);
