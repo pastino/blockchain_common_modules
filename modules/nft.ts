@@ -217,6 +217,16 @@ export class NFT {
 
       await this.saveAttributes(nft, this.contract, nftData.attribute);
 
+      axios.post(
+        "http://119.194.12.150/image/",
+        {
+          nftId: nft.id,
+        },
+        {
+          timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
+        }
+      );
+
       return nft;
     } catch (e) {
       throw e;

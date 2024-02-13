@@ -429,15 +429,15 @@ export const getNFTDetails = async (
         if (!data.title || !data.description || !data.media?.[0]?.raw) {
           let uri = data.tokenUri?.raw || data.tokenUri;
 
-          if (uri.startsWith("ipfs://")) {
-            let ipfsHash = uri.split("ipfs://")[1];
-            if (ipfsHash.startsWith("ipfs/")) {
-              ipfsHash = ipfsHash.split("ipfs/")[1];
-            }
-            uri = `https://ipfs.io/ipfs/${ipfsHash}`;
-          }
-
           if (uri) {
+            if (uri.startsWith("ipfs://")) {
+              let ipfsHash = uri.split("ipfs://")[1];
+              if (ipfsHash.startsWith("ipfs/")) {
+                ipfsHash = ipfsHash.split("ipfs/")[1];
+              }
+              uri = `https://ipfs.io/ipfs/${ipfsHash}`;
+            }
+
             try {
               const additionalMetadata = await fetchAndSetNFTDetails(uri);
               metadataUpdate = {
