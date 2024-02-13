@@ -125,7 +125,6 @@ export const downloadImage = async ({
   message: string;
   hashedFileName: string;
 }> => {
-  let format = "";
   try {
     let imageData;
     const MAX_SIZE_IN_BYTES = 5 * 1024 * 1024; // 5MB
@@ -198,7 +197,7 @@ export const downloadImage = async ({
       );
     }
 
-    format = getUrlExtension(imageUrl);
+    let format = getUrlExtension(imageUrl);
     if (!format) format = getFileExtension(imageData);
     if (!format) format = "png";
 
@@ -302,7 +301,7 @@ export const downloadImage = async ({
   } catch (error: any) {
     return {
       isSuccess: false,
-      message: `${error.message},${format}`,
+      message: error.message,
       hashedFileName: "",
     };
   }
