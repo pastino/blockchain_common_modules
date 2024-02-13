@@ -29,13 +29,12 @@ export class Signature {
   }
 
   async getABI(hexSignature: string) {
-    const signatureData: SignatureEntity | undefined = await getRepository(
-      SignatureEntity
-    ).findOne({
-      where: {
-        hexSignature,
-      },
-    });
+    const signatureData: SignatureEntity | undefined | any =
+      await getRepository(SignatureEntity).findOne({
+        where: {
+          hexSignature,
+        },
+      });
 
     if (!signatureData) {
       //   console.log("Signature not found");
