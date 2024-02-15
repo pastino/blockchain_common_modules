@@ -314,10 +314,34 @@ function decodeBase64Json(base64Encoded: string) {
 
 const getAttributeByNetwork = async (uri: string) => {
   try {
-    const response = await axios.get(uri, {
-      timeout: 10000, // 10초 후 타임아웃
-    });
-    const data = response?.data;
+    let imageUri = uri;
+    let data = null;
+    if (imageUri) {
+      if (imageUri.startsWith("ipfs://")) {
+        let ipfsHash = imageUri.split("ipfs://")[1];
+        if (ipfsHash.startsWith("ipfs/")) {
+          ipfsHash = ipfsHash.split("ipfs/")[1];
+        }
+        try {
+          imageUri = `https://ipfs.io/ipfs/${ipfsHash}`;
+
+          const response = await axios.get(imageUri, {
+            timeout: 10000, // 10초 후 타임아웃
+          });
+          data = response?.data;
+        } catch (error) {
+          try {
+            imageUri = `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`;
+            const response = await axios.get(imageUri, {
+              timeout: 10000, // 10초 후 타임아웃
+            });
+            data = response?.data;
+          } catch (error) {
+            throw error;
+          }
+        }
+      }
+    }
 
     return {
       attributesRaw: uri,

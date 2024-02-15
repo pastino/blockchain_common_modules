@@ -20,20 +20,55 @@ const encrypt = (tokenId: string | number) => {
 
 const makeRequest = async ({
   imageUrl,
-  server,
   alchemy,
   contractAddress,
   tokenId,
 }: any) => {
   try {
-    const response = await axiosInstance.get(imageUrl as string, {
-      responseType: "arraybuffer",
-      maxContentLength: 5 * 1024 * 1024 * 1024, // 3GB
-    });
+    let data = null;
+    try {
+      if (imageUrl.startsWith("ipfs://")) {
+        let ipfsHash = imageUrl.split("ipfs://")[1];
+        if (ipfsHash.startsWith("ipfs/")) {
+          ipfsHash = ipfsHash.split("ipfs/")[1];
+        }
+        imageUrl = `https://ipfs.io/ipfs/${ipfsHash}`;
+      } else if (imageUrl.startsWith("ar://")) {
+        const arweaveHash = imageUrl.split("ar://")[1];
+        imageUrl = `https://arweave.net/${arweaveHash}`;
+      }
+
+      const response = await axiosInstance.get(imageUrl as string, {
+        responseType: "arraybuffer",
+        maxContentLength: 5 * 1024 * 1024 * 1024, // 3GB
+      });
+      data = response?.data;
+    } catch (error) {
+      try {
+        if (imageUrl.startsWith("ipfs://")) {
+          let ipfsHash = imageUrl.split("ipfs://")[1];
+          if (ipfsHash.startsWith("ipfs/")) {
+            ipfsHash = ipfsHash.split("ipfs/")[1];
+          }
+          imageUrl = `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`;
+        } else if (imageUrl.startsWith("ar://")) {
+          const arweaveHash = imageUrl.split("ar://")[1];
+          imageUrl = `https://arweave.net/${arweaveHash}`;
+        }
+
+        const response = await axiosInstance.get(imageUrl as string, {
+          responseType: "arraybuffer",
+          maxContentLength: 5 * 1024 * 1024 * 1024, // 3GB
+        });
+        data = response?.data;
+      } catch (error) {
+        throw error;
+      }
+    }
 
     return {
       isSuccess: true,
-      imageUrl: response.data,
+      imageUrl: data,
       message: "",
     };
   } catch (error: any) {
@@ -150,29 +185,12 @@ export const downloadImage = async ({
 
       imageData = Buffer.from(base64Data, "base64");
     } else {
-      let server = "";
-      if (imageUrl.startsWith("ipfs://")) {
-        let ipfsHash = imageUrl.split("ipfs://")[1];
-        if (ipfsHash.startsWith("ipfs/")) {
-          ipfsHash = ipfsHash.split("ipfs/")[1];
-        }
-        imageUrl = `https://ipfs.io/ipfs/${ipfsHash}`;
-        server = "ipfs.io";
-      } else if (imageUrl.startsWith("ar://")) {
-        const arweaveHash = imageUrl.split("ar://")[1];
-        imageUrl = `https://arweave.net/${arweaveHash}`;
-        server = "arweave.net";
-      } else {
-        server = imageUrl.split("/")[2];
-      }
-
       const {
         isSuccess,
         imageUrl: fetchedImageUrl,
         message: fetchedMessage,
       } = await makeRequest({
         imageUrl,
-        server,
         alchemy,
         contractAddress,
         tokenId,
