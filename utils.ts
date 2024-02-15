@@ -469,7 +469,10 @@ export const getNFTDetails = async (
             metadataUpdate?.description ||
             null,
           tokenType: data?.tokenType,
-          imageUri: data.image?.cachedUrl || data.image?.thumbnailUrl,
+          imageUri:
+            data?.raw?.metadata?.image ||
+            data.image?.cachedUrl ||
+            data.image?.thumbnailUrl,
           attribute: data?.raw?.metadata?.attributes || [],
           attributesRaw: data?.raw?.tokenUri || null,
           imageAlchemyUrl:
