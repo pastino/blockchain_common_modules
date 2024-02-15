@@ -340,6 +340,11 @@ const getAttributeByNetwork = async (uri: string) => {
             throw error;
           }
         }
+      } else {
+        const response = await axios.get(imageUri, {
+          timeout: 10000, // 10초 후 타임아웃
+        });
+        data = response?.data;
       }
     }
 
