@@ -553,3 +553,13 @@ export const getNFTDetails = async (
     };
   }
 };
+
+export const sanitizeText = (text: any) => {
+  if (typeof text === "string") {
+    return text.replace(/\x00/g, "");
+  }
+  return "";
+};
+
+export const truncateTitle = (title: string) =>
+  title.length > 500 ? title.slice(0, 500) : title;

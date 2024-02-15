@@ -2,7 +2,7 @@ import { getRepository } from "typeorm";
 import { Contract, Contract as ContractEntity } from "../entities/Contract";
 import { NFT as NFTEntity } from "../entities/NFT";
 import axios, { AxiosResponse } from "axios";
-import { getNFTDetails, sleep } from "../utils";
+import { getNFTDetails, sanitizeText, sleep } from "../utils";
 import crypto from "crypto";
 import { Attribute } from "../entities/Attribute";
 import { AttributeProperty } from "../entities/AttributeProperty";
@@ -186,13 +186,6 @@ export class NFT {
 
   async createNFTAndAttributes(nftData: any) {
     try {
-      const sanitizeText = (text: any) => {
-        if (typeof text === "string") {
-          return text.replace(/\x00/g, "");
-        }
-        return "";
-      };
-
       const truncateTitle = (title: string) =>
         title.length > 500 ? title.slice(0, 500) : title;
 
