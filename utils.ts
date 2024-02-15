@@ -421,11 +421,6 @@ const getAttributeUriByTokenId = async ({
 
     if (!uri) return "";
 
-    if (uri.startsWith("ar://")) {
-      uri = uri.replace("ar://", "https://arweave.net/");
-    } else if (uri.startsWith("ipfs://")) {
-      uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-    }
     return uri;
   } catch (e) {
     throw e;
@@ -461,14 +456,6 @@ export const getNFTDetails = async (
           let uri = data.tokenUri;
 
           if (uri) {
-            if (uri.startsWith("ipfs://")) {
-              let ipfsHash = uri.split("ipfs://")[1];
-              if (ipfsHash.startsWith("ipfs/")) {
-                ipfsHash = ipfsHash.split("ipfs/")[1];
-              }
-              uri = `https://ipfs.io/ipfs/${ipfsHash}`;
-            }
-
             try {
               const additionalMetadata = await fetchAndSetNFTDetails(uri);
               metadataUpdate = {
