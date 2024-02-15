@@ -39,9 +39,14 @@ const makeRequest = async ({
   } catch (error: any) {
     const data = await alchemy.nft.getNftMetadata(contractAddress, tokenId);
     if (data.image?.cachedUrl || data.image?.thumbnailUrl) {
+      const response = await axiosInstance.get(imageUrl as string, {
+        responseType: "arraybuffer",
+        maxContentLength: 5 * 1024 * 1024 * 1024, // 3GB
+      });
+
       return {
         isSuccess: true,
-        imageUrl: data.image?.cachedUrl || data.image?.thumbnailUrl,
+        imageUrl: response?.data,
         message: "",
       };
     }
