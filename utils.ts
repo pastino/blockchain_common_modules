@@ -316,36 +316,35 @@ const getAttributeByNetwork = async (uri: string) => {
   try {
     let imageUri = uri;
     let data = null;
-    if (imageUri) {
-      if (imageUri.startsWith("ipfs://")) {
-        let ipfsHash = imageUri.split("ipfs://")[1];
-        if (ipfsHash.startsWith("ipfs/")) {
-          ipfsHash = ipfsHash.split("ipfs/")[1];
-        }
-        try {
-          imageUri = `https://ipfs.io/ipfs/${ipfsHash}`;
 
+    if (imageUri.startsWith("ipfs://")) {
+      let ipfsHash = imageUri.split("ipfs://")[1];
+      if (ipfsHash.startsWith("ipfs/")) {
+        ipfsHash = ipfsHash.split("ipfs/")[1];
+      }
+      try {
+        imageUri = `https://ipfs.io/ipfs/${ipfsHash}`;
+
+        const response = await axios.get(imageUri, {
+          timeout: 10000, // 10초 후 타임아웃
+        });
+        data = response?.data;
+      } catch (error) {
+        try {
+          imageUri = `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`;
           const response = await axios.get(imageUri, {
             timeout: 10000, // 10초 후 타임아웃
           });
           data = response?.data;
         } catch (error) {
-          try {
-            imageUri = `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`;
-            const response = await axios.get(imageUri, {
-              timeout: 10000, // 10초 후 타임아웃
-            });
-            data = response?.data;
-          } catch (error) {
-            throw error;
-          }
+          throw error;
         }
-      } else {
-        const response = await axios.get(imageUri, {
-          timeout: 10000, // 10초 후 타임아웃
-        });
-        data = response?.data;
       }
+    } else {
+      const response = await axios.get(imageUri, {
+        timeout: 10000, // 10초 후 타임아웃
+      });
+      data = response?.data;
     }
 
     return {
@@ -501,7 +500,6 @@ export const getNFTDetails = async (
       throw new Error("Alchemy data fetch failed - " + error.message);
     }
   }
-
   try {
     let uri;
     try {
@@ -519,7 +517,7 @@ export const getNFTDetails = async (
           tokenId,
         });
         nftDetails.tokenType = "ERC1155";
-      } catch (innerError) {
+      } catch (innerError: any) {
         const alchemyDetails = await tryFetchMetadataFromAlchemy();
         if (alchemyDetails) {
           return {
@@ -532,6 +530,21 @@ export const getNFTDetails = async (
             "Failed to fetch NFT details from both contract and Alchemy"
           );
         }
+      }
+    }
+
+    if (!uri) {
+      const alchemyDetails = await tryFetchMetadataFromAlchemy();
+      if (alchemyDetails) {
+        return {
+          isSuccess: true,
+          nftDetail: alchemyDetails,
+          message: "성공",
+        };
+      } else {
+        throw new Error(
+          "Failed to fetch NFT details from both contract and Alchemy"
+        );
       }
     }
 
