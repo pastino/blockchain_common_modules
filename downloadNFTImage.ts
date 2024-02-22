@@ -40,8 +40,9 @@ const makeRequest = async ({
 
       const response = await axiosInstance.get(imageUrl as string, {
         responseType: "arraybuffer",
-        maxContentLength: 5 * 1024 * 1024 * 1024, // 3GB
+        maxContentLength: Infinity,
       });
+
       data = response?.data;
     } catch (error) {
       try {
