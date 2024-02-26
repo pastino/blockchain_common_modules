@@ -75,19 +75,19 @@ const makeRequest = async ({
       message: "",
     };
   } catch (error: any) {
-    const data = await alchemy.nft.getNftMetadata(contractAddress, tokenId);
-    if (data.image?.cachedUrl || data.image?.thumbnailUrl) {
-      const response = await axiosInstance.get(imageUrl as string, {
-        responseType: "arraybuffer",
-        maxContentLength: 5 * 1024 * 1024 * 1024, // 3GB
-      });
+    // const data = await alchemy.nft.getNftMetadata(contractAddress, tokenId);
+    // if (data.image?.cachedUrl || data.image?.thumbnailUrl) {
+    //   const response = await axiosInstance.get(imageUrl as string, {
+    //     responseType: "arraybuffer",
+    //     maxContentLength: 5 * 1024 * 1024 * 1024, // 3GB
+    //   });
 
-      return {
-        isSuccess: true,
-        imageUrl: response?.data,
-        message: "",
-      };
-    }
+    //   return {
+    //     isSuccess: true,
+    //     imageUrl: response?.data,
+    //     message: "",
+    //   };
+    // }
     return {
       isSuccess: false,
       imageUrl: "",
