@@ -5,7 +5,9 @@ import sharp from "sharp";
 import ffmpeg from "fluent-ffmpeg";
 import crypto from "crypto";
 
-const axiosInstance = axios.create();
+const axiosInstance = axios.create({
+  timeout: 1000 * 60 * 10, // 10분
+});
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 const encrypt = (tokenId: string | number) => {
@@ -59,7 +61,7 @@ const makeRequest = async ({
 
         const response = await axiosInstance.get(imageUrl as string, {
           responseType: "arraybuffer",
-          maxContentLength: 5 * 1024 * 1024 * 1024, // 3GB
+          maxContentLength: Infinity,
         });
         data = response?.data;
       } catch (error) {
