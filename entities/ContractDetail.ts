@@ -13,6 +13,7 @@ import { Contract } from "./Contract";
 import { Benefit } from "./Benefit";
 import { Loadmap } from "./Loadmap";
 import { contractDetailExample } from "../entityExamples";
+import { Issue } from "./Issue";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -35,6 +36,9 @@ export class ContractDetail {
   @Column({ type: "text", nullable: true })
   detailDescription: string;
 
+  @Column({ type: "text", nullable: true })
+  detailDescriptionKorean: string;
+
   @OneToMany(() => Benefit, (benefit) => benefit.contractDetail, {
     onDelete: "CASCADE",
   })
@@ -44,6 +48,11 @@ export class ContractDetail {
     onDelete: "CASCADE",
   })
   loadmaps: Loadmap[];
+
+  @OneToMany(() => Issue, (issue) => issue.contractDetail, {
+    onDelete: "CASCADE",
+  })
+  issue: Issue[];
 
   @CreateDateColumn()
   createdAt: Date;

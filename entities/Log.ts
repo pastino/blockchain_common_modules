@@ -29,6 +29,7 @@ const ApiProperty = isNestJs
 @Index("idx_log_transaction_contract", ["transaction", "contract"])
 @Index("idx_log_decodedLog", ["decodedLog"])
 @Index("idx_log_contract", ["contract"])
+@Index("idx_log_transaction", ["transaction"])
 @Index("idx_log_nft", ["nft"])
 export class Log {
   @PrimaryGeneratedColumn("increment", { type: "bigint" })

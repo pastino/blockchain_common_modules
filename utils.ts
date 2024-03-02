@@ -518,67 +518,52 @@ export const getNFTDetails = async (
         });
         nftDetails.tokenType = "ERC1155";
       } catch (innerError: any) {
-        // const alchemyDetails = await tryFetchMetadataFromAlchemy();
-        // if (alchemyDetails) {
-        //   return {
-        //     isSuccess: true,
-        //     nftDetail: alchemyDetails,
-        //     message: "성공",
-        //   };
-        // } else {
-
-        // }
-
-        throw new Error(
-          innerError.message || "Failed to fetch NFT details from contract"
-        );
+        const alchemyDetails = await tryFetchMetadataFromAlchemy();
+        if (alchemyDetails) {
+          return {
+            isSuccess: true,
+            nftDetail: alchemyDetails,
+            message: "성공",
+          };
+        } else {
+          throw new Error(
+            innerError.message || "Failed to fetch NFT details from contract"
+          );
+        }
       }
     }
 
     if (!uri) {
-      // const alchemyDetails = await tryFetchMetadataFromAlchemy();
-      // if (alchemyDetails) {
-      //   return {
-      //     isSuccess: true,
-      //     nftDetail: alchemyDetails,
-      //     message: "성공",
-      //   };
-      // } else {
-      //   throw new Error(
-      //     "Failed to fetch NFT details from both contract and Alchemy"
-      //   );
-      // }
-
-      throw new Error("No uri");
+      const alchemyDetails = await tryFetchMetadataFromAlchemy();
+      if (alchemyDetails) {
+        return {
+          isSuccess: true,
+          nftDetail: alchemyDetails,
+          message: "성공",
+        };
+      } else {
+        throw new Error(
+          "Failed to fetch NFT details from both contract and Alchemy"
+        );
+      }
     }
 
-    const metadata = await fetchAndSetNFTDetails(uri);
-    return {
-      isSuccess: true,
-      nftDetail: {
-        ...nftDetails,
-        ...metadata,
-        attributesRaw: uri,
-        processingStatus: 3,
-      },
-      message: "성공",
-    };
-    // try {
-    //   const metadata = await fetchAndSetNFTDetails(uri);
-    //   return {
-    //     isSuccess: true,
-    //     nftDetail: {
-    //       ...nftDetails,
-    //       ...metadata,
-    //       attributesRaw: uri,
-    //       processingStatus: 3,
-    //     },
-    //     message: "성공",
-    //   };
-    // } catch (error) {
-    //   const updatedDetails = await tryFetchMetadataFromAlchemy();
-    //   return { isSuccess: true, nftDetail: updatedDetails, message: "성공" };
-    // }
+    try {
+      const metadata = await fetchAndSetNFTDetails(uri);
+      return {
+        isSuccess: true,
+        nftDetail: {
+          ...nftDetails,
+          ...metadata,
+          attributesRaw: uri,
+          processingStatus: 3,
+        },
+        message: "성공",
+      };
+    } catch (error) {
+      const updatedDetails = await tryFetchMetadataFromAlchemy();
+      return { isSuccess: true, nftDetail: updatedDetails, message: "성공" };
+    }
   } catch (error: any) {
     return {
       isSuccess: false,
