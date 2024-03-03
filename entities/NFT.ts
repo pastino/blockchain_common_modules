@@ -87,6 +87,9 @@ export class NFT {
   @Column({ nullable: true, default: null, length: 1000 })
   errorMessage: string;
 
+  @Column({ nullable: true, default: null, length: 1000 })
+  errorMessageForImage: string;
+
   @Column({ nullable: false, default: false })
   isUpdatedComplete: boolean;
 

@@ -20,12 +20,7 @@ const encrypt = (tokenId: string | number) => {
   return encrypted;
 };
 
-const makeRequest = async ({
-  imageUrl,
-  alchemy,
-  contractAddress,
-  tokenId,
-}: any) => {
+const makeRequest = async ({ imageUrl }: any) => {
   try {
     let data = null;
     try {
@@ -46,7 +41,7 @@ const makeRequest = async ({
       });
 
       data = response?.data;
-    } catch (error) {
+    } catch (error: any) {
       try {
         if (imageUrl.startsWith("ipfs://")) {
           let ipfsHash = imageUrl.split("ipfs://")[1];
@@ -64,7 +59,7 @@ const makeRequest = async ({
           maxContentLength: Infinity,
         });
         data = response?.data;
-      } catch (error) {
+      } catch (error: any) {
         throw error;
       }
     }
@@ -75,19 +70,6 @@ const makeRequest = async ({
       message: "",
     };
   } catch (error: any) {
-    const data = await alchemy.nft.getNftMetadata(contractAddress, tokenId);
-    if (data.image?.cachedUrl || data.image?.thumbnailUrl) {
-      const response = await axiosInstance.get(imageUrl as string, {
-        responseType: "arraybuffer",
-        maxContentLength: 5 * 1024 * 1024 * 1024, // 3GB
-      });
-
-      return {
-        isSuccess: true,
-        imageUrl: response?.data,
-        message: "",
-      };
-    }
     return {
       isSuccess: false,
       imageUrl: "",
@@ -157,12 +139,10 @@ export const downloadImage = async ({
   imageUrl,
   contractAddress,
   tokenId,
-  alchemy,
 }: {
   imageUrl: string;
   contractAddress: string;
   tokenId: string | number;
-  alchemy: any;
 }): Promise<{
   isSuccess: boolean;
   message: string;
@@ -194,17 +174,10 @@ export const downloadImage = async ({
         message: fetchedMessage,
       } = await makeRequest({
         imageUrl,
-        alchemy,
-        contractAddress,
-        tokenId,
       });
 
       if (!isSuccess) {
-        return {
-          isSuccess: true,
-          message: fetchedMessage,
-          hashedFileName: "",
-        };
+        throw fetchedMessage;
       }
       imageData = fetchedImageUrl;
     }
@@ -242,6 +215,7 @@ export const downloadImage = async ({
     if (!fs.existsSync(thumbnailPath)) {
       fs.mkdirSync(thumbnailPath, { recursive: true });
     }
+
     if (["jpeg", "jpg", "png", "webp", "tiff"].includes(format)) {
       // For image formats that Sharp can handle, we resize and change format
       const transformer = sharp(imageData)

@@ -210,15 +210,18 @@ export class NFT {
 
       await this.saveAttributes(nft, this.contract, nftData.attribute);
 
-      axios.post(
-        "http://119.194.12.150/image/",
-        {
-          nftId: nft.id,
-        },
-        {
-          timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
-        }
-      );
+      try {
+        if (nft.imageRaw)
+          axios.post(
+            "http://119.194.12.150/image/",
+            {
+              nftId: nft.id,
+            },
+            {
+              timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
+            }
+          );
+      } catch (e) {}
 
       return nft;
     } catch (e) {
@@ -271,6 +274,7 @@ export class NFT {
     if (nft) {
       return nft;
     }
+
     try {
       const { isSuccess, nftDetail, message } = await getNFTDetails(
         this.contract.address,
@@ -306,49 +310,6 @@ export class NFT {
       if (!nft) {
         throw `Failed to find or save nft`;
       }
-
-      // if (process.env.IS_SAVE_IMAGE === "YES") {
-      //   // NFT 이미지 생성
-      //   try {
-      //     if (nft?.imageRoute) return nft;
-      //     if (!nft?.imageRaw) {
-      //       let failedMessage = "";
-      //       if (!nft) failedMessage = "nft가 없습니다.";
-      //       if (!nft?.imageRaw) failedMessage = "이미지 url이 없습니다.";
-      //       await getRepository(NFTEntity).update(
-      //         { id: nft?.id },
-      //         { processingStatus: 4,  }
-      //       );
-      //       return nft;
-      //     }
-      //     const { isSuccess, message, hashedFileName } = await downloadImage({
-      //       imageUrl:
-      //         typeof nftData?.imageUri === "string"
-      //           ? nftData?.imageUri.replace(/\x00/g, "")
-      //           : "",
-      //       contractAddress: this.contract.address,
-      //       tokenId: this.tokenId,
-      //     });
-      //     if (!isSuccess) {
-      //       // 수정
-      //       // await getRepository(NFTEntity).update(
-      //       //   { id: nft?.id },
-      //       //   { isImageUploaded: false, imageSaveError: message }
-      //       // );
-      //       return nft;
-      //     }
-      //     // 수정
-      //     // await getRepository(NFTEntity).update(
-      //     //   { id: nft?.id },
-      //     //   {
-      //     //     imageRoute: hashedFileName,
-      //     //     isImageUploaded: true,
-      //     //   }
-      //     // );
-      //   } catch (e) {
-      //     null;
-      //   }
-      // }
 
       return nft;
     } catch (e: any) {

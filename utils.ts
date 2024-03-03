@@ -500,6 +500,7 @@ export const getNFTDetails = async (
       throw new Error("Alchemy data fetch failed - " + error.message);
     }
   }
+
   try {
     let uri;
     try {
@@ -517,35 +518,32 @@ export const getNFTDetails = async (
           tokenId,
         });
         nftDetails.tokenType = "ERC1155";
-      } catch (innerError: any) {
-        const alchemyDetails = await tryFetchMetadataFromAlchemy();
-        if (alchemyDetails) {
-          return {
-            isSuccess: true,
-            nftDetail: alchemyDetails,
-            message: "성공",
-          };
-        } else {
-          throw new Error(
-            innerError.message || "Failed to fetch NFT details from contract"
-          );
-        }
-      }
+      } catch (e: any) {}
     }
 
     if (!uri) {
-      const alchemyDetails = await tryFetchMetadataFromAlchemy();
-      if (alchemyDetails) {
+      try {
+        const alchemyDetails = await tryFetchMetadataFromAlchemy();
+        if (!alchemyDetails || !alchemyDetails?.attributesRaw) {
+          throw "No URI";
+        }
+
+        uri = alchemyDetails?.attributesRaw;
+      } catch (e) {
         return {
-          isSuccess: true,
-          nftDetail: alchemyDetails,
-          message: "성공",
+          isSuccess: false,
+          nftDetail: { ...nftDetails, processingStatus: 2 },
+          message: "No URI",
         };
-      } else {
-        throw new Error(
-          "Failed to fetch NFT details from both contract and Alchemy"
-        );
       }
+    }
+
+    if (!isValidUri(uri)) {
+      return {
+        isSuccess: false,
+        nftDetail: { ...nftDetails, processingStatus: 2 },
+        message: "Invalid URI",
+      };
     }
 
     try {
@@ -561,8 +559,31 @@ export const getNFTDetails = async (
         message: "성공",
       };
     } catch (error) {
-      const updatedDetails = await tryFetchMetadataFromAlchemy();
-      return { isSuccess: true, nftDetail: updatedDetails, message: "성공" };
+      try {
+        const updatedDetails = await tryFetchMetadataFromAlchemy();
+
+        if (
+          !updatedDetails?.title &&
+          !updatedDetails?.description &&
+          !updatedDetails?.imageUri &&
+          !updatedDetails?.attribute &&
+          !updatedDetails?.title &&
+          !updatedDetails?.title
+        ) {
+          return {
+            isSuccess: false,
+            nftDetail: { ...nftDetails, processingStatus: 2 },
+            message: "Invalid AttributeRaw URI",
+          };
+        }
+        return { isSuccess: true, nftDetail: updatedDetails, message: "성공" };
+      } catch (error: any) {
+        return {
+          isSuccess: false,
+          nftDetail: nftDetails,
+          message: "Invalid AttributeRaw URI",
+        };
+      }
     }
   } catch (error: any) {
     return {
@@ -582,3 +603,16 @@ export const sanitizeText = (text: any) => {
 
 export const truncateTitle = (title: string) =>
   title.length > 500 ? title.slice(0, 500) : title;
+
+export function isValidUri(uri: string): boolean {
+  // 허용된 시작 문자열 목록
+  const allowedStarts = [
+    "data:application/json;",
+    "http://",
+    "https://",
+    "ipfs://",
+  ];
+
+  // 주어진 URI가 허용된 시작 문자열 중 하나로 시작하는지 확인
+  return allowedStarts.some((allowedStart) => uri.startsWith(allowedStart));
+}
