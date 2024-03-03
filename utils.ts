@@ -573,9 +573,7 @@ export const getNFTDetails = async (
           !updatedDetails?.title &&
           !updatedDetails?.description &&
           !updatedDetails?.imageUri &&
-          !updatedDetails?.attribute &&
-          !updatedDetails?.title &&
-          !updatedDetails?.title
+          updatedDetails?.attribute?.length === 0
         ) {
           return {
             isSuccess: false,
