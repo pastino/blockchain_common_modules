@@ -351,7 +351,11 @@ const getAttributeByNetwork = async (uri: string) => {
       attributesRaw: uri,
       title: data?.name ? String(data?.name) : "",
       description: data?.description || "",
-      imageUri: data?.image || data?.image_url || data?.animation_url,
+      imageUri:
+        data?.image ||
+        data?.image_url ||
+        data?.image_data ||
+        data?.animation_url,
       attribute: data?.attributes || [],
     };
   } catch (error: any) {
@@ -396,7 +400,10 @@ export const fetchAndSetNFTDetails = async (uri: string): Promise<MetaData> => {
         title: jsonResult.name ? String(jsonResult.name) : "",
         description: jsonResult.description || "",
         imageUri:
-          jsonResult.image || jsonResult.image_url || jsonResult.animation_url,
+          jsonResult.image ||
+          jsonResult.image_url ||
+          jsonResult?.image_data ||
+          jsonResult.animation_url,
         attribute: jsonResult.attributes || [],
       };
     } else {
