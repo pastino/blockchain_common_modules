@@ -70,11 +70,7 @@ const makeRequest = async ({ imageUrl }: any) => {
       message: "",
     };
   } catch (error: any) {
-    return {
-      isSuccess: false,
-      imageUrl: "",
-      message: error.message,
-    };
+    throw error;
   }
 };
 
@@ -248,11 +244,7 @@ export const downloadImage = async ({
             console.error("ffmpeg processing error:", err);
             fs.unlinkSync(tempFilePath);
             reject(err);
-            return {
-              isSuccess: false,
-              message: err.message,
-              hashedFileName: "",
-            };
+            throw err;
           })
           .run(); // Run the command
       });
@@ -281,11 +273,7 @@ export const downloadImage = async ({
               console.error("ffmpeg processing error:", err);
               fs.unlinkSync(tempFilePath);
               reject(err);
-              return {
-                isSuccess: false,
-                message: err.message,
-                hashedFileName: "",
-              };
+              throw err;
             })
             .run(); // Run the command
         });
@@ -299,10 +287,6 @@ export const downloadImage = async ({
     console.log(`${contractAddress} / ${tokenId} 이미지 생성`);
     return { isSuccess: true, message: "", hashedFileName };
   } catch (error: any) {
-    return {
-      isSuccess: false,
-      message: error.message,
-      hashedFileName: "",
-    };
+    throw error;
   }
 };
