@@ -226,14 +226,6 @@ export class Transaction {
         process.env.IS_PARALLEL_TRANSCATION === "YES";
 
       if (useParallelProcessing) {
-        // 병렬 처리
-        // const transactionPromises = transactions.map(
-        //   async (transactionHash) => {
-        //     await this.processTransactionHash(transactionHash);
-        //   }
-        // );
-        // await Promise.all(transactionPromises);
-
         const chunkSize = 100;
         const transactionChunks = this.chunkArray(transactions, chunkSize);
 

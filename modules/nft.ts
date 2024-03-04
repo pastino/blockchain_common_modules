@@ -210,18 +210,17 @@ export class NFT {
 
       await this.saveAttributes(nft, this.contract, nftData.attribute);
 
-      try {
-        if (nft.imageRaw)
-          axios.post(
+      if (nft.imageRaw) {
+        axios
+          .post(
             "http://119.194.12.150/image/",
-            {
-              nftId: nft.id,
-            },
-            {
-              timeout: 600000 * 6, // 타임아웃을 1시간으로 설정
-            }
-          );
-      } catch (e) {}
+            { nftId: nft.id },
+            { timeout: 600000 * 6 } // 타임아웃을 1시간으로 설정
+          )
+          .catch((e) => {
+            console.error(e.message);
+          });
+      }
 
       return nft;
     } catch (e) {
