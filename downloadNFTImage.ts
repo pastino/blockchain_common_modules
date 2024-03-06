@@ -23,38 +23,39 @@ const encrypt = (tokenId: string | number) => {
 const makeRequest = async ({ imageUrl }: any) => {
   try {
     let data = null;
+    let ipfsUrl = imageUrl;
     try {
       if (imageUrl.startsWith("ipfs://")) {
         let ipfsHash = imageUrl.split("ipfs://")[1];
         if (ipfsHash.startsWith("ipfs/")) {
           ipfsHash = ipfsHash.split("ipfs/")[1];
         }
-        imageUrl = `https://ipfs.io/ipfs/${ipfsHash}`;
+        ipfsUrl = `https://ipfs.io/ipfs/${ipfsHash}`;
       } else if (imageUrl.startsWith("ar://")) {
         const arweaveHash = imageUrl.split("ar://")[1];
-        imageUrl = `https://arweave.net/${arweaveHash}`;
+        ipfsUrl = `https://arweave.net/${arweaveHash}`;
       }
 
-      const response = await axiosInstance.get(imageUrl as string, {
+      const response = await axiosInstance.get(ipfsUrl as string, {
         responseType: "arraybuffer",
         maxContentLength: Infinity,
       });
 
       data = response?.data;
     } catch (error: any) {
+      let cloudflareUrl = imageUrl;
       try {
         if (imageUrl.startsWith("ipfs://")) {
           let ipfsHash = imageUrl.split("ipfs://")[1];
           if (ipfsHash.startsWith("ipfs/")) {
             ipfsHash = ipfsHash.split("ipfs/")[1];
           }
-          imageUrl = `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`;
+          cloudflareUrl = `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`;
         } else if (imageUrl.startsWith("ar://")) {
           const arweaveHash = imageUrl.split("ar://")[1];
-          imageUrl = `https://arweave.net/${arweaveHash}`;
+          cloudflareUrl = `https://arweave.net/${arweaveHash}`;
         }
-
-        const response = await axiosInstance.get(imageUrl as string, {
+        const response = await axiosInstance.get(cloudflareUrl as string, {
           responseType: "arraybuffer",
           maxContentLength: Infinity,
         });
