@@ -233,22 +233,25 @@ export const downloadImage = async ({
       fs.writeFileSync(tempFilePath, imageData);
 
       const outputPath = path.join(thumbnailPath, hashedFileName);
-      await new Promise((resolve, reject) => {
-        ffmpeg(tempFilePath)
-          .outputOptions("-vf scale=200:-1") // Resize the GIF
-          .output(outputPath)
-          .on("end", () => {
-            fs.unlinkSync(tempFilePath); // Delete the original, unprocessed GIF file
-            resolve(undefined);
-          })
-          .on("error", (err: any) => {
-            console.error("ffmpeg processing error:", err);
-            fs.unlinkSync(tempFilePath);
-            reject(err);
-            throw err;
-          })
-          .run(); // Run the command
-      });
+      try {
+        await new Promise((resolve, reject) => {
+          ffmpeg(tempFilePath)
+            .outputOptions("-vf scale=200:-1") // Resize the GIF
+            .output(outputPath)
+            .on("end", () => {
+              fs.unlinkSync(tempFilePath); // Delete the original, unprocessed GIF file
+              resolve(undefined);
+            })
+            .on("error", (err: any) => {
+              console.error("ffmpeg processing error:", err);
+              fs.unlinkSync(tempFilePath);
+              reject(err);
+            })
+            .run(); // Run the command
+        });
+      } catch (e: any) {
+        throw e;
+      }
     } else if (format === "mp4") {
       const tempFilePath = path.join(
         thumbnailPath,
@@ -274,7 +277,6 @@ export const downloadImage = async ({
               console.error("ffmpeg processing error:", err);
               fs.unlinkSync(tempFilePath);
               reject(err);
-              throw err;
             })
             .run(); // Run the command
         });
