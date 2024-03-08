@@ -28,8 +28,9 @@ export async function handleBlockEvent(blockNum: number, apiKey?: string) {
       console.log("이미 처리된 블록", blockNum);
       return { isSuccess: false, message: "이미 처리된 블록" };
     }
+    console.log("blockNum", blockNum);
     const blockData = await web3.eth.getBlock(blockNum);
-
+    console.log("blockData", blockData);
     if (!blockData) {
       console.log("블록 데이터 없음", blockNum);
       return { isSuccess: false, message: "블록 데이터 없음" };
