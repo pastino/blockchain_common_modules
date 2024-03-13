@@ -9,6 +9,7 @@ import {
   OneToOne,
   JoinColumn,
   Index,
+  ManyToOne,
 } from "typeorm";
 import { NFT } from "./NFT";
 import { TrendCollection } from "./TrendCollection";
@@ -19,6 +20,10 @@ import * as dotenv from "dotenv";
 import { contractExample } from "../entityExamples";
 import { ContractDetail } from "./ContractDetail";
 import { UpcomingContract } from "./UpcomingContract";
+import { Brand } from "./Brand";
+import { CategoryContractMapping } from "./CategoryContractMapping";
+import { CategorySubContractMapping } from "./CategorySubContractMapping";
+import { ContractContractMapping } from "./ContractContractMapping";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -71,6 +76,9 @@ export class Contract {
   @Column({ nullable: true })
   deployedBlockNumber: number;
 
+  @Column({ nullable: true, default: null })
+  createdDate: Date;
+
   @OneToOne(
     () => OpenseaCollection,
     (openseaCollectio) => openseaCollectio.contract,
@@ -111,8 +119,38 @@ export class Contract {
   )
   trendCollections: TrendCollection[];
 
-  @Column({ nullable: true, default: null })
-  createdDate: Date;
+  @ManyToOne(() => Brand, (brand) => brand.contracts, {
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "brandId", referencedColumnName: "id" })
+  brand: Brand;
+
+  @OneToMany(
+    () => CategoryContractMapping,
+    (categoryContractMapping) => categoryContractMapping.contract,
+    {
+      onDelete: "SET NULL",
+    }
+  )
+  categoryContractMapping: CategoryContractMapping[];
+
+  @OneToMany(
+    () => CategorySubContractMapping,
+    (categorySubContractMapping) => categorySubContractMapping.contract,
+    {
+      onDelete: "SET NULL",
+    }
+  )
+  categorySubContractMapping: CategorySubContractMapping[];
+
+  @OneToMany(
+    () => ContractContractMapping,
+    (contractContractMapping) => contractContractMapping.contract,
+    {
+      onDelete: "SET NULL",
+    }
+  )
+  contractContractMapping: ContractContractMapping[];
 
   @CreateDateColumn()
   createdAt: Date;

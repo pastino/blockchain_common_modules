@@ -9,14 +9,11 @@ import {
   OneToMany,
   Unique,
   Index,
-  ManyToMany,
-  JoinTable,
 } from "typeorm";
 import { Contract } from "./Contract";
 import { Log } from "./Log";
 import { nftExample } from "../entityExamples";
 import * as dotenv from "dotenv";
-import { AttributeProperty } from "./AttributeProperty";
 import { AttributePropNFTMapping } from "./AttributePropNFTMapping";
 import { DecodedLog } from "./DecodedLog";
 
