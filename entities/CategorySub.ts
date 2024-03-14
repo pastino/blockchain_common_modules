@@ -25,6 +25,9 @@ export class CategorySub {
   @Column({ type: "text", nullable: true })
   categorySub: string;
 
+  @Column({ type: "text", nullable: true })
+  imageUrl: string;
+
   @OneToMany(
     () => CategorySubContractMapping,
     (categorySubContractMapping) => categorySubContractMapping.categorySub,

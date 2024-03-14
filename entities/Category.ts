@@ -29,6 +29,9 @@ export class Category {
   @Column({ type: "text", nullable: true })
   category: string;
 
+  @Column({ type: "text", nullable: true })
+  imageUrl: string;
+
   @OneToMany(
     () => CategoryContractMapping,
     (categoryContractMapping) => categoryContractMapping.category,
