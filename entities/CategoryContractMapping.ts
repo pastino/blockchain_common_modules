@@ -5,10 +5,12 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from "typeorm";
 import * as dotenv from "dotenv";
 import { Category } from "./Category";
 import { Contract } from "./Contract";
+import { CategorySub } from "./CategorySub";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -33,6 +35,16 @@ export class CategoryContractMapping {
   })
   @JoinColumn({ name: "contractId", referencedColumnName: "id" })
   contract: Contract;
+
+  @ManyToOne(
+    () => CategorySub,
+    (categorySub) => categorySub.categoryContractMapping,
+    {
+      onDelete: "CASCADE",
+    }
+  )
+  @JoinColumn({ name: "categorySubId", referencedColumnName: "id" })
+  categorySub: CategorySub;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -9,6 +9,7 @@ import {
 import * as dotenv from "dotenv";
 import { Contract } from "./Contract";
 import { CategorySubContractMapping } from "./CategorySubContractMapping";
+import { CategoryContractMapping } from "./CategoryContractMapping";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
 const isNestJs = process.env.APP_TYPE === "nestjs";
@@ -27,6 +28,15 @@ export class CategorySub {
 
   @Column({ type: "text", nullable: true })
   imageUrl: string;
+
+  @OneToMany(
+    () => CategoryContractMapping,
+    (categoryContractMapping) => categoryContractMapping.categorySub,
+    {
+      onDelete: "CASCADE",
+    }
+  )
+  categoryContractMapping: CategoryContractMapping[];
 
   @OneToMany(
     () => CategorySubContractMapping,

@@ -5,13 +5,8 @@ import {
   UpdateDateColumn,
   Column,
   OneToMany,
-  ManyToOne,
-  JoinColumn,
 } from "typeorm";
 import * as dotenv from "dotenv";
-import { Contract } from "./Contract";
-import { CategorySub } from "./CategorySub";
-import { Brand } from "./Brand";
 import { CategoryContractMapping } from "./CategoryContractMapping";
 
 dotenv.config({ path: __dirname + "/../../../.env.dev" });
