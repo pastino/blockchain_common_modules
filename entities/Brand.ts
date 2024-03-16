@@ -28,10 +28,14 @@ export class Brand {
   @Column({ type: "text", nullable: true })
   description: string;
 
+  @Column({ type: "text", nullable: true })
+  imageUrl: string;
+
   @OneToMany(() => Contract, (contract) => contract, {
     onDelete: "SET NULL",
   })
   contracts: Contract[];
+
 
   @CreateDateColumn()
   createdAt: Date;
